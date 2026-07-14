@@ -1,0 +1,10 @@
+name: CrewCMoi
+description: The plugin of the CrewCMoi server
+author: MonsieurTh30
+version: 1.0.0
+api-version: '1.21'
+main: fr.crewcmoi.Main
+permissions:
+  crew.admin:
+    default: op
+    description: Permission admin
