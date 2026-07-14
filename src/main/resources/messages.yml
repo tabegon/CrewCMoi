@@ -32,3 +32,17 @@ sell:
   gui-title: "&2&lVente d'objets"
   success: "&aVente effectuée : &e{count} objet(s)&a pour &e{amount}&a."
   nothing-sold: "&cAucun objet vendable trouvé dans la GUI."
+
+ah:
+  gui-title: "&5&lHôtel des ventes"
+  usage: "&cUsage : /ah ou /ah sell <prix>"
+  invalid-price: "&cMontant invalide."
+  price-too-low: "&cLe prix minimum est de {amount}."
+  no-item-in-hand: "&cVous devez tenir un objet en main pour le mettre en vente."
+  listed: "&aObjet mis en vente pour &e{amount}&a !"
+  bought: "&aAchat effectué avec succès !"
+  cancelled: "&aAnnonce retirée, objet(s) rendu(s)."
+  not-enough-money: "&cVous n'avez pas assez d'argent pour cet achat."
+  inventory-full: "&cVotre inventaire est plein."
+  own-item: "&cVous ne pouvez pas acheter votre propre annonce."
+  not-found: "&cCette annonce n'est plus disponible."

@@ -16,3 +16,9 @@ economy:
 
   # Si true, le solde d'un joueur peut devenir négatif via /money remove
   allow-negative-balance: false
+
+  # Prix minimum autorisé pour une mise en vente via /ah sell
+  auction-min-price: 0.01
+
+  # Pourcentage de taxe prélevé sur chaque vente réalisée à l'hôtel des ventes (0 = aucune taxe)
+  auction-tax-percent: 5.0

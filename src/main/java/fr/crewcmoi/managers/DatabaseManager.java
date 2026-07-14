@@ -1,6 +1,8 @@
 package fr.crewcmoi.managers;
 
+import fr.crewcmoi.auction.AuctionItem;
 import fr.crewcmoi.database.PlayerData;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 import java.util.UUID;
@@ -41,4 +43,24 @@ public interface DatabaseManager {
      * Retourne la liste de tous les joueurs triés par solde décroissant.
      */
     List<PlayerData> getTopBalances(int limit);
+
+    /**
+     * Crée une nouvelle annonce dans l'hôtel des ventes et retourne son identifiant (-1 en cas d'échec).
+     */
+    int createAuction(UUID sellerUuid, String sellerName, ItemStack item, double price);
+
+    /**
+     * Retourne toutes les annonces actives de l'hôtel des ventes.
+     */
+    List<AuctionItem> getActiveAuctions();
+
+    /**
+     * Récupère une annonce par son identifiant (peut retourner null si elle n'existe plus).
+     */
+    AuctionItem getAuction(int id);
+
+    /**
+     * Supprime une annonce (vendue ou annulée).
+     */
+    void removeAuction(int id);
 }

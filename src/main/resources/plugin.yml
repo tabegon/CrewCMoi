@@ -20,6 +20,10 @@ commands:
   sell:
     description: Ouvre une interface pour vendre vos objets.
     usage: /sell
+  ah:
+    description: Ouvre l'hôtel des ventes entre joueurs.
+    usage: /ah [sell <prix>]
+    aliases: [auctionhouse, auction]
 
 permissions:
   crew.balance.others:
