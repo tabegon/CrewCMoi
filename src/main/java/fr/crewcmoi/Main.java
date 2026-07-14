@@ -1,12 +1,12 @@
-package fr.economy;
+package fr.crewcmoi;
 
-import fr.economy.commands.BalanceCommand;
-import fr.economy.commands.BalanceTopCommand;
-import fr.economy.commands.MoneyCommand;
-import fr.economy.listeners.JoinListener;
-import fr.economy.managers.DatabaseManager;
-import fr.economy.managers.EconomyManager;
-import fr.economy.managers.SQLiteManager;
+import fr.crewcmoi.commands.BalanceCommand;
+import fr.crewcmoi.commands.BalanceTopCommand;
+import fr.crewcmoi.commands.MoneyCommand;
+import fr.crewcmoi.listeners.JoinListener;
+import fr.crewcmoi.managers.DatabaseManager;
+import fr.crewcmoi.managers.EconomyManager;
+import fr.crewcmoi.managers.SQLiteManager;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;

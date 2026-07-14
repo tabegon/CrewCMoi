@@ -1,6 +1,6 @@
 package fr.crewcmoi.managers;
 
-import fr.economy.data.PlayerData;
+import fr.crewcmoi.database.PlayerData;
 
 import java.util.List;
 import java.util.UUID;

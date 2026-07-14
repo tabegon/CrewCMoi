@@ -1,0 +1,29 @@
+# =========================================
+#          Messages EconomyPlugin
+# Les couleurs utilisent le format & (ex: &a, &c, &6)
+# =========================================
+
+prefix: "&8[&6Economy&8] &r"
+
+general:
+  no-permission: "&cVous n'avez pas la permission d'utiliser cette commande."
+  player-only: "&cCette commande doit être exécutée par un joueur."
+  player-not-found: "&cCe joueur n'existe pas ou n'a jamais rejoint le serveur."
+  invalid-amount: "&cMontant invalide."
+
+balance:
+  self: "&7Votre solde : &a{amount}"
+  other: "&7Solde de &e{player}&7 : &a{amount}"
+
+money:
+  usage: "&cUsage : /money <add|remove|set> <joueur> <montant>"
+  add-success: "&aVous avez ajouté &e{amount}&a à &e{player}&a."
+  add-received: "&aVous avez reçu &e{amount}&a !"
+  remove-success: "&aVous avez retiré &e{amount}&a à &e{player}&a."
+  remove-received: "&cOn vous a retiré &e{amount}&c."
+  remove-not-enough: "&c{player} n'a pas assez d'argent pour retirer ce montant."
+  set-success: "&aVous avez défini le solde de &e{player}&a à &e{amount}&a."
+  set-received: "&eVotre solde a été défini à {amount}."
+
+baltop:
+  title: "&6&lClassement des richesses"

@@ -43,8 +43,6 @@ tasks.processResources {
 
 tasks.shadowJar {
     archiveClassifier.set("")
-    // Relocalise sqlite-jdbc pour éviter tout conflit avec d'autres plugins
-    relocate("org.sqlite", "fr.crewcmoi.libs.sqlite")
 }
 
 tasks.build {

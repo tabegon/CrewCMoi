@@ -1,8 +1,8 @@
 package fr.crewcmoi.commands;
 
-import fr.economy.Main;
-import fr.economy.data.PlayerData;
-import fr.economy.managers.EconomyManager;
+import fr.crewcmoi.Main;
+import fr.crewcmoi.database.PlayerData;
+import fr.crewcmoi.managers.EconomyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

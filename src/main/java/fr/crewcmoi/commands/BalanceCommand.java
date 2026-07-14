@@ -1,8 +1,8 @@
 package fr.crewcmoi.commands;
 
-import fr.economy.Main;
-import fr.economy.data.PlayerData;
-import fr.economy.managers.EconomyManager;
+import fr.crewcmoi.Main;
+import fr.crewcmoi.database.PlayerData;
+import fr.crewcmoi.managers.EconomyManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -47,7 +47,7 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
         }
 
         // /balance <joueur>
-        if (!sender.hasPermission("economy.balance.others")) {
+        if (!sender.hasPermission("crew.balance.others")) {
             sendMessage(sender, "&cVous n'avez pas la permission de voir le solde d'un autre joueur.");
             return true;
         }
@@ -67,7 +67,7 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
-        if (args.length == 1 && sender.hasPermission("economy.balance.others")) {
+        if (args.length == 1 && sender.hasPermission("crew.balance.others")) {
             String partial = args[0].toLowerCase();
             for (Player online : Bukkit.getOnlinePlayers()) {
                 if (online.getName().toLowerCase().startsWith(partial)) {

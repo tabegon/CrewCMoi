@@ -1,0 +1,18 @@
+# =========================================
+#         Configuration EconomyPlugin
+# =========================================
+
+database:
+  # Type de base de données : actuellement seul "sqlite" est implémenté dans cette base.
+  # Prévu pour être extensible (ex: mysql) via l'interface DatabaseManager.
+  type: sqlite
+
+economy:
+  # Solde de départ des nouveaux joueurs
+  starting-balance: 100.0
+
+  # Symbole affiché après les montants (ex: 100.00$)
+  currency-symbol: "C.coin"
+
+  # Si true, le solde d'un joueur peut devenir négatif via /money remove
+  allow-negative-balance: false

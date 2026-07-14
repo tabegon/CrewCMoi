@@ -1,7 +1,7 @@
 package fr.crewcmoi.managers;
 
-import fr.economy.Main;
-import fr.economy.data.PlayerData;
+import fr.crewcmoi.Main;
+import fr.crewcmoi.database.PlayerData;
 
 import java.io.File;
 import java.sql.*;

@@ -1,0 +1,27 @@
+name: CrewCMoi
+description: The plugin of the CrewCMoi server
+author: MonsieurTh30
+version: 1.0.0
+api-version: '1.21'
+main: fr.crewcmoi.Main
+
+commands:
+  balance:
+    description: Affiche votre solde ou celui d'un autre joueur.
+    usage: /balance [joueur]
+    aliases: [bal]
+  money:
+    description: Commande admin pour gérer l'argent des joueurs.
+    usage: /money <add|remove|set> <joueur> <montant>
+    aliases: [eco]
+  baltop:
+    description: Affiche le classement des joueurs les plus riches.
+    usage: /baltop
+
+permissions:
+  crew.balance.others:
+    description: Permet de voir le solde d'un autre joueur.
+    default: op
+  crew.admin:
+    description: Permet d'utiliser les commandes admin d'économie.
+    default: op

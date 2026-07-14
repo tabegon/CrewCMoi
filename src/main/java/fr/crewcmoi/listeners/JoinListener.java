@@ -1,7 +1,7 @@
 package fr.crewcmoi.listeners;
 
-import fr.economy.Main;
-import fr.economy.managers.EconomyManager;
+import fr.crewcmoi.Main;
+import fr.crewcmoi.managers.EconomyManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;

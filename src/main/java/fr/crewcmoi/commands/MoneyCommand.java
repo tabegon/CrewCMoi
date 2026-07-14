@@ -1,8 +1,8 @@
 package fr.crewcmoi.commands;
 
-import fr.economy.Main;
-import fr.economy.data.PlayerData;
-import fr.economy.managers.EconomyManager;
+import fr.crewcmoi.Main;
+import fr.crewcmoi.database.PlayerData;
+import fr.crewcmoi.managers.EconomyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -33,7 +33,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("economy.admin")) {
+        if (!sender.hasPermission("crew.admin")) {
             sendMessage(sender, "&cVous n'avez pas la permission d'utiliser cette commande.");
             return true;
         }
@@ -107,7 +107,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!sender.hasPermission("economy.admin")) {
+        if (!sender.hasPermission("crew.admin")) {
             return new ArrayList<>();
         }
 
