@@ -1,0 +1,24 @@
+# =========================================
+#      Prix de vente - Commande /sell
+# =========================================
+# Ajoutez ici les objets vendables avec /sell.
+# Format : NOM_DU_MATERIAU: prix_unitaire
+# Le nom du matériau correspond à l'énumération Bukkit Material (ex: COBBLESTONE, DIAMOND).
+# Un prix à 0 ou absent rend l'objet non vendable.
+
+prices:
+  COBBLESTONE: 0.5
+  STONE: 0.5
+  DIRT: 0.1
+  SAND: 0.2
+  GRAVEL: 0.2
+  OAK_LOG: 2.0
+  COAL: 3.0
+  IRON_INGOT: 8.0
+  GOLD_INGOT: 12.0
+  DIAMOND: 50.0
+  EMERALD: 40.0
+  NETHERITE_INGOT: 200.0
+  ROTTEN_FLESH: 0.1
+  STRING: 0.3
+  WHEAT: 1.0

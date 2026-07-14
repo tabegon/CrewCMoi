@@ -27,3 +27,8 @@ money:
 
 baltop:
   title: "&6&lClassement des richesses"
+
+sell:
+  gui-title: "&2&lVente d'objets"
+  success: "&aVente effectuée : &e{count} objet(s)&a pour &e{amount}&a."
+  nothing-sold: "&cAucun objet vendable trouvé dans la GUI."

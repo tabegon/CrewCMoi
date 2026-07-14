@@ -2,6 +2,7 @@ package fr.crewcmoi.commands;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.database.PlayerData;
+import fr.crewcmoi.gui.BaltopHolder;
 import fr.crewcmoi.managers.EconomyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -53,7 +54,9 @@ public class BalanceTopCommand implements CommandExecutor {
 
     private void openGui(Player viewer, List<PlayerData> top) {
         int size = 54;
-        Inventory gui = Bukkit.createInventory(null, size, ChatColor.translateAlternateColorCodes('&', "&6&lClassement des richesses"));
+        BaltopHolder holder = new BaltopHolder();
+        Inventory gui = Bukkit.createInventory(holder, size, ChatColor.translateAlternateColorCodes('&', "&6&lClassement des richesses"));
+        holder.setInventory(gui);
 
         String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
 

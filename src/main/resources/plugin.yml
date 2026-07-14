@@ -17,6 +17,9 @@ commands:
   baltop:
     description: Affiche le classement des joueurs les plus riches.
     usage: /baltop
+  sell:
+    description: Ouvre une interface pour vendre vos objets.
+    usage: /sell
 
 permissions:
   crew.balance.others:
