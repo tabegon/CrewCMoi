@@ -1,11 +1,13 @@
 package fr.crewcmoi.listeners;
 
+import fr.crewcmoi.Main;
 import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.AuctionHolder;
 import fr.crewcmoi.gui.BaltopHolder;
 import fr.crewcmoi.gui.SellGuiManager;
 import fr.crewcmoi.gui.SellHolder;
 import fr.crewcmoi.managers.AuctionManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,11 +24,13 @@ import org.bukkit.inventory.InventoryHolder;
  */
 public class GuiListener implements Listener {
 
+    private final Main plugin;
     private final SellGuiManager sellGuiManager;
     private final AuctionManager auctionManager;
     private final AuctionGuiManager auctionGuiManager;
 
-    public GuiListener(SellGuiManager sellGuiManager, AuctionManager auctionManager, AuctionGuiManager auctionGuiManager) {
+    public GuiListener(Main plugin, SellGuiManager sellGuiManager, AuctionManager auctionManager, AuctionGuiManager auctionGuiManager) {
+        this.plugin = plugin;
         this.sellGuiManager = sellGuiManager;
         this.auctionManager = auctionManager;
         this.auctionGuiManager = auctionGuiManager;
@@ -59,10 +63,16 @@ public class GuiListener implements Listener {
                 if (!SellHolder.isItemSlot(rawSlot)) {
                     // Clic sur un emplacement de remplissage décoratif : interdit.
                     event.setCancelled(true);
+                    return;
                 }
                 // Sinon (emplacement de vente) : on laisse faire pour permettre de poser/retirer des objets.
             }
-            // Clics dans l'inventaire du joueur (shift-click compris) : autorisés par défaut.
+            // Clics dans l'inventaire du joueur (shift-click compris) : autorisés par défaut,
+            // et peuvent aussi remplir la GUI de vente (shift-click depuis l'inventaire du joueur).
+
+            // On recalcule le montant affiché sur l'émeraude au tick suivant,
+            // une fois que le serveur a effectivement déplacé l'objet.
+            Bukkit.getScheduler().runTask(plugin, () -> sellGuiManager.refreshConfirmButton(topInventory));
             return;
         }
 
@@ -156,6 +166,7 @@ public class GuiListener implements Listener {
                     return;
                 }
             }
+            Bukkit.getScheduler().runTask(plugin, () -> sellGuiManager.refreshConfirmButton(topInventory));
         }
     }
 

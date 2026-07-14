@@ -20,6 +20,9 @@ commands:
   sell:
     description: Ouvre une interface pour vendre vos objets.
     usage: /sell
+  pay:
+    description: Envoie de l'argent à un autre joueur.
+    usage: /pay <joueur> <montant>
   ah:
     description: Ouvre l'hôtel des ventes entre joueurs.
     usage: /ah [sell <prix>]

@@ -42,7 +42,7 @@ public class SellGuiManager {
             gui.setItem(i, filler);
         }
 
-        gui.setItem(SellHolder.CONFIRM_SLOT, createConfirmButton());
+        gui.setItem(SellHolder.CONFIRM_SLOT, createConfirmButton(gui));
 
         player.openInventory(gui);
     }
@@ -57,7 +57,30 @@ public class SellGuiManager {
         return item;
     }
 
-    private ItemStack createConfirmButton() {
+    /**
+     * Construit le bouton émeraude avec, dans son lore, le montant total
+     * actuellement calculé pour les objets présents dans la GUI.
+     */
+    private ItemStack createConfirmButton(Inventory gui) {
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        double total = 0.0;
+        int itemCount = 0;
+        boolean hasUnsellable = false;
+
+        for (int slot : SellHolder.ITEM_SLOTS) {
+            ItemStack stack = gui.getItem(slot);
+            if (stack == null || stack.getType() == Material.AIR) {
+                continue;
+            }
+            double unitPrice = pricesManager.getPrice(stack.getType());
+            if (unitPrice <= 0) {
+                hasUnsellable = true;
+                continue;
+            }
+            total += unitPrice * stack.getAmount();
+            itemCount += stack.getAmount();
+        }
+
         ItemStack item = new ItemStack(Material.EMERALD);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -67,10 +90,27 @@ public class SellGuiManager {
                     "&7Placez vos objets dans les emplacements"));
             lore.add(ChatColor.translateAlternateColorCodes('&',
                     "&7ci-dessus puis cliquez ici pour vendre."));
+            lore.add("");
+            lore.add(ChatColor.translateAlternateColorCodes('&',
+                    "&7Objets vendables : &e" + itemCount));
+            lore.add(ChatColor.translateAlternateColorCodes('&',
+                    "&7Vous allez gagner : &a" + format.format(total) + currency));
+            if (hasUnsellable) {
+                lore.add(ChatColor.translateAlternateColorCodes('&',
+                        "&8(certains objets placés ne sont pas vendables)"));
+            }
             meta.setLore(lore);
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    /**
+     * Recalcule et remet à jour le bouton émeraude (montant à gagner) après
+     * chaque ajout/retrait d'objet dans la GUI de vente.
+     */
+    public void refreshConfirmButton(Inventory gui) {
+        gui.setItem(SellHolder.CONFIRM_SLOT, createConfirmButton(gui));
     }
 
     /**

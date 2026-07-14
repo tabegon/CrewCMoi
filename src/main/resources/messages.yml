@@ -33,6 +33,14 @@ sell:
   success: "&aVente effectuée : &e{count} objet(s)&a pour &e{amount}&a."
   nothing-sold: "&cAucun objet vendable trouvé dans la GUI."
 
+pay:
+  usage: "&cUsage : /pay <joueur> <montant>"
+  invalid-amount: "&cLe montant doit être un nombre positif."
+  self: "&cVous ne pouvez pas vous payer vous-même."
+  not-enough-money: "&cVous n'avez pas assez d'argent pour envoyer {amount}."
+  sent: "&aVous avez envoyé &e{amount}&a à &e{player}&a."
+  received: "&aVous avez reçu &e{amount}&a de la part de &e{player}&a !"
+
 ah:
   gui-title: "&5&lHôtel des ventes"
   usage: "&cUsage : /ah ou /ah sell <prix>"

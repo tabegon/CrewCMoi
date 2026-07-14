@@ -4,6 +4,7 @@ import fr.crewcmoi.commands.AuctionCommand;
 import fr.crewcmoi.commands.BalanceCommand;
 import fr.crewcmoi.commands.BalanceTopCommand;
 import fr.crewcmoi.commands.MoneyCommand;
+import fr.crewcmoi.commands.PayCommand;
 import fr.crewcmoi.commands.SellCommand;
 import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.SellGuiManager;
@@ -56,13 +57,14 @@ public class Main extends JavaPlugin {
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager), this);
-        getServer().getPluginManager().registerEvents(new GuiListener(sellGuiManager, auctionManager, auctionGuiManager), this);
+        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager), this);
 
         // Enregistrement des commandes
         registerCommand("balance", new BalanceCommand(this, economyManager));
         registerCommand("money", new MoneyCommand(this, economyManager));
         registerCommand("baltop", new BalanceTopCommand(this, economyManager));
         registerCommand("sell", new SellCommand(sellGuiManager));
+        registerCommand("pay", new PayCommand(this, economyManager));
         registerCommand("ah", new AuctionCommand(this, auctionManager, auctionGuiManager));
 
         getLogger().info("EconomyPlugin activé avec succès !");
