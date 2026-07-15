@@ -4,8 +4,12 @@ import fr.crewcmoi.Main;
 import fr.crewcmoi.database.BountyEntry;
 import fr.crewcmoi.database.BountyTarget;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -21,6 +25,11 @@ public class BountyManager {
     private final Main plugin;
     private final DatabaseManager databaseManager;
     private final EconomyManager economyManager;
+    private final DecimalFormat format = new DecimalFormat("#,##0.00");
+
+    // Préfixe des équipes de scoreboard utilisées uniquement pour l'affichage visuel
+    // (pseudo en rouge + prime en gold), une équipe dédiée par joueur ayant une prime.
+    private static final String TEAM_PREFIX = "bounty_";
 
     public BountyManager(Main plugin, DatabaseManager databaseManager, EconomyManager economyManager) {
         this.plugin = plugin;
@@ -62,6 +71,7 @@ public class BountyManager {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
                 databaseManager.addBounty(targetUuid, targetDisplayName, sender.getUniqueId(), sender.getName(), amount));
 
+        refreshBountyDisplay(targetUuid, targetDisplayName);
         callback.accept(AddResult.SUCCESS);
     }
 
@@ -71,6 +81,7 @@ public class BountyManager {
     public void addServerBounty(UUID targetUuid, String targetName, double amount) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
                 databaseManager.addBounty(targetUuid, targetName, null, "Serveur", amount));
+        refreshBountyDisplay(targetUuid, targetName);
     }
 
     public int getServerBountyCountToday(UUID playerUuid) {
@@ -114,6 +125,68 @@ public class BountyManager {
             economyManager.deposit(killerUuid, claimable);
         }
 
+        Player victim = Bukkit.getPlayer(victimUuid);
+        if (victim != null) {
+            clearBountyDisplay(victim.getName());
+        }
+
         return claimable;
+    }
+
+    /**
+     * Recalcule (de façon asynchrone) le total des primes actives d'un joueur et met à jour
+     * son affichage visuel (pseudo rouge + prime en gold) en conséquence.
+     */
+    public void refreshBountyDisplay(UUID uuid, String name) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            List<BountyEntry> entries = databaseManager.getBounties(uuid);
+            double total = entries.stream().mapToDouble(BountyEntry::getAmount).sum();
+            Bukkit.getScheduler().runTask(plugin, () -> applyBountyDisplay(name, total));
+        });
+    }
+
+    /**
+     * Réapplique l'affichage de prime d'un joueur qui vient de se connecter (synchrone, à
+     * appeler depuis le thread principal au join).
+     */
+    public void refreshBountyDisplayOnJoin(UUID uuid, String name) {
+        refreshBountyDisplay(uuid, name);
+    }
+
+    private void applyBountyDisplay(String playerName, double total) {
+        if (total > 0) {
+            Scoreboard board = getMainScoreboard();
+            String teamName = teamName(playerName);
+            Team team = board.getTeam(teamName);
+            if (team == null) {
+                team = board.registerNewTeam(teamName);
+            }
+            team.setColor(ChatColor.RED);
+            String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+            team.setSuffix(" §6[§e" + format.format(total) + currency + "§6]");
+            if (!team.hasEntry(playerName)) {
+                team.addEntry(playerName);
+            }
+        } else {
+            clearBountyDisplay(playerName);
+        }
+    }
+
+    private void clearBountyDisplay(String playerName) {
+        Scoreboard board = getMainScoreboard();
+        Team team = board.getTeam(teamName(playerName));
+        if (team != null) {
+            team.unregister();
+        }
+    }
+
+    private String teamName(String playerName) {
+        // Les noms d'équipe sont limités en longueur sur certaines versions : on tronque prudemment.
+        String base = TEAM_PREFIX + playerName;
+        return base.length() > 40 ? base.substring(0, 40) : base;
+    }
+
+    private Scoreboard getMainScoreboard() {
+        return Bukkit.getScoreboardManager().getMainScoreboard();
     }
 }

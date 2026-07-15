@@ -36,7 +36,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sendMessage(sender, "&cCette commande doit être exécutée par un joueur.");
+            sendMessage(sender, "&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.");
             return true;
         }
 
@@ -48,6 +48,8 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase()) {
             case "create" -> handleCreate(player, args);
             case "add" -> handleAdd(player, args);
+            case "accept" -> handleAccept(player);
+            case "deny" -> handleDeny(player);
             case "leave" -> handleLeave(player);
             case "disband" -> handleDisband(player);
             case "info" -> handleInfo(player, args);
@@ -59,52 +61,81 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
 
     private void handleCreate(Player player, String[] args) {
         if (args.length < 2) {
-            sendMessage(player, "&cUsage : /team create <nom>");
+            sendMessage(player, "&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ ᴄʀᴇᴀᴛᴇ <ɴᴏᴍ>");
             return;
         }
 
         teamManager.createTeam(player, args[1], result -> {
             switch (result) {
-                case SUCCESS -> sendMessage(player, "&aVotre équipe &e" + args[1] + "&a a été créée !");
-                case ALREADY_IN_TEAM -> sendMessage(player, "&cVous faites déjà partie d'une équipe. Quittez-la avec &f/team leave&c.");
-                case NAME_TAKEN -> sendMessage(player, "&cCe nom d'équipe est déjà pris.");
-                case INVALID_NAME -> sendMessage(player, "&cNom invalide (3 à 16 caractères, lettres/chiffres/_ uniquement).");
-                case ERROR -> sendMessage(player, "&cUne erreur est survenue lors de la création de l'équipe.");
+                case SUCCESS -> sendMessage(player, "&aᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ &e" + args[1] + "&a ᴀ ᴇᴛᴇ ᴄʀᴇᴇᴇ !");
+                case ALREADY_IN_TEAM -> sendMessage(player, "&cᴠᴏᴜꜱ ꜰᴀɪᴛᴇꜱ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ'ᴜɴᴇ ᴇǫᴜɪᴘᴇ. ǫᴜɪᴛᴛᴇᴢ-ʟᴀ ᴀᴠᴇᴄ &f/ᴛᴇᴀᴍ ʟᴇᴀᴠᴇ&c.");
+                case NAME_TAKEN -> sendMessage(player, "&cᴄᴇ ɴᴏᴍ ᴅ'ᴇǫᴜɪᴘᴇ ᴇꜱᴛ ᴅᴇᴊᴀ ᴘʀɪꜱ.");
+                case INVALID_NAME -> sendMessage(player, "&cɴᴏᴍ ɪɴᴠᴀʟɪᴅᴇ (3 ᴀ 16 ᴄᴀʀᴀᴄᴛᴇʀᴇꜱ, ʟᴇᴛᴛʀᴇꜱ/ᴄʜɪꜰꜰʀᴇꜱ/_ ᴜɴɪǫᴜᴇᴍᴇɴᴛ).");
+                case ERROR -> sendMessage(player, "&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ ʟᴏʀꜱ ᴅᴇ ʟᴀ ᴄʀᴇᴀᴛɪᴏɴ ᴅᴇ ʟ'ᴇǫᴜɪᴘᴇ.");
             }
         });
     }
 
     private void handleAdd(Player player, String[] args) {
         if (args.length < 2) {
-            sendMessage(player, "&cUsage : /team add <joueur>");
+            sendMessage(player, "&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ>");
             return;
         }
 
         String targetName = args[1];
-        teamManager.addMember(player, targetName, result -> {
+        teamManager.inviteMember(player, targetName, result -> {
             switch (result) {
                 case SUCCESS -> {
-                    sendMessage(player, "&a" + targetName + " a rejoint votre équipe !");
+                    sendMessage(player, "&aɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴᴠᴏʏᴇᴇ ᴀ &e" + targetName + "&a. ᴇɴ ᴀᴛᴛᴇɴᴛᴇ ᴅᴇ ꜱᴀ ʀᴇᴘᴏɴꜱᴇ...");
                     Player online = Bukkit.getPlayerExact(targetName);
                     if (online != null) {
-                        sendMessage(online, "&aVous avez rejoint l'équipe de &e" + player.getName() + "&a !");
+                        sendMessage(online, "&e" + player.getName() + "&a ᴠᴏᴜꜱ ᴀ ɪɴᴠɪᴛᴇ ᴅᴀɴꜱ ꜱᴏɴ ᴇǫᴜɪᴘᴇ !");
+                        sendMessage(online, "&aᴛᴀᴘᴇᴢ &f/ᴛᴇᴀᴍ ᴀᴄᴄᴇᴘᴛ&a ᴘᴏᴜʀ ᴀᴄᴄᴇᴘᴛᴇʀ ᴏᴜ &f/ᴛᴇᴀᴍ ᴅᴇɴʏ&a ᴘᴏᴜʀ ʀᴇꜰᴜꜱᴇʀ (60ꜱ).");
                     }
                 }
-                case NOT_OWNER -> sendMessage(player, "&cSeul le propriétaire de l'équipe peut ajouter des membres.");
-                case NO_TEAM -> sendMessage(player, "&cVous ne faites partie d'aucune équipe. Créez-en une avec &f/team create <nom>&c.");
-                case TARGET_ALREADY_IN_TEAM -> sendMessage(player, "&c" + targetName + " fait déjà partie d'une équipe.");
-                case TARGET_NOT_FOUND -> sendMessage(player, "&cCe joueur n'existe pas ou n'a jamais rejoint le serveur.");
-                case ERROR -> sendMessage(player, "&cUne erreur est survenue.");
+                case NOT_OWNER -> sendMessage(player, "&cꜱᴇᴜʟ ʟᴇ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ ᴅᴇ ʟ'ᴇǫᴜɪᴘᴇ ᴘᴇᴜᴛ ɪɴᴠɪᴛᴇʀ ᴅᴇꜱ ᴍᴇᴍʙʀᴇꜱ.");
+                case NO_TEAM -> sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ'ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ. ᴄʀᴇᴇᴢ-ᴇɴ ᴜɴᴇ ᴀᴠᴇᴄ &f/ᴛᴇᴀᴍ ᴄʀᴇᴀᴛᴇ <ɴᴏᴍ>&c.");
+                case TARGET_ALREADY_IN_TEAM -> sendMessage(player, "&c" + targetName + " ꜰᴀɪᴛ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ'ᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
+                case TARGET_NOT_FOUND -> sendMessage(player, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
+                case TARGET_NOT_ONLINE -> sendMessage(player, "&c" + targetName + " ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇɴ ʟɪɢɴᴇ ᴘᴏᴜʀ ʀᴇᴄᴇᴠᴏɪʀ ᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ.");
+                case ALREADY_INVITED -> sendMessage(player, "&c" + targetName + " ᴀ ᴅᴇᴊᴀ ᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.");
+                case ERROR -> sendMessage(player, "&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ.");
             }
         });
+    }
+
+    private void handleAccept(Player player) {
+        teamManager.acceptInvite(player, result -> {
+            switch (result) {
+                case SUCCESS -> sendMessage(player, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴊᴏɪɴᴛ ʟ'ᴇǫᴜɪᴘᴇ !");
+                case NO_PENDING_INVITE -> sendMessage(player, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴀᴜᴄᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.");
+                case INVITER_OFFLINE -> sendMessage(player, "&cʟᴇ ᴊᴏᴜᴇᴜʀ ᴠᴏᴜꜱ ᴀʏᴀɴᴛ ɪɴᴠɪᴛᴇ ɴ'ᴇꜱᴛ ᴘʟᴜꜱ ᴇɴ ʟɪɢɴᴇ.");
+                case TARGET_ALREADY_IN_TEAM -> sendMessage(player, "&cᴠᴏᴜꜱ ꜰᴀɪᴛᴇꜱ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ'ᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
+                case TEAM_GONE -> sendMessage(player, "&cᴄᴇᴛᴛᴇ ᴇǫᴜɪᴘᴇ ɴ'ᴇxɪꜱᴛᴇ ᴘʟᴜꜱ.");
+                case ERROR -> sendMessage(player, "&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ.");
+            }
+        });
+    }
+
+    private void handleDeny(Player player) {
+        java.util.UUID ownerUuid = teamManager.denyInvite(player);
+        if (ownerUuid == null) {
+            sendMessage(player, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴀᴜᴄᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.");
+            return;
+        }
+        sendMessage(player, "&aɪɴᴠɪᴛᴀᴛɪᴏɴ ʀᴇꜰᴜꜱᴇᴇ.");
+        Player owner = Bukkit.getPlayer(ownerUuid);
+        if (owner != null) {
+            sendMessage(owner, "&c" + player.getName() + " ᴀ ʀᴇꜰᴜꜱᴇ ᴠᴏᴛʀᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ.");
+        }
     }
 
     private void handleLeave(Player player) {
         teamManager.leaveTeam(player, success -> {
             if (Boolean.TRUE.equals(success)) {
-                sendMessage(player, "&aVous avez quitté votre équipe.");
+                sendMessage(player, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ǫᴜɪᴛᴛᴇ ᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ.");
             } else {
-                sendMessage(player, "&cVous ne faites partie d'aucune équipe.");
+                sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ'ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
             }
         });
     }
@@ -112,14 +143,14 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     private void handleDisband(Player player) {
         teamManager.getTeamAsync(player.getUniqueId(), team -> {
             if (team == null) {
-                sendMessage(player, "&cVous ne faites partie d'aucune équipe.");
+                sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ'ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
                 return;
             }
             if (!team.isOwner(player.getUniqueId())) {
-                sendMessage(player, "&cSeul le propriétaire de l'équipe peut la dissoudre. Utilisez &f/team leave&c pour la quitter.");
+                sendMessage(player, "&cꜱᴇᴜʟ ʟᴇ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ ᴅᴇ ʟ'ᴇǫᴜɪᴘᴇ ᴘᴇᴜᴛ ʟᴀ ᴅɪꜱꜱᴏᴜᴅʀᴇ. ᴜᴛɪʟɪꜱᴇᴢ &f/ᴛᴇᴀᴍ ʟᴇᴀᴠᴇ&c ᴘᴏᴜʀ ʟᴀ ǫᴜɪᴛᴛᴇʀ.");
                 return;
             }
-            teamManager.leaveTeam(player, success -> sendMessage(player, "&aVotre équipe a été dissoute."));
+            teamManager.leaveTeam(player, success -> sendMessage(player, "&aᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ ᴀ ᴇᴛᴇ ᴅɪꜱꜱᴏᴜᴛᴇ."));
         });
     }
 
@@ -139,9 +170,9 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     private void displayTeamInfo(Player player, TeamData team, String queriedName) {
         if (team == null) {
             if (queriedName != null) {
-                sendMessage(player, "&cAucune équipe nommée &e" + queriedName + "&c n'existe.");
+                sendMessage(player, "&cᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ ɴᴏᴍᴍᴇᴇ &e" + queriedName + "&c ɴ'ᴇxɪꜱᴛᴇ.");
             } else {
-                sendMessage(player, "&cVous ne faites partie d'aucune équipe.");
+                sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ'ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
             }
             return;
         }
@@ -149,14 +180,14 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         Player ownerOnline = Bukkit.getPlayer(team.getOwnerUuid());
         String ownerName = ownerOnline != null ? ownerOnline.getName() : team.getMembers().getOrDefault(team.getOwnerUuid(), "?");
 
-        sendMessage(player, "&6&l--- Équipe " + team.getName() + " ---");
-        sendMessage(player, "&7Propriétaire : &e" + ownerName);
+        sendMessage(player, "&6&l--- ᴇǫᴜɪᴘᴇ " + team.getName() + " ---");
+        sendMessage(player, "&7ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ : &e" + ownerName);
         String members = team.getMembers().values().stream().collect(Collectors.joining("&7, &e"));
-        sendMessage(player, "&7Membres (&e" + team.size() + "&7) : &e" + members);
+        sendMessage(player, "&7ᴍᴇᴍʙʀᴇꜱ (&e" + team.size() + "&7) : &e" + members);
     }
 
     private void sendUsage(Player player) {
-        sendMessage(player, "&cUsage : /team <create|add|leave|disband|info>");
+        sendMessage(player, "&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ <ᴄʀᴇᴀᴛᴇ|ᴀᴅᴅ|ᴀᴄᴄᴇᴘᴛ|ᴅᴇɴʏ|ʟᴇᴀᴠᴇ|ᴅɪꜱʙᴀɴᴅ|ɪɴꜰᴏ>");
     }
 
     @Override
@@ -165,7 +196,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             String partial = args[0].toLowerCase();
-            for (String sub : List.of("create", "add", "leave", "disband", "info")) {
+            for (String sub : List.of("create", "add", "accept", "deny", "leave", "disband", "info")) {
                 if (sub.startsWith(partial)) {
                     completions.add(sub);
                 }

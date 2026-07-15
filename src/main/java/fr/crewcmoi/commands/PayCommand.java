@@ -33,12 +33,12 @@ public class PayCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sendMessage(sender, "&cCette commande doit être exécutée par un joueur.");
+            sendMessage(sender, "&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.");
             return true;
         }
 
         if (args.length < 2) {
-            sendMessage(sender, "&cUsage : /pay <joueur> <montant>");
+            sendMessage(sender, "&cᴜꜱᴀɢᴇ : /ᴘᴀʏ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>");
             return true;
         }
 
@@ -48,46 +48,46 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         try {
             amount = Double.parseDouble(args[1]);
         } catch (NumberFormatException e) {
-            sendMessage(sender, "&cMontant invalide : " + args[1]);
+            sendMessage(sender, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : " + args[1]);
             return true;
         }
 
         if (!Double.isFinite(amount) || amount <= 0) {
-            sendMessage(sender, "&cLe montant doit être un nombre positif.");
+            sendMessage(sender, "&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.");
             return true;
         }
 
         PlayerData targetData = economyManager.getPlayerDataByName(targetName);
         if (targetData == null) {
-            sendMessage(sender, "&cCe joueur n'existe pas ou n'a jamais rejoint le serveur.");
+            sendMessage(sender, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
             return true;
         }
 
         if (targetData.getUuid().equals(player.getUniqueId())) {
-            sendMessage(sender, "&cVous ne pouvez pas vous payer vous-même.");
+            sendMessage(sender, "&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴠᴏᴜꜱ ᴘᴀʏᴇʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.");
             return true;
         }
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         if (!economyManager.has(player.getUniqueId(), amount)) {
-            sendMessage(sender, "&cVous n'avez pas assez d'argent pour envoyer &e" + format.format(amount) + currency + "&c.");
+            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e" + format.format(amount) + currency + "&c.");
             return true;
         }
 
         boolean withdrawn = economyManager.withdraw(player.getUniqueId(), amount);
         if (!withdrawn) {
-            sendMessage(sender, "&cVous n'avez pas assez d'argent pour envoyer &e" + format.format(amount) + currency + "&c.");
+            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e" + format.format(amount) + currency + "&c.");
             return true;
         }
 
         economyManager.deposit(targetData.getUuid(), amount);
 
-        sendMessage(sender, "&aVous avez envoyé &e" + format.format(amount) + currency + "&a à &e" + targetData.getName() + "&a.");
+        sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴇɴᴠᴏʏᴇ &e" + format.format(amount) + currency + "&a ᴀ &e" + targetData.getName() + "&a.");
 
         Player online = Bukkit.getPlayer(targetData.getUuid());
         if (online != null && online.isOnline()) {
-            sendMessage(online, "&aVous avez reçu &e" + format.format(amount) + currency + "&a de la part de &e" + player.getName() + "&a !");
+            sendMessage(online, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e" + format.format(amount) + currency + "&a ᴅᴇ ʟᴀ ᴘᴀʀᴛ ᴅᴇ &e" + player.getName() + "&a !");
         }
 
         return true;

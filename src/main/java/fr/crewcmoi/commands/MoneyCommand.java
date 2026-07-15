@@ -34,12 +34,12 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("crew.admin")) {
-            sendMessage(sender, "&cVous n'avez pas la permission d'utiliser cette commande.");
+            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ'ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.");
             return true;
         }
 
         if (args.length < 3) {
-            sendMessage(sender, "&cUsage : /money <add|remove|set> <joueur> <montant>");
+            sendMessage(sender, "&cᴜꜱᴀɢᴇ : /ᴍᴏɴᴇʏ <ᴀᴅᴅ|ʀᴇᴍᴏᴠᴇ|ꜱᴇᴛ> <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>");
             return true;
         }
 
@@ -50,28 +50,28 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         try {
             amount = Double.parseDouble(args[2]);
         } catch (NumberFormatException e) {
-            sendMessage(sender, "&cMontant invalide : " + args[2]);
+            sendMessage(sender, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : " + args[2]);
             return true;
         }
 
         if (amount < 0) {
-            sendMessage(sender, "&cLe montant doit être positif.");
+            sendMessage(sender, "&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴘᴏꜱɪᴛɪꜰ.");
             return true;
         }
 
         PlayerData data = economyManager.getPlayerDataByName(targetName);
         if (data == null) {
-            sendMessage(sender, "&cCe joueur n'existe pas ou n'a jamais rejoint le serveur.");
+            sendMessage(sender, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
             return true;
         }
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         switch (action) {
             case "add":
                 economyManager.deposit(data.getUuid(), amount);
-                sendMessage(sender, "&aVous avez ajouté &e" + format.format(amount) + currency + "&a à &e" + data.getName() + "&a.");
-                notifyTarget(data, "&aVous avez reçu &e" + format.format(amount) + currency + "&a !");
+                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴀᴊᴏᴜᴛᴇ &e" + format.format(amount) + currency + "&a ᴀ &e" + data.getName() + "&a.");
+                notifyTarget(data, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e" + format.format(amount) + currency + "&a !");
                 break;
 
             case "remove":
@@ -80,18 +80,18 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
                     sendMessage(sender, "&c" + data.getName() + " n'a pas assez d'argent pour retirer ce montant.");
                     return true;
                 }
-                sendMessage(sender, "&aVous avez retiré &e" + format.format(amount) + currency + "&a à &e" + data.getName() + "&a.");
-                notifyTarget(data, "&cOn vous a retiré &e" + format.format(amount) + currency + "&c.");
+                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴛɪʀᴇ &e" + format.format(amount) + currency + "&a ᴀ &e" + data.getName() + "&a.");
+                notifyTarget(data, "&cᴏɴ ᴠᴏᴜꜱ ᴀ ʀᴇᴛɪʀᴇ &e" + format.format(amount) + currency + "&c.");
                 break;
 
             case "set":
                 economyManager.setBalance(data.getUuid(), amount);
-                sendMessage(sender, "&aVous avez défini le solde de &e" + data.getName() + "&a à &e" + format.format(amount) + currency + "&a.");
-                notifyTarget(data, "&eVotre solde a été défini à " + format.format(amount) + currency + ".");
+                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴅᴇꜰɪɴɪ ʟᴇ ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&a ᴀ &e" + format.format(amount) + currency + "&a.");
+                notifyTarget(data, "&eᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ ᴀ ᴇᴛᴇ ᴅᴇꜰɪɴɪ ᴀ " + format.format(amount) + currency + ".");
                 break;
 
             default:
-                sendMessage(sender, "&cAction inconnue. Utilisez add, remove ou set.");
+                sendMessage(sender, "&cᴀᴄᴛɪᴏɴ ɪɴᴄᴏɴɴᴜᴇ. ᴜᴛɪʟɪꜱᴇᴢ ᴀᴅᴅ, ʀᴇᴍᴏᴠᴇ ᴏᴜ ꜱᴇᴛ.");
                 break;
         }
 

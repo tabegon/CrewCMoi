@@ -34,7 +34,7 @@ public class SellGuiManager {
     public void open(Player player) {
         SellHolder holder = new SellHolder();
         Inventory gui = Bukkit.createInventory(holder, SellHolder.SIZE,
-                ChatColor.translateAlternateColorCodes('&', "&2&lVente d'objets"));
+                ChatColor.translateAlternateColorCodes('&', "&2&lᴠᴇɴᴛᴇ ᴅ'ᴏʙᴊᴇᴛꜱ"));
         holder.setInventory(gui);
 
         ItemStack filler = createFiller();
@@ -62,7 +62,7 @@ public class SellGuiManager {
      * actuellement calculé pour les objets présents dans la GUI.
      */
     private ItemStack createConfirmButton(Inventory gui) {
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
         double total = 0.0;
         int itemCount = 0;
         boolean hasUnsellable = false;
@@ -84,20 +84,20 @@ public class SellGuiManager {
         ItemStack item = new ItemStack(Material.EMERALD);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lConfirmer la vente"));
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lᴄᴏɴꜰɪʀᴍᴇʀ ʟᴀ ᴠᴇɴᴛᴇ"));
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.translateAlternateColorCodes('&',
-                    "&7Placez vos objets dans les emplacements"));
+                    "&7ᴘʟᴀᴄᴇᴢ ᴠᴏꜱ ᴏʙᴊᴇᴛꜱ ᴅᴀɴꜱ ʟᴇꜱ ᴇᴍᴘʟᴀᴄᴇᴍᴇɴᴛꜱ"));
             lore.add(ChatColor.translateAlternateColorCodes('&',
-                    "&7ci-dessus puis cliquez ici pour vendre."));
+                    "&7ᴄɪ-ᴅᴇꜱꜱᴜꜱ ᴘᴜɪꜱ ᴄʟɪǫᴜᴇᴢ ɪᴄɪ ᴘᴏᴜʀ ᴠᴇɴᴅʀᴇ."));
             lore.add("");
             lore.add(ChatColor.translateAlternateColorCodes('&',
-                    "&7Objets vendables : &e" + itemCount));
+                    "&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e" + itemCount));
             lore.add(ChatColor.translateAlternateColorCodes('&',
-                    "&7Vous allez gagner : &a" + format.format(total) + currency));
+                    "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + format.format(total) + currency));
             if (hasUnsellable) {
                 lore.add(ChatColor.translateAlternateColorCodes('&',
-                        "&8(certains objets placés ne sont pas vendables)"));
+                        "&8(ᴄᴇʀᴛᴀɪɴꜱ ᴏʙᴊᴇᴛꜱ ᴘʟᴀᴄᴇꜱ ɴᴇ ꜱᴏɴᴛ ᴘᴀꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ)"));
             }
             meta.setLore(lore);
             item.setItemMeta(meta);
@@ -121,7 +121,7 @@ public class SellGuiManager {
     public double sell(Player player, Inventory gui) {
         double total = 0.0;
         int itemsSold = 0;
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         for (int slot : SellHolder.ITEM_SLOTS) {
             ItemStack stack = gui.getItem(slot);
@@ -143,11 +143,11 @@ public class SellGuiManager {
         if (itemsSold > 0) {
             economyManager.deposit(player.getUniqueId(), total);
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&8[&6Economy&8] &r&aVente effectuée : &e" + itemsSold + " objet(s)&a pour &e"
+                    "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&aᴠᴇɴᴛᴇ ᴇꜰꜰᴇᴄᴛᴜᴇᴇ : &e" + itemsSold + " ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ &e"
                             + format.format(total) + currency + "&a."));
         } else {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&8[&6Economy&8] &r&cAucun objet vendable trouvé dans la GUI."));
+                    "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));
         }
 
         return total;

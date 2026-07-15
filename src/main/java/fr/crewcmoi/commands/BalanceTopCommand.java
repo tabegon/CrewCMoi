@@ -55,10 +55,10 @@ public class BalanceTopCommand implements CommandExecutor {
     private void openGui(Player viewer, List<PlayerData> top) {
         int size = 54;
         BaltopHolder holder = new BaltopHolder();
-        Inventory gui = Bukkit.createInventory(holder, size, ChatColor.translateAlternateColorCodes('&', "&6&lClassement des richesses"));
+        Inventory gui = Bukkit.createInventory(holder, size, ChatColor.translateAlternateColorCodes('&', "&6&lᴄʟᴀꜱꜱᴇᴍᴇɴᴛ ᴅᴇꜱ ʀɪᴄʜᴇꜱꜱᴇꜱ"));
         holder.setInventory(gui);
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         List<ItemStack> items = new ArrayList<>();
         int rank = 1;
@@ -81,7 +81,7 @@ public class BalanceTopCommand implements CommandExecutor {
 
                 List<String> lore = new ArrayList<>();
                 lore.add(ChatColor.translateAlternateColorCodes('&',
-                        "&7Solde : &a" + format.format(data.getBalance()) + currency));
+                        "&7ꜱᴏʟᴅᴇ : &a" + format.format(data.getBalance()) + currency));
                 meta.setLore(lore);
 
                 skull.setItemMeta(meta);

@@ -51,12 +51,12 @@ public class BountyListener implements Listener {
             return;
         }
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         double claimed = bountyManager.claimBounty(killer.getUniqueId(), victim.getUniqueId());
         if (claimed > 0) {
-            sendMessage(killer, "&aVous avez récupéré une prime de &e" + format.format(claimed) + currency
-                    + "&a en tuant &e" + victim.getName() + "&a !");
+            sendMessage(killer, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + format.format(claimed) + currency
+                    + "&a ᴇɴ ᴛᴜᴀɴᴛ &e" + victim.getName() + "&a !");
             return;
         }
 
@@ -86,9 +86,9 @@ public class BountyListener implements Listener {
         bountyManager.addServerBounty(killer.getUniqueId(), killer.getName(), bountyAmount);
         bountyManager.incrementServerBountyCount(killer.getUniqueId());
 
-        sendMessage(killer, "&cVous avez tué &e" + victim.getName() + "&c sans qu'il n'ait de prime : "
-                + "le serveur vous inflige un malus de &e" + format.format(malusAmount) + currency
-                + "&c et place une prime de &e" + format.format(bountyAmount) + currency + "&c sur vous !");
+        sendMessage(killer, "&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴛᴜᴇ &e" + victim.getName() + "&c ꜱᴀɴꜱ ǫᴜ'ɪʟ ɴ'ᴀɪᴛ ᴅᴇ ᴘʀɪᴍᴇ : "
+                + "ʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴠᴏᴜꜱ ɪɴꜰʟɪɢᴇ ᴜɴ ᴍᴀʟᴜꜱ ᴅᴇ &e" + format.format(malusAmount) + currency
+                + "&c ᴇᴛ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + format.format(bountyAmount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !");
     }
 
     private void sendMessage(Player player, String message) {

@@ -11,8 +11,10 @@ economy:
   # Solde de départ des nouveaux joueurs
   starting-balance: 100.0
 
-  # Symbole affiché après les montants (ex: 100.00$)
-  currency-symbol: "C.coin"
+  # Symbole affiché après les montants (ex: 100.00§f). "§f" ne s'affiche pas comme
+  # un symbole visible : c'est un code couleur (blanc) qui vient simplement réinitialiser
+  # la couleur après le montant, à la place d'un vrai symbole de monnaie.
+  currency-symbol: "§f"
 
   # Si true, le solde d'un joueur peut devenir négatif via /money remove
   allow-negative-balance: false

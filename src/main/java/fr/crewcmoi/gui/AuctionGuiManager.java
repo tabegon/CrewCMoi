@@ -33,7 +33,7 @@ public class AuctionGuiManager {
         auctionManager.refreshCache(() -> {
             AuctionHolder holder = new AuctionHolder();
             Inventory gui = Bukkit.createInventory(holder, AuctionHolder.SIZE,
-                    ChatColor.translateAlternateColorCodes('&', "&5&lHôtel des ventes"));
+                    ChatColor.translateAlternateColorCodes('&', "&5&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ"));
             holder.setInventory(gui);
             holder.setPage(page);
 
@@ -64,7 +64,7 @@ public class AuctionGuiManager {
         int start = page * AuctionHolder.ITEMS_PER_PAGE;
         int end = Math.min(start + AuctionHolder.ITEMS_PER_PAGE, auctions.size());
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         for (int i = start; i < end; i++) {
             AuctionItem auction = auctions.get(i);
@@ -78,13 +78,13 @@ public class AuctionGuiManager {
                     lore.addAll(meta.getLore());
                     lore.add("");
                 }
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&7Vendeur : &e" + auction.getSellerName()));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&7Prix : &a" + format.format(auction.getPrice()) + currency));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴇɴᴅᴇᴜʀ : &e" + auction.getSellerName()));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘʀɪx : &a" + format.format(auction.getPrice()) + currency));
 
                 if (auction.getSellerUuid().equals(viewer.getUniqueId())) {
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cClique pour retirer ton annonce"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&cᴄʟɪǫᴜᴇ ᴘᴏᴜʀ ʀᴇᴛɪʀᴇʀ ᴛᴏɴ ᴀɴɴᴏɴᴄᴇ"));
                 } else {
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&aClique pour acheter"));
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&aᴄʟɪǫᴜᴇ ᴘᴏᴜʀ ᴀᴄʜᴇᴛᴇʀ"));
                 }
 
                 meta.setLore(lore);
@@ -97,10 +97,10 @@ public class AuctionGuiManager {
 
         // Navigation
         if (page > 0) {
-            gui.setItem(AuctionHolder.PREV_PAGE_SLOT, createNavItem(Material.ARROW, "&ePage précédente"));
+            gui.setItem(AuctionHolder.PREV_PAGE_SLOT, createNavItem(Material.ARROW, "&eᴘᴀɢᴇ ᴘʀᴇᴄᴇᴅᴇɴᴛᴇ"));
         }
         if (end < auctions.size()) {
-            gui.setItem(AuctionHolder.NEXT_PAGE_SLOT, createNavItem(Material.ARROW, "&ePage suivante"));
+            gui.setItem(AuctionHolder.NEXT_PAGE_SLOT, createNavItem(Material.ARROW, "&eᴘᴀɢᴇ ꜱᴜɪᴠᴀɴᴛᴇ"));
         }
         gui.setItem(AuctionHolder.INFO_SLOT, createInfoItem(page + 1, maxPage + 1, auctions.size()));
     }
@@ -119,12 +119,12 @@ public class AuctionGuiManager {
         ItemStack item = new ItemStack(Material.BOOK);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&d&lHôtel des ventes"));
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&d&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ"));
             List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Page &e" + currentPage + "&7/&e" + totalPages));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Annonces actives : &e" + totalAuctions));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Utilisez &f/ah sell <prix>&7 pour vendre"));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7l'objet que vous tenez en main."));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘᴀɢᴇ &e" + currentPage + "&7/&e" + totalPages));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴀɴɴᴏɴᴄᴇꜱ ᴀᴄᴛɪᴠᴇꜱ : &e" + totalAuctions));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴜᴛɪʟɪꜱᴇᴢ &f/ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>&7 ᴘᴏᴜʀ ᴠᴇɴᴅʀᴇ"));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ʟ'ᴏʙᴊᴇᴛ ǫᴜᴇ ᴠᴏᴜꜱ ᴛᴇɴᴇᴢ ᴇɴ ᴍᴀɪɴ."));
             meta.setLore(lore);
             item.setItemMeta(meta);
         }

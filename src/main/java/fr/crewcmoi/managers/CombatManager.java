@@ -36,6 +36,10 @@ public class CombatManager {
     // Utilisé pour déterminer qui a "commencé le combat" au moment d'une mort (système de prime/malus).
     private final Map<UUID, UUID> engagementAggressor = new ConcurrentHashMap<>();
 
+    // Adversaire direct actuel de chaque joueur en combat (dernier joueur avec qui il a échangé
+    // des coups). Utilisé pour stopper le combat log des deux joueurs dès que l'un d'eux meurt.
+    private final Map<UUID, UUID> currentOpponent = new ConcurrentHashMap<>();
+
     public CombatManager(Main plugin) {
         this.plugin = plugin;
         this.combatDurationSeconds = plugin.getConfig().getInt("combat-log.duration-seconds", 30);
@@ -81,6 +85,9 @@ public class CombatManager {
             firstAttacker.put(victimId, attackerId);
             sendMessage(victim, "combat-log.tagged");
         }
+        if (!attackerWasInCombat) {
+            sendMessage(attacker, "combat-log.tagged");
+        }
 
         // Détermine l'agresseur de cet affrontement : le premier des deux à avoir frappé.
         if (!victimWasInCombat && !attackerWasInCombat) {
@@ -95,6 +102,9 @@ public class CombatManager {
         } else if (!engagementAggressor.containsKey(attackerId)) {
             engagementAggressor.put(attackerId, engagementAggressor.getOrDefault(victimId, attackerId));
         }
+
+        currentOpponent.put(victimId, attackerId);
+        currentOpponent.put(attackerId, victimId);
 
         tagCombat(victim);
     }
@@ -136,6 +146,10 @@ public class CombatManager {
         return engagementAggressor.get(player.getUniqueId());
     }
 
+    public UUID getOpponent(Player player) {
+        return currentOpponent.get(player.getUniqueId());
+    }
+
     /**
      * Retire immédiatement le tag de combat d'un joueur (ex: après sa mort).
      */
@@ -148,6 +162,23 @@ public class CombatManager {
         combatExpiry.remove(uuid);
         firstAttacker.remove(uuid);
         engagementAggressor.remove(uuid);
+        currentOpponent.remove(uuid);
+    }
+
+    /**
+     * Stoppe immédiatement le combat log des deux joueurs impliqués dans un affrontement
+     * dès que l'un des deux meurt, sans envoyer le message "combat-ended" (ils viennent
+     * déjà de recevoir un message de mort / de victoire).
+     */
+    public void stopCombatForBoth(Player player) {
+        UUID opponentId = currentOpponent.get(player.getUniqueId());
+        clearCombat(player);
+        if (opponentId != null) {
+            Player opponent = Bukkit.getPlayer(opponentId);
+            if (opponent != null) {
+                clearCombat(opponent);
+            }
+        }
     }
 
     private void sendMessage(Player player, String path) {

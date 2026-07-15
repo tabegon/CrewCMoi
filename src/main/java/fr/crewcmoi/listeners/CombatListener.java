@@ -147,6 +147,16 @@ public class CombatListener implements Listener {
         }
     }
 
+    // --- Arrêt du combat log pour les deux joueurs dès que l'un d'eux meurt ---
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onDeath(org.bukkit.event.entity.PlayerDeathEvent event) {
+        Player victim = event.getEntity();
+        if (combatManager.isInCombat(victim)) {
+            combatManager.stopCombatForBoth(victim);
+        }
+    }
+
     // --- Mort du joueur en cas de déconnexion pendant le combat ---
 
     @EventHandler

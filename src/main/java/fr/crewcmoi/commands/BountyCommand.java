@@ -36,7 +36,7 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sendMessage(sender, "&cCette commande doit être exécutée par un joueur.");
+            sendMessage(sender, "&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.");
             return true;
         }
 
@@ -50,13 +50,13 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        sendMessage(player, "&cUsage : /bounty &7ou&c /bounty add <joueur> <montant>");
+        sendMessage(player, "&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ &7ᴏᴜ&c /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>");
         return true;
     }
 
     private void handleAdd(Player player, String[] args) {
         if (args.length < 3) {
-            sendMessage(player, "&cUsage : /bounty add <joueur> <montant>");
+            sendMessage(player, "&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>");
             return;
         }
 
@@ -65,25 +65,25 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
         try {
             amount = Double.parseDouble(args[2].replace(",", "."));
         } catch (NumberFormatException e) {
-            sendMessage(player, "&cMontant invalide : " + args[2]);
+            sendMessage(player, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : " + args[2]);
             return;
         }
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         bountyManager.addPlayerBounty(player, targetName, amount, result -> {
             switch (result) {
                 case SUCCESS -> {
-                    sendMessage(player, "&aVous avez placé une prime de &e" + format.format(amount) + currency + "&a sur &e" + targetName + "&a !");
+                    sendMessage(player, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + format.format(amount) + currency + "&a ꜱᴜʀ &e" + targetName + "&a !");
                     Player online = Bukkit.getPlayerExact(targetName);
                     if (online != null) {
-                        sendMessage(online, "&c" + player.getName() + " a placé une prime de &e" + format.format(amount) + currency + "&c sur vous !");
+                        sendMessage(online, "&c" + player.getName() + " ᴀ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + format.format(amount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !");
                     }
                 }
-                case INVALID_AMOUNT -> sendMessage(player, "&cLe montant doit être un nombre positif.");
-                case SELF_TARGET -> sendMessage(player, "&cVous ne pouvez pas placer de prime sur vous-même.");
-                case NOT_ENOUGH_MONEY -> sendMessage(player, "&cVous n'avez pas assez d'argent pour placer &e" + format.format(amount) + currency + "&c.");
-                case TARGET_NOT_FOUND -> sendMessage(player, "&cCe joueur n'existe pas ou n'a jamais rejoint le serveur.");
+                case INVALID_AMOUNT -> sendMessage(player, "&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.");
+                case SELF_TARGET -> sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴘʟᴀᴄᴇʀ ᴅᴇ ᴘʀɪᴍᴇ ꜱᴜʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.");
+                case NOT_ENOUGH_MONEY -> sendMessage(player, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴘʟᴀᴄᴇʀ &e" + format.format(amount) + currency + "&c.");
+                case TARGET_NOT_FOUND -> sendMessage(player, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
             }
         });
     }

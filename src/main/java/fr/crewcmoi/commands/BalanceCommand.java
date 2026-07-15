@@ -32,23 +32,23 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "$");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         if (args.length == 0) {
             if (!(sender instanceof Player)) {
-                sendMessage(sender, "&cCette commande doit être exécutée par un joueur, ou précisez un pseudo : /balance <joueur>");
+                sendMessage(sender, "&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ, ᴏᴜ ᴘʀᴇᴄɪꜱᴇᴢ ᴜɴ ᴘꜱᴇᴜᴅᴏ : /ʙᴀʟᴀɴᴄᴇ <ᴊᴏᴜᴇᴜʀ>");
                 return true;
             }
 
             Player player = (Player) sender;
             double balance = economyManager.getBalance(player.getUniqueId());
-            sendMessage(sender, "&7Votre solde : &a" + format.format(balance) + currency);
+            sendMessage(sender, "&7ᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ : &a" + format.format(balance) + currency);
             return true;
         }
 
         // /balance <joueur>
         if (!sender.hasPermission("crew.balance.others")) {
-            sendMessage(sender, "&cVous n'avez pas la permission de voir le solde d'un autre joueur.");
+            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅᴇ ᴠᴏɪʀ ʟᴇ ꜱᴏʟᴅᴇ ᴅ'ᴜɴ ᴀᴜᴛʀᴇ ᴊᴏᴜᴇᴜʀ.");
             return true;
         }
 
@@ -56,11 +56,11 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
         PlayerData data = economyManager.getPlayerDataByName(targetName);
 
         if (data == null) {
-            sendMessage(sender, "&cCe joueur n'existe pas ou n'a jamais rejoint le serveur.");
+            sendMessage(sender, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
             return true;
         }
 
-        sendMessage(sender, "&7Solde de &e" + data.getName() + "&7 : &a" + format.format(data.getBalance()) + currency);
+        sendMessage(sender, "&7ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&7 : &a" + format.format(data.getBalance()) + currency);
         return true;
     }
 

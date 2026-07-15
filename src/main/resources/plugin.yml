@@ -28,8 +28,8 @@ commands:
     usage: /ah [sell <prix>]
     aliases: [auctionhouse, auction]
   team:
-    description: Gère votre équipe (création, ajout de membres, départ).
-    usage: /team <create|add|leave|disband|info> [argument]
+    description: Gère votre équipe (création, invitation, acceptation, départ).
+    usage: /team <create|add|accept|deny|leave|disband|info> [argument]
     aliases: [t]
   bounty:
     description: Ouvre la liste des primes ou en place une sur un joueur.
