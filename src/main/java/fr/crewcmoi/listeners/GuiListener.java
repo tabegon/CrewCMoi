@@ -4,6 +4,7 @@ import fr.crewcmoi.Main;
 import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.AuctionHolder;
 import fr.crewcmoi.gui.BaltopHolder;
+import fr.crewcmoi.gui.BountyHolder;
 import fr.crewcmoi.gui.SellGuiManager;
 import fr.crewcmoi.gui.SellHolder;
 import fr.crewcmoi.managers.AuctionManager;
@@ -43,6 +44,12 @@ public class GuiListener implements Listener {
 
         if (holder instanceof BaltopHolder) {
             // Aucune interaction autorisée dans le classement : on empêche toute prise/dépôt/déplacement.
+            event.setCancelled(true);
+            return;
+        }
+
+        if (holder instanceof BountyHolder) {
+            // GUI de consultation uniquement.
             event.setCancelled(true);
             return;
         }
@@ -149,6 +156,11 @@ public class GuiListener implements Listener {
         InventoryHolder holder = topInventory.getHolder();
 
         if (holder instanceof BaltopHolder) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (holder instanceof BountyHolder) {
             event.setCancelled(true);
             return;
         }

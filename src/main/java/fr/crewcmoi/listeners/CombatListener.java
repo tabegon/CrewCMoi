@@ -5,7 +5,7 @@ import fr.crewcmoi.managers.CombatManager;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
-import org.bukkit.command.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;

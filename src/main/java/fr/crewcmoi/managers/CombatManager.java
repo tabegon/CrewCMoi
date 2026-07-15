@@ -31,6 +31,11 @@ public class CombatManager {
     // Premier joueur ayant frappé un joueur donné durant son combat en cours
     private final Map<UUID, UUID> firstAttacker = new ConcurrentHashMap<>();
 
+    // Agresseur de l'affrontement en cours pour chaque joueur impliqué (peut être lui-même
+    // s'il a porté le premier coup, ou l'adversaire si c'est lui qui l'a attaqué en premier).
+    // Utilisé pour déterminer qui a "commencé le combat" au moment d'une mort (système de prime/malus).
+    private final Map<UUID, UUID> engagementAggressor = new ConcurrentHashMap<>();
+
     public CombatManager(Main plugin) {
         this.plugin = plugin;
         this.combatDurationSeconds = plugin.getConfig().getInt("combat-log.duration-seconds", 30);
@@ -52,6 +57,7 @@ public class CombatManager {
             combatTasks.remove(uuid);
             combatExpiry.remove(uuid);
             firstAttacker.remove(uuid);
+            engagementAggressor.remove(uuid);
             Player p = Bukkit.getPlayer(uuid);
             if (p != null && p.isOnline()) {
                 sendMessage(p, "combat-log.combat-ended");
@@ -67,11 +73,27 @@ public class CombatManager {
      */
     public void registerAttack(Player victim, Player attacker) {
         UUID victimId = victim.getUniqueId();
-        boolean wasInCombat = isInCombat(victim);
+        UUID attackerId = attacker.getUniqueId();
+        boolean victimWasInCombat = isInCombat(victim);
+        boolean attackerWasInCombat = isInCombat(attacker);
 
-        if (!wasInCombat) {
-            firstAttacker.put(victimId, attacker.getUniqueId());
+        if (!victimWasInCombat) {
+            firstAttacker.put(victimId, attackerId);
             sendMessage(victim, "combat-log.tagged");
+        }
+
+        // Détermine l'agresseur de cet affrontement : le premier des deux à avoir frappé.
+        if (!victimWasInCombat && !attackerWasInCombat) {
+            // Nouvel engagement : l'attaquant est l'agresseur pour les deux joueurs.
+            engagementAggressor.put(victimId, attackerId);
+            engagementAggressor.put(attackerId, attackerId);
+        } else if (!victimWasInCombat) {
+            // La victime rejoint un affrontement où l'attaquant était déjà engagé ailleurs :
+            // on hérite de l'agresseur connu de l'attaquant (par défaut lui-même).
+            UUID knownAggressor = engagementAggressor.getOrDefault(attackerId, attackerId);
+            engagementAggressor.put(victimId, knownAggressor);
+        } else if (!engagementAggressor.containsKey(attackerId)) {
+            engagementAggressor.put(attackerId, engagementAggressor.getOrDefault(victimId, attackerId));
         }
 
         tagCombat(victim);
@@ -106,6 +128,15 @@ public class CombatManager {
     }
 
     /**
+     * Retourne l'agresseur de l'affrontement en cours pour ce joueur : lui-même s'il a porté
+     * le premier coup, ou l'adversaire si c'est lui qui a initié l'agression. Peut retourner null
+     * si le joueur n'est pas/plus en combat suivi.
+     */
+    public UUID getAggressor(Player player) {
+        return engagementAggressor.get(player.getUniqueId());
+    }
+
+    /**
      * Retire immédiatement le tag de combat d'un joueur (ex: après sa mort).
      */
     public void clearCombat(Player player) {
@@ -116,6 +147,7 @@ public class CombatManager {
         }
         combatExpiry.remove(uuid);
         firstAttacker.remove(uuid);
+        engagementAggressor.remove(uuid);
     }
 
     private void sendMessage(Player player, String path) {

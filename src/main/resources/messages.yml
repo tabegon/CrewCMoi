@@ -60,3 +60,11 @@ combat-log:
   combat-ended: "&aVous n'êtes plus en combat."
   action-blocked: "&cVous ne pouvez pas faire ça en combat ! (&e{seconds}s&c restantes)"
   opponent-fled: "&e{player}&c s'est déconnecté pendant votre combat et a été tué."
+
+team:
+  gui-title: "&6&lÉquipe"
+
+bounty:
+  gui-title: "&4&lPrimes des joueurs"
+  claimed: "&aVous avez récupéré une prime de &e{amount}&a en tuant &e{player}&a !"
+  server-bounty-applied: "&cVous avez tué &e{player}&c sans qu'il n'ait de prime : le serveur vous inflige un malus de &e{malus}&c et place une prime de &e{amount}&c sur vous !"

@@ -1,7 +1,10 @@
 package fr.crewcmoi.managers;
 
 import fr.crewcmoi.auction.AuctionItem;
+import fr.crewcmoi.database.BountyEntry;
+import fr.crewcmoi.database.BountyTarget;
 import fr.crewcmoi.database.PlayerData;
+import fr.crewcmoi.database.TeamData;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -63,4 +66,71 @@ public interface DatabaseManager {
      * Supprime une annonce (vendue ou annulée).
      */
     void removeAuction(int id);
+
+    // ===================== TEAMS =====================
+
+    /**
+     * Crée une nouvelle équipe avec le joueur donné comme propriétaire (et premier membre).
+     * Retourne l'identifiant de l'équipe créée, ou -1 en cas d'échec (ex: nom déjà pris).
+     */
+    int createTeam(String name, UUID ownerUuid, String ownerName);
+
+    /**
+     * Ajoute un membre à une équipe existante.
+     */
+    boolean addTeamMember(int teamId, UUID playerUuid, String playerName);
+
+    /**
+     * Retire un joueur de l'équipe dont il fait partie (n'a aucun effet s'il n'est dans aucune équipe).
+     */
+    void removeTeamMember(UUID playerUuid);
+
+    /**
+     * Supprime totalement une équipe (et tous ses membres).
+     */
+    void deleteTeam(int teamId);
+
+    /**
+     * Retourne l'équipe dont fait partie le joueur, ou null s'il n'en a pas.
+     */
+    TeamData getTeamByPlayer(UUID playerUuid);
+
+    /**
+     * Retourne l'équipe portant ce nom (insensible à la casse), ou null si elle n'existe pas.
+     */
+    TeamData getTeamByName(String name);
+
+    // ===================== BOUNTIES =====================
+
+    /**
+     * Ajoute une contribution à la prime d'un joueur. contributorUuid == null signifie
+     * qu'il s'agit d'une prime attribuée automatiquement par le serveur.
+     */
+    void addBounty(UUID targetUuid, String targetName, UUID contributorUuid, String contributorName, double amount);
+
+    /**
+     * Retourne toutes les contributions de prime pour un joueur donné.
+     */
+    List<BountyEntry> getBounties(UUID targetUuid);
+
+    /**
+     * Retourne la liste des joueurs ayant une prime active, avec le montant total cumulé,
+     * triée par montant décroissant.
+     */
+    List<BountyTarget> getBountyTargets();
+
+    /**
+     * Supprime toutes les contributions de prime d'un joueur (ex: après avoir été tué).
+     */
+    void clearBounties(UUID targetUuid);
+
+    /**
+     * Retourne le nombre de fois où la prime serveur a été attribuée à ce joueur aujourd'hui.
+     */
+    int getServerBountyCountToday(UUID playerUuid);
+
+    /**
+     * Incrémente le compteur journalier de prime serveur pour ce joueur.
+     */
+    void incrementServerBountyCount(UUID playerUuid);
 }

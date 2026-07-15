@@ -27,3 +27,18 @@ combat-log:
   # Durée du tag de combat en secondes. Pendant ce délai, le joueur ne peut ni se
   # téléporter, ni utiliser d'élytre. Une déconnexion durant ce délai le tue.
   duration-seconds: 30
+
+bounty:
+  # Montant de la prime automatiquement attribuée par le serveur à un joueur qui tue
+  # sans provocation (premier coup) une victime sans prime active.
+  server-bounty-amount: 50.0
+
+  # Malus (argent retiré) infligé à ce même joueur en plus de la prime.
+  server-malus-amount: 50.0
+
+  # Nombre maximum de fois par jour où le serveur peut attribuer prime + malus à un joueur.
+  server-bounty-max-per-day: 3
+
+team:
+  # Taille maximale d'une équipe (propriétaire inclus). 0 = illimité.
+  max-members: 0

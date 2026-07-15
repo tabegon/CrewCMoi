@@ -2,14 +2,21 @@ package fr.crewcmoi.managers;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.auction.AuctionItem;
+import fr.crewcmoi.database.BountyEntry;
+import fr.crewcmoi.database.BountyTarget;
 import fr.crewcmoi.database.PlayerData;
+import fr.crewcmoi.database.TeamData;
 import fr.crewcmoi.util.ItemSerialization;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -81,6 +88,44 @@ public class SQLiteManager implements DatabaseManager {
             statement.execute(auctionsSql);
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création de la table auctions.", e);
+        }
+
+        String teamsSql = "CREATE TABLE IF NOT EXISTS teams (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "name TEXT NOT NULL UNIQUE COLLATE NOCASE," +
+                "owner_uuid TEXT NOT NULL" +
+                ");";
+
+        String teamMembersSql = "CREATE TABLE IF NOT EXISTS team_members (" +
+                "team_id INTEGER NOT NULL," +
+                "player_uuid TEXT PRIMARY KEY," +
+                "player_name TEXT NOT NULL" +
+                ");";
+
+        String bountiesSql = "CREATE TABLE IF NOT EXISTS bounties (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "target_uuid TEXT NOT NULL," +
+                "target_name TEXT NOT NULL," +
+                "contributor_uuid TEXT," +
+                "contributor_name TEXT NOT NULL," +
+                "amount REAL NOT NULL," +
+                "created_at INTEGER NOT NULL" +
+                ");";
+
+        String serverBountyCountSql = "CREATE TABLE IF NOT EXISTS server_bounty_count (" +
+                "player_uuid TEXT NOT NULL," +
+                "day TEXT NOT NULL," +
+                "count INTEGER NOT NULL DEFAULT 0," +
+                "PRIMARY KEY (player_uuid, day)" +
+                ");";
+
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(teamsSql);
+            statement.execute(teamMembersSql);
+            statement.execute(bountiesSql);
+            statement.execute(serverBountyCountSql);
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création des tables team/bounty.", e);
         }
     }
 
@@ -266,5 +311,249 @@ public class SQLiteManager implements DatabaseManager {
             plugin.getLogger().log(Level.WARNING, "Annonce corrompue ignorée.", e);
             return null;
         }
+    }
+
+    // ===================== TEAMS =====================
+
+    @Override
+    public int createTeam(String name, UUID ownerUuid, String ownerName) {
+        String sql = "INSERT INTO teams (name, owner_uuid) VALUES (?, ?);";
+        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, name);
+            ps.setString(2, ownerUuid.toString());
+            ps.executeUpdate();
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    int teamId = keys.getInt(1);
+                    if (addTeamMember(teamId, ownerUuid, ownerName)) {
+                        return teamId;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création de l'équipe " + name, e);
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean addTeamMember(int teamId, UUID playerUuid, String playerName) {
+        String sql = "INSERT OR REPLACE INTO team_members (team_id, player_uuid, player_name) VALUES (?, ?, ?);";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, teamId);
+            ps.setString(2, playerUuid.toString());
+            ps.setString(3, playerName);
+            ps.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de l'ajout du membre " + playerName + " à l'équipe " + teamId, e);
+            return false;
+        }
+    }
+
+    @Override
+    public void removeTeamMember(UUID playerUuid) {
+        String sql = "DELETE FROM team_members WHERE player_uuid = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors du retrait du membre " + playerUuid, e);
+        }
+    }
+
+    @Override
+    public void deleteTeam(int teamId) {
+        String deleteMembersSql = "DELETE FROM team_members WHERE team_id = ?;";
+        String deleteTeamSql = "DELETE FROM teams WHERE id = ?;";
+        try (PreparedStatement psMembers = connection.prepareStatement(deleteMembersSql);
+             PreparedStatement psTeam = connection.prepareStatement(deleteTeamSql)) {
+            psMembers.setInt(1, teamId);
+            psMembers.executeUpdate();
+            psTeam.setInt(1, teamId);
+            psTeam.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la suppression de l'équipe " + teamId, e);
+        }
+    }
+
+    @Override
+    public TeamData getTeamByPlayer(UUID playerUuid) {
+        String sql = "SELECT team_id FROM team_members WHERE player_uuid = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return getTeamById(rs.getInt("team_id"));
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération de l'équipe du joueur " + playerUuid, e);
+        }
+        return null;
+    }
+
+    @Override
+    public TeamData getTeamByName(String name) {
+        String sql = "SELECT id FROM teams WHERE name = ? COLLATE NOCASE;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return getTeamById(rs.getInt("id"));
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération de l'équipe " + name, e);
+        }
+        return null;
+    }
+
+    private TeamData getTeamById(int teamId) {
+        String teamSql = "SELECT * FROM teams WHERE id = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(teamSql)) {
+            ps.setInt(1, teamId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+                String name = rs.getString("name");
+                UUID owner = UUID.fromString(rs.getString("owner_uuid"));
+
+                Map<UUID, String> members = new LinkedHashMap<>();
+                String membersSql = "SELECT player_uuid, player_name FROM team_members WHERE team_id = ?;";
+                try (PreparedStatement psMembers = connection.prepareStatement(membersSql)) {
+                    psMembers.setInt(1, teamId);
+                    try (ResultSet rsMembers = psMembers.executeQuery()) {
+                        while (rsMembers.next()) {
+                            members.put(UUID.fromString(rsMembers.getString("player_uuid")), rsMembers.getString("player_name"));
+                        }
+                    }
+                }
+
+                return new TeamData(teamId, name, owner, members);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération de l'équipe " + teamId, e);
+            return null;
+        }
+    }
+
+    // ===================== BOUNTIES =====================
+
+    @Override
+    public void addBounty(UUID targetUuid, String targetName, UUID contributorUuid, String contributorName, double amount) {
+        String sql = "INSERT INTO bounties (target_uuid, target_name, contributor_uuid, contributor_name, amount, created_at) VALUES (?, ?, ?, ?, ?, ?);";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, targetUuid.toString());
+            ps.setString(2, targetName);
+            if (contributorUuid != null) {
+                ps.setString(3, contributorUuid.toString());
+            } else {
+                ps.setNull(3, Types.VARCHAR);
+            }
+            ps.setString(4, contributorName);
+            ps.setDouble(5, amount);
+            ps.setLong(6, System.currentTimeMillis());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de l'ajout d'une prime sur " + targetName, e);
+        }
+    }
+
+    @Override
+    public List<BountyEntry> getBounties(UUID targetUuid) {
+        List<BountyEntry> list = new ArrayList<>();
+        String sql = "SELECT * FROM bounties WHERE target_uuid = ? ORDER BY created_at ASC;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, targetUuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(readBounty(rs));
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération des primes de " + targetUuid, e);
+        }
+        return list;
+    }
+
+    @Override
+    public List<BountyTarget> getBountyTargets() {
+        List<BountyTarget> list = new ArrayList<>();
+        String sql = "SELECT target_uuid, target_name, SUM(amount) AS total, COUNT(*) AS nb " +
+                "FROM bounties GROUP BY target_uuid ORDER BY total DESC;";
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new BountyTarget(
+                        UUID.fromString(rs.getString("target_uuid")),
+                        rs.getString("target_name"),
+                        rs.getDouble("total"),
+                        rs.getInt("nb")
+                ));
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération de la liste des primes.", e);
+        }
+        return list;
+    }
+
+    @Override
+    public void clearBounties(UUID targetUuid) {
+        String sql = "DELETE FROM bounties WHERE target_uuid = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, targetUuid.toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la suppression des primes de " + targetUuid, e);
+        }
+    }
+
+    @Override
+    public int getServerBountyCountToday(UUID playerUuid) {
+        String sql = "SELECT count FROM server_bounty_count WHERE player_uuid = ? AND day = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString());
+            ps.setString(2, today());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("count");
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la lecture du compteur de prime serveur de " + playerUuid, e);
+        }
+        return 0;
+    }
+
+    @Override
+    public void incrementServerBountyCount(UUID playerUuid) {
+        String sql = "INSERT INTO server_bounty_count (player_uuid, day, count) VALUES (?, ?, 1) " +
+                "ON CONFLICT(player_uuid, day) DO UPDATE SET count = count + 1;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString());
+            ps.setString(2, today());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de l'incrémentation du compteur de prime serveur de " + playerUuid, e);
+        }
+    }
+
+    private String today() {
+        return LocalDate.now(ZoneId.systemDefault()).toString();
+    }
+
+    private BountyEntry readBounty(ResultSet rs) throws SQLException {
+        int id = rs.getInt("id");
+        UUID targetUuid = UUID.fromString(rs.getString("target_uuid"));
+        String targetName = rs.getString("target_name");
+        String contributorUuidStr = rs.getString("contributor_uuid");
+        UUID contributorUuid = contributorUuidStr != null ? UUID.fromString(contributorUuidStr) : null;
+        String contributorName = rs.getString("contributor_name");
+        double amount = rs.getDouble("amount");
+        long createdAt = rs.getLong("created_at");
+        return new BountyEntry(id, targetUuid, targetName, contributorUuid, contributorName, amount, createdAt);
     }
 }

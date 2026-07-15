@@ -27,6 +27,14 @@ commands:
     description: Ouvre l'hôtel des ventes entre joueurs.
     usage: /ah [sell <prix>]
     aliases: [auctionhouse, auction]
+  team:
+    description: Gère votre équipe (création, ajout de membres, départ).
+    usage: /team <create|add|leave|disband|info> [argument]
+    aliases: [t]
+  bounty:
+    description: Ouvre la liste des primes ou en place une sur un joueur.
+    usage: /bounty [add <joueur> <montant>]
+    aliases: [prime]
 
 permissions:
   crew.balance.others:
