@@ -3,20 +3,26 @@ package fr.crewcmoi;
 import fr.crewcmoi.commands.AuctionCommand;
 import fr.crewcmoi.commands.BalanceCommand;
 import fr.crewcmoi.commands.BalanceTopCommand;
+import fr.crewcmoi.commands.BountyCommand;
 import fr.crewcmoi.commands.MoneyCommand;
 import fr.crewcmoi.commands.PayCommand;
 import fr.crewcmoi.commands.SellCommand;
+import fr.crewcmoi.commands.TeamCommand;
 import fr.crewcmoi.gui.AuctionGuiManager;
+import fr.crewcmoi.gui.BountyGuiManager;
 import fr.crewcmoi.gui.SellGuiManager;
+import fr.crewcmoi.listeners.BountyListener;
 import fr.crewcmoi.listeners.CombatListener;
 import fr.crewcmoi.listeners.GuiListener;
 import fr.crewcmoi.listeners.JoinListener;
 import fr.crewcmoi.managers.AuctionManager;
+import fr.crewcmoi.managers.BountyManager;
 import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.DatabaseManager;
 import fr.crewcmoi.managers.EconomyManager;
 import fr.crewcmoi.managers.PricesManager;
 import fr.crewcmoi.managers.SQLiteManager;
+import fr.crewcmoi.managers.TeamManager;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -37,6 +43,9 @@ public class Main extends JavaPlugin {
     private AuctionManager auctionManager;
     private AuctionGuiManager auctionGuiManager;
     private CombatManager combatManager;
+    private TeamManager teamManager;
+    private BountyManager bountyManager;
+    private BountyGuiManager bountyGuiManager;
     private FileConfiguration messages;
     private File messagesFile;
 
@@ -58,11 +67,15 @@ public class Main extends JavaPlugin {
         this.auctionManager = new AuctionManager(this, databaseManager, economyManager);
         this.auctionGuiManager = new AuctionGuiManager(this, auctionManager);
         this.combatManager = new CombatManager(this);
+        this.teamManager = new TeamManager(this, databaseManager);
+        this.bountyManager = new BountyManager(this, databaseManager, economyManager);
+        this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
 
         // Enregistrement des listeners
-        getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager), this);
+        getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager), this);
+        getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager), this);
 
         // Enregistrement des commandes
         registerCommand("balance", new BalanceCommand(this, economyManager));
@@ -71,6 +84,8 @@ public class Main extends JavaPlugin {
         registerCommand("sell", new SellCommand(sellGuiManager));
         registerCommand("pay", new PayCommand(this, economyManager));
         registerCommand("ah", new AuctionCommand(this, auctionManager, auctionGuiManager));
+        registerCommand("team", new TeamCommand(this, teamManager));
+        registerCommand("bounty", new BountyCommand(this, bountyManager, bountyGuiManager));
 
         getLogger().info("EconomyPlugin activé avec succès !");
     }
@@ -141,5 +156,13 @@ public class Main extends JavaPlugin {
 
     public CombatManager getCombatManager() {
         return combatManager;
+    }
+
+    public TeamManager getTeamManager() {
+        return teamManager;
+    }
+
+    public BountyManager getBountyManager() {
+        return bountyManager;
     }
 }
