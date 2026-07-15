@@ -8,9 +8,11 @@ import fr.crewcmoi.commands.PayCommand;
 import fr.crewcmoi.commands.SellCommand;
 import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.SellGuiManager;
+import fr.crewcmoi.listeners.CombatListener;
 import fr.crewcmoi.listeners.GuiListener;
 import fr.crewcmoi.listeners.JoinListener;
 import fr.crewcmoi.managers.AuctionManager;
+import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.DatabaseManager;
 import fr.crewcmoi.managers.EconomyManager;
 import fr.crewcmoi.managers.PricesManager;
@@ -34,6 +36,7 @@ public class Main extends JavaPlugin {
     private SellGuiManager sellGuiManager;
     private AuctionManager auctionManager;
     private AuctionGuiManager auctionGuiManager;
+    private CombatManager combatManager;
     private FileConfiguration messages;
     private File messagesFile;
 
@@ -54,10 +57,12 @@ public class Main extends JavaPlugin {
         this.sellGuiManager = new SellGuiManager(this, pricesManager, economyManager);
         this.auctionManager = new AuctionManager(this, databaseManager, economyManager);
         this.auctionGuiManager = new AuctionGuiManager(this, auctionManager);
+        this.combatManager = new CombatManager(this);
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager), this);
+        getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager), this);
 
         // Enregistrement des commandes
         registerCommand("balance", new BalanceCommand(this, economyManager));
@@ -132,5 +137,9 @@ public class Main extends JavaPlugin {
 
     public AuctionManager getAuctionManager() {
         return auctionManager;
+    }
+
+    public CombatManager getCombatManager() {
+        return combatManager;
     }
 }

@@ -54,3 +54,9 @@ ah:
   inventory-full: "&cVotre inventaire est plein."
   own-item: "&cVous ne pouvez pas acheter votre propre annonce."
   not-found: "&cCette annonce n'est plus disponible."
+
+combat-log:
+  tagged: "&cVous êtes maintenant en combat ! Vous ne pouvez plus vous téléporter ni utiliser d'élytre pendant 30 secondes."
+  combat-ended: "&aVous n'êtes plus en combat."
+  action-blocked: "&cVous ne pouvez pas faire ça en combat ! (&e{seconds}s&c restantes)"
+  opponent-fled: "&e{player}&c s'est déconnecté pendant votre combat et a été tué."
