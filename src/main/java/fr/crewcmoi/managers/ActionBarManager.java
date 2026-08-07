@@ -48,11 +48,11 @@ public class ActionBarManager {
     }
 
     private void tick() {
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol", " \uE517");
         for (Player player : Bukkit.getOnlinePlayers()) {
             double balance = economyManager.getBalance(player.getUniqueId());
             String text = format.format(balance) + currency;
-            Component component = Component.text(text).font(DIG2PIC_FONT);
+            Component component = Component.text(text);
             player.sendActionBar(component);
         }
     }

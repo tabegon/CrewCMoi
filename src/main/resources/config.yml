@@ -14,16 +14,16 @@ economy:
   # Symbole affiché après les montants (ex: 100.00§f). "§f" ne s'affiche pas comme
   # un symbole visible : c'est un code couleur (blanc) qui vient simplement réinitialiser
   # la couleur après le montant, à la place d'un vrai symbole de monnaie.
-  currency-symbol: "§f"
+  currency-symbol: " "
 
   # Si true, le solde d'un joueur peut devenir négatif via /money remove
   allow-negative-balance: false
 
   # Prix minimum autorisé pour une mise en vente via /ah sell
-  auction-min-price: 0.01
+  auction-min-price: 1
 
   # Pourcentage de taxe prélevé sur chaque vente réalisée à l'hôtel des ventes (0 = aucune taxe)
-  auction-tax-percent: 5.0
+  auction-tax-percent: 0
 
 combat-log:
   # Durée du tag de combat en secondes. Pendant ce délai, le joueur ne peut ni se
@@ -43,4 +43,4 @@ bounty:
 
 team:
   # Taille maximale d'une équipe (propriétaire inclus). 0 = illimité.
-  max-members: 0
+  max-members: 8
