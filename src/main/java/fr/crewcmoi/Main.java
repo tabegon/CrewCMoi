@@ -12,6 +12,7 @@ import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.BountyGuiManager;
 import fr.crewcmoi.gui.SellGuiManager;
 import fr.crewcmoi.listeners.BountyListener;
+import fr.crewcmoi.listeners.CoinItemListener;
 import fr.crewcmoi.listeners.CombatListener;
 import fr.crewcmoi.listeners.GuiListener;
 import fr.crewcmoi.listeners.JoinListener;
@@ -83,6 +84,14 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
+        // ItemsAdder est optionnel : on n'enregistre ce listener (qui référence les classes
+        // de son API) que s'il est bien installé et activé, pour éviter un crash au démarrage
+        // si ce plugin n'est pas présent sur le serveur.
+        if (getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
+            getServer().getPluginManager().registerEvents(new CoinItemListener(this, economyManager), this);
+        } else {
+            getLogger().warning("ItemsAdder n'est pas détecté : la pièce échangeable contre de l'argent est désactivée.");
+        }
 
         // Enregistrement des commandes
         registerCommand("balance", new BalanceCommand(this, economyManager));

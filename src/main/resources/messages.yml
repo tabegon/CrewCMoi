@@ -68,3 +68,6 @@ bounty:
   gui-title: "&4&lᴘʀɪᴍᴇꜱ ᴅᴇꜱ ᴊᴏᴜᴇᴜʀꜱ"
   claimed: "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&a ᴇɴ ᴛᴜᴀɴᴛ &e{player}&a !"
   server-bounty-applied: "&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴛᴜᴇ &e{player}&c ꜱᴀɴꜱ ǫᴜ'ɪʟ ɴ'ᴀɪᴛ ᴅᴇ ᴘʀɪᴍᴇ : ʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴠᴏᴜꜱ ɪɴꜰʟɪɢᴇ ᴜɴ ᴍᴀʟᴜꜱ ᴅᴇ &e{malus}&c ᴇᴛ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&c ꜱᴜʀ ᴠᴏᴜꜱ !"
+
+coin-item:
+  redeemed: "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴇᴄʜᴀɴɢᴇ ᴜɴᴇ ᴘɪᴇᴄᴇ ᴄᴏɴᴛʀᴇ &e{amount}&a !"

@@ -44,3 +44,16 @@ bounty:
 team:
   # Taille maximale d'une équipe (propriétaire inclus). 0 = illimité.
   max-members: 8
+
+coin-item:
+  # Active/désactive la possibilité d'échanger une "pièce" ItemsAdder contre de l'argent.
+  enabled: true
+
+  # Id namespaced ItemsAdder de l'item "pièce" (ex: namespace:id, voir votre configuration
+  # ItemsAdder). L'item est reconnu via l'API ItemsAdder (donc son Custom Model Data réel),
+  # pas en dur, ce qui reste fiable même si ItemsAdder réattribue ses model data en interne.
+  itemsadder-id: "crewcmoi:piece"
+
+  # Montant crédité au joueur par pièce échangée (clic droit). Une pièce est consommée
+  # (retirée du stack en main) à chaque échange.
+  value: 50.0
