@@ -25,16 +25,19 @@ public class BountyManager {
     private final Main plugin;
     private final DatabaseManager databaseManager;
     private final EconomyManager economyManager;
+    private final MalusEffectManager malusEffectManager;
     private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     // Préfixe des équipes de scoreboard utilisées uniquement pour l'affichage visuel
     // (pseudo en rouge + prime en gold), une équipe dédiée par joueur ayant une prime.
     private static final String TEAM_PREFIX = "bounty_";
 
-    public BountyManager(Main plugin, DatabaseManager databaseManager, EconomyManager economyManager) {
+    public BountyManager(Main plugin, DatabaseManager databaseManager, EconomyManager economyManager,
+                          MalusEffectManager malusEffectManager) {
         this.plugin = plugin;
         this.databaseManager = databaseManager;
         this.economyManager = economyManager;
+        this.malusEffectManager = malusEffectManager;
     }
 
     public enum AddResult {
@@ -102,11 +105,15 @@ public class BountyManager {
 
     /**
      * Tente de faire réclamer par le killer la prime placée sur la victime.
-     * Seules les contributions venant d'un joueur différent du killer sont payées
-     * (une prime placée par le killer lui-même sur sa propre victime ne peut pas être récupérée).
-     * Dans tous les cas, si la victime avait une prime active, elle est réinitialisée après sa mort.
+     * Ne s'applique QUE lors d'une mort causée par un autre joueur (voir BountyListener) :
+     * dans ce cas, le killer récupère la TOTALITÉ de la prime de la victime, y compris la
+     * part attribuée par le serveur, même s'il en avait lui-même placé une partie. La prime
+     * est alors intégralement effacée, ce qui lève au passage l'effet de malchance associé.
      *
-     * @return le montant effectivement versé au killer (0 si aucune prime réclamable).
+     * En cas de mort d'une autre nature (cause naturelle, suicide, etc.), cette méthode
+     * n'est jamais appelée : la prime (et donc l'effet de malchance) reste intacte.
+     *
+     * @return le montant effectivement versé au killer (0 si la victime n'avait aucune prime).
      */
     public double claimBounty(UUID killerUuid, UUID victimUuid) {
         List<BountyEntry> entries = databaseManager.getBounties(victimUuid);
@@ -115,7 +122,6 @@ public class BountyManager {
         }
 
         double claimable = entries.stream()
-                .filter(e -> e.getContributorUuid() == null || !e.getContributorUuid().equals(killerUuid))
                 .mapToDouble(BountyEntry::getAmount)
                 .sum();
 
@@ -128,6 +134,9 @@ public class BountyManager {
         Player victim = Bukkit.getPlayer(victimUuid);
         if (victim != null) {
             clearBountyDisplay(victim.getName());
+            // Toute la prime (y compris la part serveur) vient d'être effacée par ce kill :
+            // l'effet de malchance associé est donc levé immédiatement.
+            malusEffectManager.updateBountyEffect(victim, 0.0);
         }
 
         return claimable;
@@ -135,13 +144,25 @@ public class BountyManager {
 
     /**
      * Recalcule (de façon asynchrone) le total des primes actives d'un joueur et met à jour
-     * son affichage visuel (pseudo rouge + prime en gold) en conséquence.
+     * son affichage visuel (pseudo rouge + prime en gold) en conséquence, ainsi que ses
+     * effets de malus de prime serveur (réduction de dégâts + coeurs retirés), qui ne
+     * dépendent eux que de la part de la prime attribuée par le serveur.
      */
     public void refreshBountyDisplay(UUID uuid, String name) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             List<BountyEntry> entries = databaseManager.getBounties(uuid);
             double total = entries.stream().mapToDouble(BountyEntry::getAmount).sum();
-            Bukkit.getScheduler().runTask(plugin, () -> applyBountyDisplay(name, total));
+            double serverTotal = entries.stream()
+                    .filter(BountyEntry::isServerBounty)
+                    .mapToDouble(BountyEntry::getAmount)
+                    .sum();
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                applyBountyDisplay(name, total);
+                Player player = Bukkit.getPlayer(uuid);
+                if (player != null && player.isOnline()) {
+                    malusEffectManager.updateBountyEffect(player, serverTotal);
+                }
+            });
         });
     }
 
@@ -162,6 +183,10 @@ public class BountyManager {
                 team = board.registerNewTeam(teamName);
             }
             team.setColor(ChatColor.RED);
+            // Garantit que le suffixe (montant de la prime) s'affiche à la fois dans le tab
+            // (liste des joueurs) ET au-dessus de la tête du joueur (nametag) : ce sont les
+            // deux endroits gérés par une même équipe de scoreboard sous Bukkit/Spigot.
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
             team.setSuffix(" §6[§e" + format.format(total) + currency + "§6]");
             if (!team.hasEntry(playerName)) {

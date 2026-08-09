@@ -512,6 +512,19 @@ public class SQLiteManager implements DatabaseManager {
     }
 
     @Override
+    public void clearPlayerBounties(UUID targetUuid) {
+        // On conserve les lignes où contributor_uuid EST NULL : ce sont les contributions
+        // attribuées par le serveur, qui doivent persister à travers la mort du joueur.
+        String sql = "DELETE FROM bounties WHERE target_uuid = ? AND contributor_uuid IS NOT NULL;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, targetUuid.toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la suppression des primes joueurs de " + targetUuid, e);
+        }
+    }
+
+    @Override
     public int getServerBountyCountToday(UUID playerUuid) {
         String sql = "SELECT count FROM server_bounty_count WHERE player_uuid = ? AND day = ?;";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

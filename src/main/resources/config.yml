@@ -39,7 +39,7 @@ bounty:
   server-malus-amount: 50.0
 
   # Nombre maximum de fois par jour où le serveur peut attribuer prime + malus à un joueur.
-  server-bounty-max-per-day: 3
+  server-bounty-max-per-day: 1000
 
 team:
   # Taille maximale d'une équipe (propriétaire inclus). 0 = illimité.

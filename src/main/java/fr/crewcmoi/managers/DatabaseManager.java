@@ -120,9 +120,18 @@ public interface DatabaseManager {
     List<BountyTarget> getBountyTargets();
 
     /**
-     * Supprime toutes les contributions de prime d'un joueur (ex: après avoir été tué).
+     * Supprime toutes les contributions de prime d'un joueur (ex: remise à zéro complète,
+     * utilisable par une commande admin).
      */
     void clearBounties(UUID targetUuid);
+
+    /**
+     * Supprime uniquement les contributions de prime placées par des JOUEURS (contributor_uuid
+     * non nul) sur un joueur, en conservant sa éventuelle prime SERVEUR. À utiliser quand la
+     * prime "joueur" vient d'être réclamée (le joueur meurt), sans effacer son statut de
+     * prime serveur (qui doit persister à travers ses morts).
+     */
+    void clearPlayerBounties(UUID targetUuid);
 
     /**
      * Retourne le nombre de fois où la prime serveur a été attribuée à ce joueur aujourd'hui.

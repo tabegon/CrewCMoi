@@ -72,16 +72,16 @@ public class Main extends JavaPlugin {
         this.auctionGuiManager = new AuctionGuiManager(this, auctionManager);
         this.combatManager = new CombatManager(this);
         this.teamManager = new TeamManager(this, databaseManager);
-        this.bountyManager = new BountyManager(this, databaseManager, economyManager);
+        this.malusEffectManager = new MalusEffectManager(this);
+        this.bountyManager = new BountyManager(this, databaseManager, economyManager, malusEffectManager);
         this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
         this.actionBarManager = new ActionBarManager(this, economyManager);
         this.actionBarManager.start();
-        this.malusEffectManager = new MalusEffectManager(this);
 
         // Enregistrement des listeners
-        getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager), this);
+        getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager), this);
-        getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager, malusEffectManager), this);
+        getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
 
         // Enregistrement des commandes
