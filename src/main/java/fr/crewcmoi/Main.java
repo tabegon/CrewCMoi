@@ -21,6 +21,7 @@ import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.DatabaseManager;
 import fr.crewcmoi.managers.EconomyManager;
 import fr.crewcmoi.managers.ActionBarManager;
+import fr.crewcmoi.managers.MalusEffectManager;
 import fr.crewcmoi.managers.PricesManager;
 import fr.crewcmoi.managers.SQLiteManager;
 import fr.crewcmoi.managers.TeamManager;
@@ -48,6 +49,7 @@ public class Main extends JavaPlugin {
     private BountyManager bountyManager;
     private BountyGuiManager bountyGuiManager;
     private ActionBarManager actionBarManager;
+    private MalusEffectManager malusEffectManager;
     private FileConfiguration messages;
     private File messagesFile;
 
@@ -74,12 +76,13 @@ public class Main extends JavaPlugin {
         this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
         this.actionBarManager = new ActionBarManager(this, economyManager);
         this.actionBarManager.start();
+        this.malusEffectManager = new MalusEffectManager(this);
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager), this);
-        getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager), this);
-        getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager), this);
+        getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager, malusEffectManager), this);
+        getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
 
         // Enregistrement des commandes
         registerCommand("balance", new BalanceCommand(this, economyManager));
@@ -171,5 +174,9 @@ public class Main extends JavaPlugin {
 
     public BountyManager getBountyManager() {
         return bountyManager;
+    }
+
+    public MalusEffectManager getMalusEffectManager() {
+        return malusEffectManager;
     }
 }

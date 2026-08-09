@@ -5,6 +5,7 @@ import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.AuctionHolder;
 import fr.crewcmoi.gui.BaltopHolder;
 import fr.crewcmoi.gui.BountyHolder;
+import fr.crewcmoi.gui.ConfirmationHolder;
 import fr.crewcmoi.gui.SellGuiManager;
 import fr.crewcmoi.gui.SellHolder;
 import fr.crewcmoi.managers.AuctionManager;
@@ -21,7 +22,8 @@ import org.bukkit.inventory.InventoryHolder;
 
 /**
  * Empêche toute interaction avec la GUI /baltop (lecture seule)
- * et gère les interactions autorisées dans les GUI /sell et /ah.
+ * et gère les interactions autorisées dans les GUI /sell, /ah et les
+ * GUI de confirmation (achat /ah, vente /sell).
  */
 public class GuiListener implements Listener {
 
@@ -54,15 +56,50 @@ public class GuiListener implements Listener {
             return;
         }
 
-        if (holder instanceof SellHolder) {
+        if (holder instanceof ConfirmationHolder confirmationHolder) {
+            // GUI de confirmation générique : seuls les boutons confirmer/annuler sont actionnables.
+            event.setCancelled(true);
+
+            int rawSlot = event.getRawSlot();
+            boolean clickedTop = rawSlot >= 0 && rawSlot < topInventory.getSize();
+            if (!clickedTop || !(event.getWhoClicked() instanceof Player player)) {
+                return;
+            }
+
+            if (rawSlot == ConfirmationHolder.CONFIRM_SLOT) {
+                resolveConfirmation(player, confirmationHolder, confirmationHolder.getOnConfirm());
+            } else if (rawSlot == ConfirmationHolder.CANCEL_SLOT) {
+                resolveConfirmation(player, confirmationHolder, confirmationHolder.getOnCancel());
+            }
+            return;
+        }
+
+        if (holder instanceof SellHolder sellHolder) {
             int rawSlot = event.getRawSlot();
             boolean clickedTop = rawSlot >= 0 && rawSlot < topInventory.getSize();
 
-            if (clickedTop) {
+            if (sellHolder.isConfirming()) {
+                // Pendant l'étape de confirmation : plus aucune manipulation d'objet n'est autorisée,
+                // seuls les boutons confirmer/annuler réagissent.
+                event.setCancelled(true);
+
+                if (!clickedTop || !(event.getWhoClicked() instanceof Player player)) {
+                    return;
+                }
+
                 if (rawSlot == SellHolder.CONFIRM_SLOT) {
+                    sellGuiManager.confirmSale(player, topInventory, sellHolder);
+                } else if (rawSlot == SellHolder.CANCEL_CONFIRM_SLOT) {
+                    sellGuiManager.cancelConfirmation(topInventory, sellHolder);
+                }
+                return;
+            }
+
+            if (clickedTop) {
+                if (rawSlot == SellHolder.SELL_SLOT) {
                     event.setCancelled(true);
                     if (event.getWhoClicked() instanceof Player player) {
-                        sellGuiManager.sell(player, topInventory);
+                        sellGuiManager.askConfirmation(player, topInventory, sellHolder);
                     }
                     return;
                 }
@@ -131,22 +168,26 @@ public class GuiListener implements Listener {
                     auctionGuiManager.render(player, auctionHolder);
                 });
             } else {
-                auctionManager.buy(player, auctionId, result -> {
-                    switch (result) {
-                        case SUCCESS -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6Economy&8] &r&aAchat effectué avec succès !"));
-                        case NOT_ENOUGH_MONEY -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6Economy&8] &r&cVous n'avez pas assez d'argent pour cet achat."));
-                        case INVENTORY_FULL -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6Economy&8] &r&cVotre inventaire est plein."));
-                        case OWN_ITEM -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6Economy&8] &r&cVous ne pouvez pas acheter votre propre annonce."));
-                        case NOT_FOUND -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6Economy&8] &r&cCette annonce n'est plus disponible."));
-                    }
-                    auctionGuiManager.render(player, auctionHolder);
-                });
+                // Achat : on passe systématiquement par une GUI de confirmation avant d'exécuter l'achat.
+                int page = auctionHolder.getPage();
+                player.closeInventory();
+                Bukkit.getScheduler().runTask(plugin, () -> auctionGuiManager.openBuyConfirmation(player, page, auctionId));
             }
+        }
+    }
+
+    /**
+     * Exécute le Runnable choisi (confirmer ou annuler) une seule fois puis ferme la GUI.
+     * Protège contre une double exécution si l'InventoryCloseEvent se déclenche ensuite.
+     */
+    private void resolveConfirmation(Player player, ConfirmationHolder confirmationHolder, Runnable action) {
+        if (confirmationHolder.isResolved()) {
+            return;
+        }
+        confirmationHolder.setResolved(true);
+        player.closeInventory();
+        if (action != null) {
+            Bukkit.getScheduler().runTask(plugin, action);
         }
     }
 
@@ -165,12 +206,22 @@ public class GuiListener implements Listener {
             return;
         }
 
+        if (holder instanceof ConfirmationHolder) {
+            event.setCancelled(true);
+            return;
+        }
+
         if (holder instanceof AuctionHolder) {
             event.setCancelled(true);
             return;
         }
 
-        if (holder instanceof SellHolder) {
+        if (holder instanceof SellHolder sellHolder) {
+            if (sellHolder.isConfirming()) {
+                event.setCancelled(true);
+                return;
+            }
+
             int topSize = topInventory.getSize();
             for (int rawSlot : event.getRawSlots()) {
                 if (rawSlot < topSize && !SellHolder.isItemSlot(rawSlot)) {
@@ -186,8 +237,21 @@ public class GuiListener implements Listener {
     public void onClose(InventoryCloseEvent event) {
         InventoryHolder holder = event.getInventory().getHolder();
 
-        if (holder instanceof SellHolder && event.getPlayer() instanceof Player player) {
-            sellGuiManager.returnItems(player, event.getInventory());
+        if (holder instanceof SellHolder sellHolder && event.getPlayer() instanceof Player player) {
+            sellGuiManager.returnItems(player, event.getInventory(), sellHolder);
+            return;
+        }
+
+        if (holder instanceof ConfirmationHolder confirmationHolder && event.getPlayer() instanceof Player) {
+            // Le joueur a fermé la GUI sans cliquer confirmer/annuler (touche Echap, etc.) :
+            // on considère cela comme une annulation.
+            if (!confirmationHolder.isResolved()) {
+                confirmationHolder.setResolved(true);
+                Runnable onCancel = confirmationHolder.getOnCancel();
+                if (onCancel != null) {
+                    Bukkit.getScheduler().runTask(plugin, onCancel);
+                }
+            }
         }
     }
 }

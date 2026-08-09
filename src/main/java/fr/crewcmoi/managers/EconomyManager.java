@@ -3,7 +3,6 @@ package fr.crewcmoi.managers;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.database.PlayerData;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Map;

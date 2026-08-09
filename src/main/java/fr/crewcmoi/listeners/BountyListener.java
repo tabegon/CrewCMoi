@@ -4,6 +4,7 @@ import fr.crewcmoi.Main;
 import fr.crewcmoi.managers.BountyManager;
 import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.EconomyManager;
+import fr.crewcmoi.managers.MalusEffectManager;
 import fr.crewcmoi.managers.TeamManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -31,15 +32,17 @@ public class BountyListener implements Listener {
     private final CombatManager combatManager;
     private final TeamManager teamManager;
     private final EconomyManager economyManager;
+    private final MalusEffectManager malusEffectManager;
     private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public BountyListener(Main plugin, BountyManager bountyManager, CombatManager combatManager,
-                           TeamManager teamManager, EconomyManager economyManager) {
+                           TeamManager teamManager, EconomyManager economyManager, MalusEffectManager malusEffectManager) {
         this.plugin = plugin;
         this.bountyManager = bountyManager;
         this.combatManager = combatManager;
         this.teamManager = teamManager;
         this.economyManager = economyManager;
+        this.malusEffectManager = malusEffectManager;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -85,6 +88,10 @@ public class BountyListener implements Listener {
         economyManager.withdraw(killer.getUniqueId(), malusAmount);
         bountyManager.addServerBounty(killer.getUniqueId(), killer.getName(), bountyAmount);
         bountyManager.incrementServerBountyCount(killer.getUniqueId());
+
+        // En plus du malus financier, le tueur reçoit un effet de "malchance" codé en dur :
+        // pendant une durée configurée, ses dégâts contre les autres joueurs sont réduits.
+        malusEffectManager.applyMalus(killer);
 
         sendMessage(killer, "&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴛᴜᴇ &e" + victim.getName() + "&c ꜱᴀɴꜱ ǫᴜ'ɪʟ ɴ'ᴀɪᴛ ᴅᴇ ᴘʀɪᴍᴇ : "
                 + "ʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴠᴏᴜꜱ ɪɴꜰʟɪɢᴇ ᴜɴ ᴍᴀʟᴜꜱ ᴅᴇ &e" + format.format(malusAmount) + currency

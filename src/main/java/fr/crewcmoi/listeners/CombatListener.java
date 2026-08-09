@@ -2,6 +2,7 @@ package fr.crewcmoi.listeners;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.managers.CombatManager;
+import fr.crewcmoi.managers.MalusEffectManager;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -32,15 +33,38 @@ public class CombatListener implements Listener {
 
     private final Main plugin;
     private final CombatManager combatManager;
+    private final MalusEffectManager malusEffectManager;
 
     // Commandes de téléportation à bloquer pendant le combat (en plus des events natifs)
     private static final List<String> BLOCKED_TP_COMMANDS = List.of(
             "tp", "tpa", "tpaccept", "tpask", "tphere", "teleport", "spawn", "warp", "home", "back"
     );
 
-    public CombatListener(Main plugin, CombatManager combatManager) {
+    public CombatListener(Main plugin, CombatManager combatManager, MalusEffectManager malusEffectManager) {
         this.plugin = plugin;
         this.combatManager = combatManager;
+        this.malusEffectManager = malusEffectManager;
+    }
+
+    // --- Réduction des dégâts infligés par un joueur sous l'effet "malchance" (bad luck) ---
+    // Priorité HIGH, avant le MONITOR ci-dessous, pour modifier les dégâts avant qu'ils ne
+    // soient appliqués. Ne s'applique qu'aux coups portés contre un autre joueur.
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBadLuckDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
+
+        Player attacker = resolveAttacker(event.getDamager());
+        if (attacker == null || attacker.getUniqueId().equals(event.getEntity().getUniqueId())) {
+            return;
+        }
+
+        double reduced = malusEffectManager.applyReduction(attacker, event.getDamage());
+        if (reduced != event.getDamage()) {
+            event.setDamage(reduced);
+        }
     }
 
     // --- Déclenchement du combat : coup direct ou projectile ---

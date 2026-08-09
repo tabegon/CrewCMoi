@@ -13,7 +13,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.text.DecimalFormat;
@@ -81,7 +80,7 @@ public class BalanceTopCommand implements CommandExecutor {
 
                 List<String> lore = new ArrayList<>();
                 lore.add(ChatColor.translateAlternateColorCodes('&',
-                        "&7ꜱᴏʟᴅᴇ : &a" + format.format(data.getBalance()) + currency));
+                        "&7ꜱᴏʟᴅᴇ : &a" + format.format(data.getBalance()) + "&f" + currency));
                 meta.setLore(lore);
 
                 skull.setItemMeta(meta);

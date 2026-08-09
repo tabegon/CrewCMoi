@@ -6,7 +6,7 @@ import fr.crewcmoi.database.BountyEntry;
 import fr.crewcmoi.database.BountyTarget;
 import fr.crewcmoi.database.PlayerData;
 import fr.crewcmoi.database.TeamData;
-import fr.crewcmoi.util.ItemSerialization;
+import fr.crewcmoi.utils.ItemSerialization;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;

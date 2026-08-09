@@ -5,7 +5,6 @@ import fr.crewcmoi.database.PlayerData;
 import fr.crewcmoi.managers.EconomyManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -42,15 +41,11 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
 
             Player player = (Player) sender;
             double balance = economyManager.getBalance(player.getUniqueId());
-            sendMessage(sender, "&7ᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ : &a" + format.format(balance) + currency);
+            sendMessage(sender, "&7ᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ : &a" + format.format(balance) + "&f" + currency);
             return true;
         }
 
         // /balance <joueur>
-        if (!sender.hasPermission("crew.balance.others")) {
-            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅᴇ ᴠᴏɪʀ ʟᴇ ꜱᴏʟᴅᴇ ᴅ'ᴜɴ ᴀᴜᴛʀᴇ ᴊᴏᴜᴇᴜʀ.");
-            return true;
-        }
 
         String targetName = args[0];
         PlayerData data = economyManager.getPlayerDataByName(targetName);
@@ -60,19 +55,17 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        sendMessage(sender, "&7ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&7 : &a" + format.format(data.getBalance()) + currency);
+        sendMessage(sender, "&7ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&7 : &a" + format.format(data.getBalance()) + "&f" + currency);
         return true;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
-        if (args.length == 1 && sender.hasPermission("crew.balance.others")) {
-            String partial = args[0].toLowerCase();
-            for (Player online : Bukkit.getOnlinePlayers()) {
-                if (online.getName().toLowerCase().startsWith(partial)) {
-                    completions.add(online.getName());
-                }
+        String partial = args[0].toLowerCase();
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (online.getName().toLowerCase().startsWith(partial)) {
+                completions.add(online.getName());
             }
         }
         return completions;

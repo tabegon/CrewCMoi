@@ -22,11 +22,62 @@ public class AuctionGuiManager {
 
     private final Main plugin;
     private final AuctionManager auctionManager;
+    private final ConfirmationGuiManager confirmationGuiManager = new ConfirmationGuiManager();
     private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public AuctionGuiManager(Main plugin, AuctionManager auctionManager) {
         this.plugin = plugin;
         this.auctionManager = auctionManager;
+    }
+
+    /**
+     * Ouvre une GUI de confirmation avant l'achat d'une annonce. Si l'annonce n'existe
+     * plus (achetée/retirée entre temps), on prévient le joueur et on revient à la GUI.
+     */
+    public void openBuyConfirmation(Player player, int page, int auctionId) {
+        AuctionItem auction = auctionManager.getCachedAuctions().stream()
+                .filter(a -> a.getId() == auctionId)
+                .findFirst()
+                .orElse(null);
+
+        if (auction == null) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cCette annonce n'est plus disponible."));
+            open(player, page);
+            return;
+        }
+
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+
+        List<String> extraLore = new ArrayList<>();
+        extraLore.add("");
+        extraLore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴇɴᴅᴇᴜʀ : &e" + auction.getSellerName()));
+        extraLore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘʀɪx : &a" + format.format(auction.getPrice()) + currency));
+        extraLore.add("");
+        extraLore.add(ChatColor.translateAlternateColorCodes('&', "&eᴄᴏɴꜰɪʀᴍᴇᴢ-ᴠᴏᴜꜱ ᴄᴇᴛ ᴀᴄʜᴀᴛ ?"));
+
+        confirmationGuiManager.open(
+                player,
+                "&5&lᴄᴏɴꜰɪʀᴍᴇʀ ʟ'ᴀᴄʜᴀᴛ",
+                auction.getItem(),
+                extraLore,
+                () -> auctionManager.buy(player, auctionId, result -> {
+                    switch (result) {
+                        case SUCCESS -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&aAchat effectué avec succès !"));
+                        case NOT_ENOUGH_MONEY -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cVous n'avez pas assez d'argent pour cet achat."));
+                        case INVENTORY_FULL -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cVotre inventaire est plein."));
+                        case OWN_ITEM -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cVous ne pouvez pas acheter votre propre annonce."));
+                        case NOT_FOUND -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cCette annonce n'est plus disponible."));
+                    }
+                    open(player, page);
+                }),
+                () -> open(player, page)
+        );
     }
 
     public void open(Player player, int page) {

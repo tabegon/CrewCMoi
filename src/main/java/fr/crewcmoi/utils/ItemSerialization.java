@@ -1,4 +1,4 @@
-package fr.crewcmoi.util;
+package fr.crewcmoi.utils;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
