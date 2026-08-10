@@ -11,7 +11,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +23,6 @@ public class AuctionGuiManager {
     private final Main plugin;
     private final AuctionManager auctionManager;
     private final ConfirmationGuiManager confirmationGuiManager = new ConfirmationGuiManager();
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public AuctionGuiManager(Main plugin, AuctionManager auctionManager) {
         this.plugin = plugin;
@@ -52,7 +51,7 @@ public class AuctionGuiManager {
         List<String> extraLore = new ArrayList<>();
         extraLore.add("");
         extraLore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴇɴᴅᴇᴜʀ : &e" + auction.getSellerName()));
-        extraLore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘʀɪx : &a" + format.format(auction.getPrice()) + currency));
+        extraLore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘʀɪx : &a" + MoneyFormat.format(auction.getPrice()) + currency));
         extraLore.add("");
         extraLore.add(ChatColor.translateAlternateColorCodes('&', "&eᴄᴏɴꜰɪʀᴍᴇᴢ-ᴠᴏᴜꜱ ᴄᴇᴛ ᴀᴄʜᴀᴛ ?"));
 
@@ -130,7 +129,7 @@ public class AuctionGuiManager {
                     lore.add("");
                 }
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴇɴᴅᴇᴜʀ : &e" + auction.getSellerName()));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘʀɪx : &a" + format.format(auction.getPrice()) + currency));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘʀɪx : &a" + MoneyFormat.format(auction.getPrice()) + currency));
 
                 if (auction.getSellerUuid().equals(viewer.getUniqueId())) {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cᴄʟɪǫᴜᴇ ᴘᴏᴜʀ ʀᴇᴛɪʀᴇʀ ᴛᴏɴ ᴀɴɴᴏɴᴄᴇ"));

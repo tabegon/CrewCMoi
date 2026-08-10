@@ -5,6 +5,7 @@ import fr.crewcmoi.managers.BountyManager;
 import fr.crewcmoi.managers.EconomyManager;
 import fr.crewcmoi.managers.MalusEffectManager;
 import fr.crewcmoi.managers.TeamManager;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -29,18 +30,17 @@ public class JoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        economyManager.loadPlayer(event.getPlayer().getUniqueId(), event.getPlayer().getName());
-        teamManager.loadPlayer(event.getPlayer().getUniqueId());
-        // Recalcule au passage les effets de malus (réduction de dégâts + coeurs retirés)
-        // liés à sa prime serveur, au cas où elle aurait changé pendant qu'il était déconnecté.
-        bountyManager.refreshBountyDisplayOnJoin(event.getPlayer().getUniqueId(), event.getPlayer().getName());
+        Player player = event.getPlayer();
+        economyManager.loadPlayer(player.getUniqueId(), player.getName());
+        teamManager.loadPlayer(player.getUniqueId());
+        bountyManager.refreshBountyDisplayOnJoin(player.getUniqueId(), player.getName());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        economyManager.unloadPlayer(event.getPlayer().getUniqueId());
-        teamManager.unloadPlayer(event.getPlayer().getUniqueId());
-        malusEffectManager.clearVolatileState(event.getPlayer());
+        Player player = event.getPlayer();
+        economyManager.unloadPlayer(player.getUniqueId());
+        teamManager.unloadPlayer(player.getUniqueId());
+        malusEffectManager.clearVolatileState(player);
     }
 }
-

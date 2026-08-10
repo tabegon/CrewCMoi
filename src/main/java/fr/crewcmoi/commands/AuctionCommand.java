@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 
 /**
  * Commande /ah (hôtel des ventes) :
@@ -23,7 +23,6 @@ public class AuctionCommand implements CommandExecutor {
     private final Main plugin;
     private final AuctionManager auctionManager;
     private final AuctionGuiManager auctionGuiManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public AuctionCommand(Main plugin, AuctionManager auctionManager, AuctionGuiManager auctionGuiManager) {
         this.plugin = plugin;
@@ -60,7 +59,7 @@ public class AuctionCommand implements CommandExecutor {
 
         double price;
         try {
-            price = Double.parseDouble(args[1].replace(",", "."));
+            price = MoneyFormat.parse(args[1]);
         } catch (NumberFormatException e) {
             sendMessage(player, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.");
             return;
@@ -68,7 +67,7 @@ public class AuctionCommand implements CommandExecutor {
 
         double minPrice = plugin.getConfig().getDouble("economy.auction-min-price", 0.01);
         if (price < minPrice) {
-            sendMessage(player, "&cʟᴇ ᴘʀɪx ᴍɪɴɪᴍᴜᴍ ᴇꜱᴛ ᴅᴇ &e" + format.format(minPrice) + "&c.");
+            sendMessage(player, "&cʟᴇ ᴘʀɪx ᴍɪɴɪᴍᴜᴍ ᴇꜱᴛ ᴅᴇ &e" + MoneyFormat.format(minPrice) + "&c.");
             return;
         }
 
@@ -84,7 +83,7 @@ public class AuctionCommand implements CommandExecutor {
         auctionManager.listItem(player, toSell, price, success -> {
             if (Boolean.TRUE.equals(success)) {
                 String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
-                sendMessage(player, "&aᴏʙᴊᴇᴛ ᴍɪꜱ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e" + format.format(price) + currency + "&a !");
+                sendMessage(player, "&aᴏʙᴊᴇᴛ ᴍɪꜱ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e" + MoneyFormat.format(price) + currency + "&a !");
             } else {
                 // Échec : on rend l'objet au joueur.
                 player.getInventory().addItem(toSell);

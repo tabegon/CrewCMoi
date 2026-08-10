@@ -3,31 +3,23 @@ package fr.crewcmoi.listeners;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.MalusEffectManager;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityToggleGlideEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
- * Écoute les évènements liés au combat log :
- * - déclenche le tag de combat lors d'un coup ou d'un projectile reçu
- * - remet le tag à 30s lors de l'utilisation de pearls ou d'xp (fioles)
- * - bloque la téléportation et le vol en élytre pendant le combat
- * - tue le joueur s'il se déconnecte alors qu'il est en combat
+ * Gère le combat log : tag les joueurs en combat lors d'un coup PvP, bloque
+ * les téléportations pendant ce délai, tue un joueur qui se déconnecte en
+ * combat, et applique la réduction de dégâts liée au malus de prime serveur
+ * (voir MalusEffectManager#applyReduction) sur les coups portés contre
+ * d'autres joueurs.
  */
 public class CombatListener implements Listener {
 
@@ -35,47 +27,15 @@ public class CombatListener implements Listener {
     private final CombatManager combatManager;
     private final MalusEffectManager malusEffectManager;
 
-    // Commandes de téléportation à bloquer pendant le combat (en plus des events natifs)
-    private static final List<String> BLOCKED_TP_COMMANDS = List.of(
-            "tp", "tpa", "tpaccept", "tpask", "tphere", "teleport", "spawn", "warp", "home", "back"
-    );
-
     public CombatListener(Main plugin, CombatManager combatManager, MalusEffectManager malusEffectManager) {
         this.plugin = plugin;
         this.combatManager = combatManager;
         this.malusEffectManager = malusEffectManager;
     }
 
-    // --- Réduction des dégâts infligés par un joueur sous l'effet "malchance" (bad luck) ---
-    // Priorité HIGH, avant le MONITOR ci-dessous, pour modifier les dégâts avant qu'ils ne
-    // soient appliqués. Ne s'applique qu'aux coups portés contre un autre joueur.
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onBadLuckDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof Player)) {
-            return;
-        }
-
-        Player attacker = resolveAttacker(event.getDamager());
-        if (attacker == null || attacker.getUniqueId().equals(event.getEntity().getUniqueId())) {
-            return;
-        }
-
-        double reduced = malusEffectManager.applyReduction(attacker, event.getDamage());
-        if (reduced != event.getDamage()) {
-            event.setDamage(reduced);
-        }
-    }
-
-    // --- Déclenchement du combat : coup direct ou projectile ---
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof Player)) {
-            return;
-        }
-        Player victim = (Player) event.getEntity();
-        if (victim.getGameMode() == GameMode.CREATIVE || victim.getGameMode() == GameMode.SPECTATOR) {
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) {
             return;
         }
 
@@ -84,139 +44,70 @@ public class CombatListener implements Listener {
             return;
         }
 
+        // Ne réduit que les dégâts contre d'autres joueurs, uniquement si l'attaquant
+        // est actuellement affecté par le malus de prime serveur.
+        event.setDamage(malusEffectManager.applyReduction(attacker, event.getDamage()));
+
         combatManager.registerAttack(victim, attacker);
-        combatManager.tagCombat(attacker);
     }
 
-    /**
-     * Résout l'attaquant d'un dégât, qu'il s'agisse d'un coup direct ou d'un projectile
-     * (flèche, trident, boule de feu, etc.) tiré par un joueur.
-     */
     private Player resolveAttacker(org.bukkit.entity.Entity damager) {
-        if (damager instanceof Player) {
-            return (Player) damager;
+        if (damager instanceof Player player) {
+            return player;
         }
-        if (damager instanceof Projectile) {
-            Projectile projectile = (Projectile) damager;
-            if (projectile.getShooter() instanceof Player) {
-                return (Player) projectile.getShooter();
-            }
+        if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Player player) {
+            return player;
         }
         return null;
     }
 
-    // --- Reset du timer à l'utilisation de perles ou d'xp pendant un combat ---
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onProjectileLaunch(org.bukkit.event.entity.ProjectileLaunchEvent event) {
-        if (event.getEntity().getShooter() instanceof Player) {
-            Player player = (Player) event.getEntity().getShooter();
-            if (event.getEntity() instanceof org.bukkit.entity.EnderPearl && combatManager.isInCombat(player)) {
-                combatManager.refreshCombat(player);
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onItemConsume(PlayerItemConsumeEvent event) {
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
-        if (!combatManager.isInCombat(player)) {
-            return;
-        }
-        ItemStack item = event.getItem();
-        if (item != null && item.getType() == Material.EXPERIENCE_BOTTLE) {
-            combatManager.refreshCombat(player);
-        }
-    }
-
-    // --- Blocage de la téléportation pendant le combat ---
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onTeleport(PlayerTeleportEvent event) {
-        Player player = event.getPlayer();
-        if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
-            // La pearl elle-même n'est pas bloquée, mais elle réinitialise le combat (voir onProjectileLaunch).
-            return;
-        }
         if (combatManager.isInCombat(player)) {
             event.setCancelled(true);
-            sendCombatBlockedMessage(player);
+            sendActionBlocked(player);
         }
     }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onCommandPreprocess(PlayerCommandPreprocessEvent event) {
-        Player player = event.getPlayer();
-        if (!combatManager.isInCombat(player)) {
-            return;
-        }
-        String command = event.getMessage().substring(1).split(" ")[0].toLowerCase();
-        if (BLOCKED_TP_COMMANDS.contains(command)) {
-            event.setCancelled(true);
-            sendCombatBlockedMessage(player);
-        }
-    }
-
-    // --- Blocage de l'élytre pendant le combat ---
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onToggleGlide(EntityToggleGlideEvent event) {
-        if (!(event.getEntity() instanceof Player)) {
-            return;
-        }
-        Player player = (Player) event.getEntity();
-        if (event.isGliding() && combatManager.isInCombat(player)) {
-            event.setCancelled(true);
-            sendCombatBlockedMessage(player);
-        }
-    }
-
-    // --- Arrêt du combat log pour les deux joueurs dès que l'un d'eux meurt ---
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onDeath(org.bukkit.event.entity.PlayerDeathEvent event) {
-        Player victim = event.getEntity();
-        if (combatManager.isInCombat(victim)) {
-            combatManager.stopCombatForBoth(victim);
-        }
-    }
-
-    // --- Mort du joueur en cas de déconnexion pendant le combat ---
 
     @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
+    public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        if (!combatManager.isInCombat(player)) {
-            return;
-        }
-
-        UUID attackerId = combatManager.getFirstAttacker(player);
-
-        if (player.isOnline() && player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR) {
+        if (combatManager.isInCombat(player)) {
+            notifyOpponent(player);
             player.setHealth(0.0);
         }
-
         combatManager.clearCombat(player);
-
-        if (attackerId != null) {
-            Player attacker = Bukkit.getPlayer(attackerId);
-            if (attacker != null && attacker.isOnline()) {
-                String message = plugin.getMessages().getString("combat-log.opponent-fled");
-                if (message != null) {
-                    String prefix = plugin.getMessages().getString("prefix", "");
-                    attacker.sendMessage((prefix + message.replace("{player}", player.getName())).replace('&', '§'));
-                }
-            }
-        }
+        malusEffectManager.clearVolatileState(player);
     }
 
-    private void sendCombatBlockedMessage(Player player) {
+    private void notifyOpponent(Player player) {
+        UUID opponentId = combatManager.getOpponent(player);
+        if (opponentId == null) {
+            return;
+        }
+        Player opponent = plugin.getServer().getPlayer(opponentId);
+        if (opponent == null) {
+            return;
+        }
+        String message = plugin.getMessages().getString("combat-log.opponent-fled");
+        if (message == null) {
+            return;
+        }
+        String prefix = plugin.getMessages().getString("prefix", "");
+        opponent.sendMessage((prefix + message)
+                .replace("{player}", player.getName())
+                .replace('&', '§'));
+    }
+
+    private void sendActionBlocked(Player player) {
         String message = plugin.getMessages().getString("combat-log.action-blocked");
         if (message == null) {
             return;
         }
         String prefix = plugin.getMessages().getString("prefix", "");
-        int seconds = combatManager.getRemainingSeconds(player);
-        player.sendMessage((prefix + message.replace("{seconds}", String.valueOf(seconds))).replace('&', '§'));
+        player.sendMessage((prefix + message)
+                .replace("{seconds}", String.valueOf(combatManager.getRemainingSeconds(player)))
+                .replace('&', '§'));
     }
 }

@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +24,6 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
     private final EconomyManager economyManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public MoneyCommand(Main plugin, EconomyManager economyManager) {
         this.plugin = plugin;
@@ -48,7 +47,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         double amount;
 
         try {
-            amount = Double.parseDouble(args[2]);
+            amount = MoneyFormat.parse(args[2]);
         } catch (NumberFormatException e) {
             sendMessage(sender, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : " + args[2]);
             return true;
@@ -70,8 +69,8 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "add":
                 economyManager.deposit(data.getUuid(), amount);
-                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴀᴊᴏᴜᴛᴇ &e" + format.format(amount) + currency + "&a ᴀ &e" + data.getName() + "&a.");
-                notifyTarget(data, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e" + format.format(amount) + currency + "&a !");
+                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴀᴊᴏᴜᴛᴇ &e" + MoneyFormat.format(amount) + currency + "&a ᴀ &e" + data.getName() + "&a.");
+                notifyTarget(data, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e" + MoneyFormat.format(amount) + currency + "&a !");
                 break;
 
             case "remove":
@@ -80,14 +79,14 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
                     sendMessage(sender, "&c" + data.getName() + " n'a pas assez d'argent pour retirer ce montant.");
                     return true;
                 }
-                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴛɪʀᴇ &e" + format.format(amount) + currency + "&a ᴀ &e" + data.getName() + "&a.");
-                notifyTarget(data, "&cᴏɴ ᴠᴏᴜꜱ ᴀ ʀᴇᴛɪʀᴇ &e" + format.format(amount) + currency + "&c.");
+                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴛɪʀᴇ &e" + MoneyFormat.format(amount) + currency + "&a ᴀ &e" + data.getName() + "&a.");
+                notifyTarget(data, "&cᴏɴ ᴠᴏᴜꜱ ᴀ ʀᴇᴛɪʀᴇ &e" + MoneyFormat.format(amount) + currency + "&c.");
                 break;
 
             case "set":
                 economyManager.setBalance(data.getUuid(), amount);
-                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴅᴇꜰɪɴɪ ʟᴇ ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&a ᴀ &e" + format.format(amount) + currency + "&a.");
-                notifyTarget(data, "&eᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ ᴀ ᴇᴛᴇ ᴅᴇꜰɪɴɪ ᴀ " + format.format(amount) + currency + ".");
+                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴅᴇꜰɪɴɪ ʟᴇ ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&a ᴀ &e" + MoneyFormat.format(amount) + currency + "&a.");
+                notifyTarget(data, "&eᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ ᴀ ᴇᴛᴇ ᴅᴇꜰɪɴɪ ᴀ " + MoneyFormat.format(amount) + currency + ".");
                 break;
 
             default:

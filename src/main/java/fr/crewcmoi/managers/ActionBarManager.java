@@ -7,7 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 
 /**
  * Affiche en permanence le solde du joueur dans l'action bar, avec la police
@@ -21,7 +21,6 @@ public class ActionBarManager {
 
     private final Main plugin;
     private final EconomyManager economyManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     private BukkitTask task;
 
@@ -51,7 +50,7 @@ public class ActionBarManager {
         String currency = plugin.getConfig().getString("economy.currency-symbol", " \uE517");
         for (Player player : Bukkit.getOnlinePlayers()) {
             double balance = economyManager.getBalance(player.getUniqueId());
-            String text = format.format(balance) + currency;
+            String text = MoneyFormat.format(balance) + currency;
             Component component = Component.text(text);
             player.sendActionBar(component);
         }

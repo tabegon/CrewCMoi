@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +25,6 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
     private final Main plugin;
     private final BountyManager bountyManager;
     private final BountyGuiManager bountyGuiManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public BountyCommand(Main plugin, BountyManager bountyManager, BountyGuiManager bountyGuiManager) {
         this.plugin = plugin;
@@ -63,7 +62,7 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
         String targetName = args[1];
         double amount;
         try {
-            amount = Double.parseDouble(args[2].replace(",", "."));
+            amount = MoneyFormat.parse(args[2]);
         } catch (NumberFormatException e) {
             sendMessage(player, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : " + args[2]);
             return;
@@ -74,15 +73,15 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
         bountyManager.addPlayerBounty(player, targetName, amount, result -> {
             switch (result) {
                 case SUCCESS -> {
-                    sendMessage(player, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + format.format(amount) + currency + "&a ꜱᴜʀ &e" + targetName + "&a !");
+                    sendMessage(player, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(amount) + currency + "&a ꜱᴜʀ &e" + targetName + "&a !");
                     Player online = Bukkit.getPlayerExact(targetName);
                     if (online != null) {
-                        sendMessage(online, "&c" + player.getName() + " ᴀ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + format.format(amount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !");
+                        sendMessage(online, "&c" + player.getName() + " ᴀ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(amount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !");
                     }
                 }
                 case INVALID_AMOUNT -> sendMessage(player, "&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.");
                 case SELF_TARGET -> sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴘʟᴀᴄᴇʀ ᴅᴇ ᴘʀɪᴍᴇ ꜱᴜʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.");
-                case NOT_ENOUGH_MONEY -> sendMessage(player, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴘʟᴀᴄᴇʀ &e" + format.format(amount) + currency + "&c.");
+                case NOT_ENOUGH_MONEY -> sendMessage(player, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴘʟᴀᴄᴇʀ &e" + MoneyFormat.format(amount) + currency + "&c.");
                 case TARGET_NOT_FOUND -> sendMessage(player, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
             }
         });

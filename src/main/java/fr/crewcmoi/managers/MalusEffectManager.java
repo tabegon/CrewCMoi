@@ -200,6 +200,72 @@ public class MalusEffectManager {
     }
 
     /**
+     * Calcule le palier de réduction de dégâts (0 à 3) correspondant à un montant de
+     * prime serveur donné, indépendamment du fait que le joueur soit en ligne ou non
+     * (utilisé par /info bounty pour afficher l'état d'un joueur hors-ligne).
+     */
+    public int computeReductionLevel(double serverBountyTotal) {
+        if (serverBountyTotal >= tier3Threshold) {
+            return 3;
+        }
+        if (serverBountyTotal >= tier2Threshold) {
+            return 2;
+        }
+        if (serverBountyTotal >= tier1Threshold) {
+            return 1;
+        }
+        return 0;
+    }
+
+    /**
+     * Pourcentage de réduction de dégâts appliqué pour un palier donné (0 à 3).
+     */
+    public double getReductionPercentForLevel(int level) {
+        return switch (level) {
+            case 1 -> tier1ReductionPercent;
+            case 2 -> tier2ReductionPercent;
+            case 3 -> tier3ReductionPercent;
+            default -> 0.0;
+        };
+    }
+
+    /**
+     * Calcule le nombre de coeurs actuellement retirés pour un montant de prime
+     * serveur donné (indépendant du fait que le joueur soit en ligne ou non).
+     */
+    public int computeHeartsRemoved(double serverBountyTotal) {
+        return heartsForAmount(serverBountyTotal);
+    }
+
+    public double getTier1Threshold() {
+        return tier1Threshold;
+    }
+
+    public double getTier2Threshold() {
+        return tier2Threshold;
+    }
+
+    public double getTier3Threshold() {
+        return tier3Threshold;
+    }
+
+    public double getHeartRemovalStartThreshold() {
+        return heartRemovalStartThreshold;
+    }
+
+    public double getHeartRemovalStep() {
+        return heartRemovalStep;
+    }
+
+    public int getMaxHeartsRemoved() {
+        return maxHeartsRemoved;
+    }
+
+    public double getBaseMaxHealth() {
+        return baseMaxHealth;
+    }
+
+    /**
      * Retire l'état de réduction de dégâts gardé en mémoire pour un joueur (ex : à sa
      * déconnexion). Le nombre de coeurs retirés n'est PAS remis à zéro ici : c'est un
      * attribut du joueur, persisté par le serveur lui-même, qui sera recalculé/réajusté

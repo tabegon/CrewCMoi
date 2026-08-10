@@ -11,7 +11,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 
 /**
  * Permet à un joueur de gagner de l'argent en faisant clic droit avec une "pièce" custom
@@ -26,7 +26,6 @@ public class CoinItemListener implements Listener {
 
     private final Main plugin;
     private final EconomyManager economyManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     private final boolean enabled;
     private final String coinItemId;
@@ -89,7 +88,7 @@ public class CoinItemListener implements Listener {
         String prefix = plugin.getMessages().getString("prefix", "");
         String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
         player.sendMessage((prefix + message)
-                .replace("{amount}", format.format(coinValue) + currency)
+                .replace("{amount}", MoneyFormat.format(coinValue) + currency)
                 .replace('&', '§'));
     }
 }

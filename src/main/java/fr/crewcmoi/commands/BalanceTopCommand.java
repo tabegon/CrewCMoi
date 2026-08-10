@@ -15,7 +15,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +26,6 @@ public class BalanceTopCommand implements CommandExecutor {
 
     private final Main plugin;
     private final EconomyManager economyManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public BalanceTopCommand(Main plugin, EconomyManager economyManager) {
         this.plugin = plugin;
@@ -80,7 +79,7 @@ public class BalanceTopCommand implements CommandExecutor {
 
                 List<String> lore = new ArrayList<>();
                 lore.add(ChatColor.translateAlternateColorCodes('&',
-                        "&7ꜱᴏʟᴅᴇ : &a" + format.format(data.getBalance()) + "&f" + currency));
+                        "&7ꜱᴏʟᴅᴇ : &a" + MoneyFormat.format(data.getBalance()) + "&f" + currency));
                 meta.setLore(lore);
 
                 skull.setItemMeta(meta);

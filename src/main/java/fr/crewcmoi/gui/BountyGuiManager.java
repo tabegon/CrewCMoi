@@ -14,7 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +26,6 @@ public class BountyGuiManager {
 
     private final Main plugin;
     private final BountyManager bountyManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public BountyGuiManager(Main plugin, BountyManager bountyManager) {
         this.plugin = plugin;
@@ -77,7 +76,7 @@ public class BountyGuiManager {
                 skullMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&l" + target.getTargetName()));
 
                 List<String> lore = new ArrayList<>();
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘʀɪᴍᴇ ᴛᴏᴛᴀʟᴇ : &a" + format.format(target.getTotalAmount()) + currency));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘʀɪᴍᴇ ᴛᴏᴛᴀʟᴇ : &a" + MoneyFormat.format(target.getTotalAmount()) + currency));
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴄᴏɴᴛʀɪʙᴜᴛᴇᴜʀ(ꜱ) : &e" + target.getContributorCount()));
                 lore.add("");
 
@@ -89,7 +88,7 @@ public class BountyGuiManager {
                         break;
                     }
                     lore.add(ChatColor.translateAlternateColorCodes('&',
-                            "&8- &7" + entry.getContributorName() + " &8: &a" + format.format(entry.getAmount()) + currency));
+                            "&8- &7" + entry.getContributorName() + " &8: &a" + MoneyFormat.format(entry.getAmount()) + currency));
                     shown++;
                 }
 

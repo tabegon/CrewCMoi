@@ -36,6 +36,10 @@ commands:
     description: Ouvre la liste des primes ou en place une sur un joueur.
     usage: /bounty [add <joueur> <montant>]
     aliases: [prime]
+  info:
+    description: Tableau de bord d'informations sur un joueur (prime, malchance, coeurs retirés).
+    usage: /information bounty <joueur>
+    aliases: [information, infos]
 
 permissions:
   crew.balance.others:

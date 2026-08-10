@@ -52,7 +52,7 @@ coin-item:
   # Id namespaced ItemsAdder de l'item "pièce" (ex: namespace:id, voir votre configuration
   # ItemsAdder). L'item est reconnu via l'API ItemsAdder (donc son Custom Model Data réel),
   # pas en dur, ce qui reste fiable même si ItemsAdder réattribue ses model data en interne.
-  itemsadder-id: "crewcmoi:piece"
+  itemsadder-id: "server:ccoin"
 
   # Montant crédité au joueur par pièce échangée (clic droit). Une pièce est consommée
   # (retirée du stack en main) à chaque échange.

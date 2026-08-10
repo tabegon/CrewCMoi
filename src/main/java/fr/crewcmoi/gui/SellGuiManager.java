@@ -11,7 +11,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +27,6 @@ public class SellGuiManager {
     private final Main plugin;
     private final PricesManager pricesManager;
     private final EconomyManager economyManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public SellGuiManager(Main plugin, PricesManager pricesManager, EconomyManager economyManager) {
         this.plugin = plugin;
@@ -106,7 +105,7 @@ public class SellGuiManager {
             lore.add(ChatColor.translateAlternateColorCodes('&',
                     "&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e" + itemCount));
             lore.add(ChatColor.translateAlternateColorCodes('&',
-                    "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + format.format(total) + currency));
+                    "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + MoneyFormat.format(total) + currency));
             if (hasUnsellable) {
                 lore.add(ChatColor.translateAlternateColorCodes('&',
                         "&8(ᴄᴇʀᴛᴀɪɴꜱ ᴏʙᴊᴇᴛꜱ ᴘʟᴀᴄᴇꜱ ɴᴇ ꜱᴏɴᴛ ᴘᴀꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ)"));
@@ -174,7 +173,7 @@ public class SellGuiManager {
             confirmMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lᴄᴏɴꜰɪʀᴍᴇʀ ʟᴀ ᴠᴇɴᴛᴇ"));
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e" + itemCount));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + format.format(total) + currency));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + MoneyFormat.format(total) + currency));
             confirmMeta.setLore(lore);
             confirmButton.setItemMeta(confirmMeta);
         }
@@ -250,7 +249,7 @@ public class SellGuiManager {
             economyManager.deposit(player.getUniqueId(), total);
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&aᴠᴇɴᴛᴇ ᴇꜰꜰᴇᴄᴛᴜᴇᴇ : &e" + itemsSold + " ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ &e"
-                            + format.format(total) + currency + "&a."));
+                            + MoneyFormat.format(total) + currency + "&a."));
         } else {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));

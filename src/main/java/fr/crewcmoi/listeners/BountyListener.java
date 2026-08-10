@@ -8,11 +8,10 @@ import fr.crewcmoi.managers.TeamManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 import java.util.UUID;
 
 /**
@@ -31,7 +30,6 @@ public class BountyListener implements Listener {
     private final CombatManager combatManager;
     private final TeamManager teamManager;
     private final EconomyManager economyManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public BountyListener(Main plugin, BountyManager bountyManager, CombatManager combatManager,
                            TeamManager teamManager, EconomyManager economyManager) {
@@ -42,27 +40,36 @@ public class BountyListener implements Listener {
         this.economyManager = economyManager;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onDeath(PlayerDeathEvent event) {
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
         Player victim = event.getEntity();
         Player killer = victim.getKiller();
 
         if (killer == null || killer.getUniqueId().equals(victim.getUniqueId())) {
+            combatManager.stopCombatForBoth(victim);
             return;
         }
+
+        // Important : on lit qui a initié ce combat AVANT de nettoyer le combat log,
+        // car stopCombatForBoth() efface justement cette information (engagementAggressor).
+        // L'inverser faisait que getAggressor(victim) renvoyait toujours null, et donc que
+        // la prime + malus serveur n'était jamais attribuée.
+        UUID aggressor = combatManager.getAggressor(victim);
+        boolean killerInitiated = aggressor != null && aggressor.equals(killer.getUniqueId());
+
+        // Le combat log des deux joueurs impliqués s'arrête immédiatement à la mort.
+        combatManager.stopCombatForBoth(victim);
 
         String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         double claimed = bountyManager.claimBounty(killer.getUniqueId(), victim.getUniqueId());
         if (claimed > 0) {
-            sendMessage(killer, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + format.format(claimed) + currency
+            sendMessage(killer, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(claimed) + currency
                     + "&a ᴇɴ ᴛᴜᴀɴᴛ &e" + victim.getName() + "&a !");
             return;
         }
 
         // Pas de prime réclamable : on vérifie si une prime + malus serveur doit être attribuée.
-        UUID aggressor = combatManager.getAggressor(victim);
-        boolean killerInitiated = aggressor != null && aggressor.equals(killer.getUniqueId());
         if (!killerInitiated) {
             // Le tueur se défendait : pas de malus, conformément à la règle.
             return;
@@ -93,8 +100,8 @@ public class BountyListener implements Listener {
         // déclencher ici manuellement.
 
         sendMessage(killer, "&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴛᴜᴇ &e" + victim.getName() + "&c ꜱᴀɴꜱ ǫᴜ'ɪʟ ɴ'ᴀɪᴛ ᴅᴇ ᴘʀɪᴍᴇ : "
-                + "ʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴠᴏᴜꜱ ɪɴꜰʟɪɢᴇ ᴜɴ ᴍᴀʟᴜꜱ ᴅᴇ &e" + format.format(malusAmount) + currency
-                + "&c ᴇᴛ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + format.format(bountyAmount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !");
+                + "ʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴠᴏᴜꜱ ɪɴꜰʟɪɢᴇ ᴜɴ ᴍᴀʟᴜꜱ ᴅᴇ &e" + MoneyFormat.format(malusAmount) + currency
+                + "&c ᴇᴛ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(bountyAmount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !");
     }
 
     private void sendMessage(Player player, String message) {

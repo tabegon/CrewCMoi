@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +23,6 @@ public class PayCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
     private final EconomyManager economyManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     public PayCommand(Main plugin, EconomyManager economyManager) {
         this.plugin = plugin;
@@ -46,7 +45,7 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         double amount;
 
         try {
-            amount = Double.parseDouble(args[1]);
+            amount = MoneyFormat.parse(args[1]);
         } catch (NumberFormatException e) {
             sendMessage(sender, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : " + args[1]);
             return true;
@@ -71,23 +70,23 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         if (!economyManager.has(player.getUniqueId(), amount)) {
-            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e" + format.format(amount) + currency + "&c.");
+            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e" + MoneyFormat.format(amount) + currency + "&c.");
             return true;
         }
 
         boolean withdrawn = economyManager.withdraw(player.getUniqueId(), amount);
         if (!withdrawn) {
-            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e" + format.format(amount) + currency + "&c.");
+            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e" + MoneyFormat.format(amount) + currency + "&c.");
             return true;
         }
 
         economyManager.deposit(targetData.getUuid(), amount);
 
-        sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴇɴᴠᴏʏᴇ &e" + format.format(amount) + currency + "&a ᴀ &e" + targetData.getName() + "&a.");
+        sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴇɴᴠᴏʏᴇ &e" + MoneyFormat.format(amount) + currency + "&a ᴀ &e" + targetData.getName() + "&a.");
 
         Player online = Bukkit.getPlayer(targetData.getUuid());
         if (online != null && online.isOnline()) {
-            sendMessage(online, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e" + format.format(amount) + currency + "&a ᴅᴇ ʟᴀ ᴘᴀʀᴛ ᴅᴇ &e" + player.getName() + "&a !");
+            sendMessage(online, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e" + MoneyFormat.format(amount) + currency + "&a ᴅᴇ ʟᴀ ᴘᴀʀᴛ ᴅᴇ &e" + player.getName() + "&a !");
         }
 
         return true;

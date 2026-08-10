@@ -4,6 +4,7 @@ import fr.crewcmoi.commands.AuctionCommand;
 import fr.crewcmoi.commands.BalanceCommand;
 import fr.crewcmoi.commands.BalanceTopCommand;
 import fr.crewcmoi.commands.BountyCommand;
+import fr.crewcmoi.commands.InfoCommand;
 import fr.crewcmoi.commands.MoneyCommand;
 import fr.crewcmoi.commands.PayCommand;
 import fr.crewcmoi.commands.SellCommand;
@@ -81,7 +82,7 @@ public class Main extends JavaPlugin {
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager), this);
-        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager), this);
+        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
         // ItemsAdder est optionnel : on n'enregistre ce listener (qui référence les classes
@@ -102,6 +103,7 @@ public class Main extends JavaPlugin {
         registerCommand("ah", new AuctionCommand(this, auctionManager, auctionGuiManager));
         registerCommand("team", new TeamCommand(this, teamManager));
         registerCommand("bounty", new BountyCommand(this, bountyManager, bountyGuiManager));
+        registerCommand("info", new InfoCommand(this, bountyManager, malusEffectManager));
 
         getLogger().info("EconomyPlugin activé avec succès !");
     }

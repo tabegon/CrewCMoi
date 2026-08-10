@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
-import java.text.DecimalFormat;
+import fr.crewcmoi.utils.MoneyFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -26,7 +26,6 @@ public class BountyManager {
     private final DatabaseManager databaseManager;
     private final EconomyManager economyManager;
     private final MalusEffectManager malusEffectManager;
-    private final DecimalFormat format = new DecimalFormat("#,##0.00");
 
     // Préfixe des équipes de scoreboard utilisées uniquement pour l'affichage visuel
     // (pseudo en rouge + prime en gold), une équipe dédiée par joueur ayant une prime.
@@ -69,12 +68,7 @@ public class BountyManager {
             return;
         }
 
-        UUID targetUuid = targetData.getUuid();
-        String targetDisplayName = targetData.getName();
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
-                databaseManager.addBounty(targetUuid, targetDisplayName, sender.getUniqueId(), sender.getName(), amount));
-
-        refreshBountyDisplay(targetUuid, targetDisplayName);
+        addBountyAndRefresh(targetData.getUuid(), targetData.getName(), sender.getUniqueId(), sender.getName(), amount);
         callback.accept(AddResult.SUCCESS);
     }
 
@@ -82,9 +76,37 @@ public class BountyManager {
      * Ajoute une prime attribuée automatiquement par le serveur (contributeur = null).
      */
     public void addServerBounty(UUID targetUuid, String targetName, double amount) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
-                databaseManager.addBounty(targetUuid, targetName, null, "Serveur", amount));
-        refreshBountyDisplay(targetUuid, targetName);
+        addBountyAndRefresh(targetUuid, targetName, null, "Serveur", amount);
+    }
+
+    /**
+     * Insère la contribution de prime PUIS recalcule l'affichage/les effets de malus, dans
+     * la même tâche asynchrone (donc dans l'ordre garanti). L'ancienne version lançait ces
+     * deux étapes comme deux tâches asynchrones séparées : comme le scheduler asynchrone de
+     * Bukkit peut les exécuter sur des threads différents sans garantir l'ordre, la lecture
+     * du total pouvait s'exécuter AVANT l'écriture de la nouvelle prime, et donc rater le
+     * changement (le malus ne s'appliquait alors qu'au prochain recalcul, ex: le kill suivant).
+     */
+    private void addBountyAndRefresh(UUID targetUuid, String targetName, UUID contributorUuid,
+                                      String contributorName, double amount) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            databaseManager.addBounty(targetUuid, targetName, contributorUuid, contributorName, amount);
+
+            List<BountyEntry> entries = databaseManager.getBounties(targetUuid);
+            double total = entries.stream().mapToDouble(BountyEntry::getAmount).sum();
+            double serverTotal = entries.stream()
+                    .filter(BountyEntry::isServerBounty)
+                    .mapToDouble(BountyEntry::getAmount)
+                    .sum();
+
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                applyBountyDisplay(targetName, total);
+                Player player = Bukkit.getPlayer(targetUuid);
+                if (player != null && player.isOnline()) {
+                    malusEffectManager.updateBountyEffect(player, serverTotal);
+                }
+            });
+        });
     }
 
     public int getServerBountyCountToday(UUID playerUuid) {
@@ -188,7 +210,7 @@ public class BountyManager {
             // deux endroits gérés par une même équipe de scoreboard sous Bukkit/Spigot.
             team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
-            team.setSuffix(" §6[§e" + format.format(total) + currency + "§6]");
+            team.setSuffix(" §6[§e" + MoneyFormat.format(total) + currency + "§6]");
             if (!team.hasEntry(playerName)) {
                 team.addEntry(playerName);
             }
