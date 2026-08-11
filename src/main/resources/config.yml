@@ -45,6 +45,27 @@ team:
   # Taille maximale d'une équipe (propriétaire inclus). 0 = illimité.
   max-members: 8
 
+spawn:
+  # Coordonnées du spawn utilisées par la commande /spawn
+  world: world
+  x: 0.5
+  y: 100.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+
+tpa:
+  # Délai en secondes avant qu'une demande /tpa ou /tpahere n'expire automatiquement.
+  expiry-seconds: 60
+
+  # Id namespaced du HUD ItemsAdder à utiliser (défini côté resource pack/ItemsAdder,
+  # dans ItemsAdder/data/hud/, positionné au-dessus à droite de la barre de faim).
+  itemsadder-id: "crewcmoi:balance_hud"
+
+  # Id du composant texte à l'intérieur de ce HUD, dont le contenu est mis à jour
+  # avec le solde du joueur (ex: "100.00 ").
+  text-id: "balance"
+
 coin-item:
   # Active/désactive la possibilité d'échanger une "pièce" ItemsAdder contre de l'argent.
   enabled: true

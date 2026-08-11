@@ -4,7 +4,11 @@ author: MonsieurTh30
 version: 1.0.0
 api-version: '1.21'
 main: fr.crewcmoi.Main
-softdepend: [ItemsAdder]
+softdepend: [ItemsAdder, Vault]
+# Force CrewCMoi à s'activer avant RPGhuds, pour que le fournisseur d'économie Vault
+# (VaultEconomyProvider) soit déjà enregistré quand RPGhuds essaie de le récupérer dans
+# son propre onEnable() (sinon RPGhuds obtient un Economy null -> erreur "econ is null").
+loadbefore: [RPGhuds]
 
 commands:
   balance:
@@ -40,6 +44,24 @@ commands:
     description: Tableau de bord d'informations sur un joueur (prime, malchance, coeurs retirés).
     usage: /information bounty <joueur>
     aliases: [information, infos]
+  spawn:
+    description: Teleportation au spawn
+    usage: /spawn
+  sethome:
+    description: Definit votre home a votre position actuelle
+    usage: /sethome
+  home:
+    description: Teleportation vers votre home
+    usage: /home
+  tpa:
+    description: Teleportation vers un autre joueur apres confirmation
+    usage: /tpa <joueur>
+  tpahere:
+    description: Teleportation d'un joueur sur soi
+    usage: /tpahere <joueur>
+  tpaccept:
+    description: Acceptation d'une invition de tp
+    usage: /tpaccept
 
 permissions:
   crew.balance.others:

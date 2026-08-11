@@ -36,6 +36,12 @@ dependencies {
     // pas besoin de l'embarquer dans le jar final.
     compileOnly("com.github.LoneDev6:api-itemsadder:3.6.1")
     compileOnly("dev.lone:LoneLibs:1.0.58")
+
+    // API Vault (interface net.milkbowl.vault.economy.Economy, utilisée par
+    // VaultEconomyProvider). "compileOnly" : Vault est installé séparément sur le
+    // serveur (softdepend), pas besoin de l'embarquer dans le jar final.
+    // Publiée sur jitpack.io (déjà ajouté au bloc repositories ci-dessus).
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 }
 
 val targetJavaVersion = 21

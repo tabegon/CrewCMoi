@@ -4,11 +4,17 @@ import fr.crewcmoi.commands.AuctionCommand;
 import fr.crewcmoi.commands.BalanceCommand;
 import fr.crewcmoi.commands.BalanceTopCommand;
 import fr.crewcmoi.commands.BountyCommand;
+import fr.crewcmoi.commands.HomeCommand;
 import fr.crewcmoi.commands.InfoCommand;
 import fr.crewcmoi.commands.MoneyCommand;
 import fr.crewcmoi.commands.PayCommand;
 import fr.crewcmoi.commands.SellCommand;
+import fr.crewcmoi.commands.SetHomeCommand;
+import fr.crewcmoi.commands.SpawnCommand;
 import fr.crewcmoi.commands.TeamCommand;
+import fr.crewcmoi.commands.TpAcceptCommand;
+import fr.crewcmoi.commands.TpaCommand;
+import fr.crewcmoi.commands.TpaHereCommand;
 import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.BountyGuiManager;
 import fr.crewcmoi.gui.SellGuiManager;
@@ -22,11 +28,13 @@ import fr.crewcmoi.managers.BountyManager;
 import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.DatabaseManager;
 import fr.crewcmoi.managers.EconomyManager;
-import fr.crewcmoi.managers.ActionBarManager;
+import fr.crewcmoi.managers.HomeManager;
 import fr.crewcmoi.managers.MalusEffectManager;
 import fr.crewcmoi.managers.PricesManager;
 import fr.crewcmoi.managers.SQLiteManager;
 import fr.crewcmoi.managers.TeamManager;
+import fr.crewcmoi.managers.TeleportManager;
+import fr.crewcmoi.vault.VaultEconomyProvider;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -50,8 +58,9 @@ public class Main extends JavaPlugin {
     private TeamManager teamManager;
     private BountyManager bountyManager;
     private BountyGuiManager bountyGuiManager;
-    private ActionBarManager actionBarManager;
     private MalusEffectManager malusEffectManager;
+    private TeleportManager teleportManager;
+    private HomeManager homeManager;
     private FileConfiguration messages;
     private File messagesFile;
 
@@ -77,8 +86,8 @@ public class Main extends JavaPlugin {
         this.malusEffectManager = new MalusEffectManager(this);
         this.bountyManager = new BountyManager(this, databaseManager, economyManager, malusEffectManager);
         this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
-        this.actionBarManager = new ActionBarManager(this, economyManager);
-        this.actionBarManager.start();
+        this.teleportManager = new TeleportManager(this, combatManager);
+        this.homeManager = new HomeManager(this, databaseManager);
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager), this);
@@ -94,6 +103,21 @@ public class Main extends JavaPlugin {
             getLogger().warning("ItemsAdder n'est pas détecté : la pièce échangeable contre de l'argent est désactivée.");
         }
 
+        // Enregistrement de CrewCMoi comme fournisseur d'économie Vault, pour que les
+        // plugins tiers (ex: PlaceholderAPI -> %vault_eco_balance_formatted%, utilisé par
+        // le HUD "money" de RPGhuds) puissent lire le solde des joueurs.
+        if (getServer().getPluginManager().isPluginEnabled("Vault")) {
+            getServer().getServicesManager().register(
+                    net.milkbowl.vault.economy.Economy.class,
+                    new VaultEconomyProvider(this, economyManager),
+                    this,
+                    org.bukkit.plugin.ServicePriority.Highest
+            );
+            getLogger().info("CrewCMoi enregistré comme fournisseur d'économie Vault.");
+        } else {
+            getLogger().warning("Vault n'est pas détecté : l'intégration économique Vault (ex: HUD money de RPGhuds) est désactivée.");
+        }
+
         // Enregistrement des commandes
         registerCommand("balance", new BalanceCommand(this, economyManager));
         registerCommand("money", new MoneyCommand(this, economyManager));
@@ -104,15 +128,18 @@ public class Main extends JavaPlugin {
         registerCommand("team", new TeamCommand(this, teamManager));
         registerCommand("bounty", new BountyCommand(this, bountyManager, bountyGuiManager));
         registerCommand("info", new InfoCommand(this, bountyManager, malusEffectManager));
+        registerCommand("spawn", new SpawnCommand(this));
+        registerCommand("tpa", new TpaCommand(this, teleportManager, combatManager));
+        registerCommand("tpahere", new TpaHereCommand(this, teleportManager, combatManager));
+        registerCommand("tpaccept", new TpAcceptCommand(this, teleportManager));
+        registerCommand("sethome", new SetHomeCommand(this, homeManager));
+        registerCommand("home", new HomeCommand(this, homeManager));
 
         getLogger().info("EconomyPlugin activé avec succès !");
     }
 
     @Override
     public void onDisable() {
-        if (actionBarManager != null) {
-            actionBarManager.stop();
-        }
         if (databaseManager != null) {
             databaseManager.disconnect();
         }
@@ -190,4 +217,13 @@ public class Main extends JavaPlugin {
     public MalusEffectManager getMalusEffectManager() {
         return malusEffectManager;
     }
+
+    public TeleportManager getTeleportManager() {
+        return teleportManager;
+    }
+
+    public HomeManager getHomeManager() {
+        return homeManager;
+    }
+
 }

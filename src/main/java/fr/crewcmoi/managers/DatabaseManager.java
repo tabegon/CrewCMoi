@@ -3,6 +3,7 @@ package fr.crewcmoi.managers;
 import fr.crewcmoi.auction.AuctionItem;
 import fr.crewcmoi.database.BountyEntry;
 import fr.crewcmoi.database.BountyTarget;
+import fr.crewcmoi.database.HomeData;
 import fr.crewcmoi.database.PlayerData;
 import fr.crewcmoi.database.TeamData;
 import org.bukkit.inventory.ItemStack;
@@ -142,4 +143,16 @@ public interface DatabaseManager {
      * Incrémente le compteur journalier de prime serveur pour ce joueur.
      */
     void incrementServerBountyCount(UUID playerUuid);
+
+    // ===================== HOMES =====================
+
+    /**
+     * Crée ou met à jour le home d'un joueur (un seul home par joueur).
+     */
+    void setHome(UUID playerUuid, String world, double x, double y, double z, float yaw, float pitch);
+
+    /**
+     * Récupère le home d'un joueur, ou null s'il n'en a pas défini.
+     */
+    HomeData getHome(UUID playerUuid);
 }

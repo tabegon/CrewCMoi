@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.utils.GuiItems;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,13 +60,7 @@ public class SellGuiManager {
     }
 
     private ItemStack createFiller() {
-        ItemStack item = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(" ");
-            item.setItemMeta(meta);
-        }
-        return item;
+        return GuiItems.nothing(" ");
     }
 
     /**
@@ -167,10 +162,9 @@ public class SellGuiManager {
             gui.setItem(i, filler);
         }
 
-        ItemStack confirmButton = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
+        ItemStack confirmButton = GuiItems.checkmarkButton("&a&lᴄᴏɴꜰɪʀᴍᴇʀ ʟᴀ ᴠᴇɴᴛᴇ");
         ItemMeta confirmMeta = confirmButton.getItemMeta();
         if (confirmMeta != null) {
-            confirmMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lᴄᴏɴꜰɪʀᴍᴇʀ ʟᴀ ᴠᴇɴᴛᴇ"));
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e" + itemCount));
             lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + MoneyFormat.format(total) + currency));
@@ -179,12 +173,7 @@ public class SellGuiManager {
         }
         gui.setItem(SellHolder.CONFIRM_SLOT, confirmButton);
 
-        ItemStack cancelButton = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-        ItemMeta cancelMeta = cancelButton.getItemMeta();
-        if (cancelMeta != null) {
-            cancelMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lᴀɴɴᴜʟᴇʀ"));
-            cancelButton.setItemMeta(cancelMeta);
-        }
+        ItemStack cancelButton = GuiItems.cancelButton("&c&lᴀɴɴᴜʟᴇʀ");
         gui.setItem(SellHolder.CANCEL_CONFIRM_SLOT, cancelButton);
     }
 

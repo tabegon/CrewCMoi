@@ -11,7 +11,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import fr.crewcmoi.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
 
             Player player = (Player) sender;
             double balance = economyManager.getBalance(player.getUniqueId());
-            sendMessage(sender, "&7ᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ : &a" + MoneyFormat.format(balance) + "&f" + currency);
+            sendMessage(sender, "&7ᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ : &a" + balance + "&f" + currency);
             return true;
         }
 
@@ -54,7 +53,7 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        sendMessage(sender, "&7ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&7 : &a" + MoneyFormat.format(data.getBalance()) + "&f" + currency);
+        sendMessage(sender, "&7ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&7 : &a" + data.getBalance() + "&f" + currency);
         return true;
     }
 

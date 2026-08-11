@@ -4,6 +4,7 @@ import fr.crewcmoi.Main;
 import fr.crewcmoi.auction.AuctionItem;
 import fr.crewcmoi.database.BountyEntry;
 import fr.crewcmoi.database.BountyTarget;
+import fr.crewcmoi.database.HomeData;
 import fr.crewcmoi.database.PlayerData;
 import fr.crewcmoi.database.TeamData;
 import fr.crewcmoi.utils.ItemSerialization;
@@ -119,11 +120,22 @@ public class SQLiteManager implements DatabaseManager {
                 "PRIMARY KEY (player_uuid, day)" +
                 ");";
 
+        String homesSql = "CREATE TABLE IF NOT EXISTS homes (" +
+                "player_uuid TEXT PRIMARY KEY," +
+                "world TEXT NOT NULL," +
+                "x REAL NOT NULL," +
+                "y REAL NOT NULL," +
+                "z REAL NOT NULL," +
+                "yaw REAL NOT NULL," +
+                "pitch REAL NOT NULL" +
+                ");";
+
         try (Statement statement = connection.createStatement()) {
             statement.execute(teamsSql);
             statement.execute(teamMembersSql);
             statement.execute(bountiesSql);
             statement.execute(serverBountyCountSql);
+            statement.execute(homesSql);
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création des tables team/bounty.", e);
         }
@@ -556,6 +568,49 @@ public class SQLiteManager implements DatabaseManager {
 
     private String today() {
         return LocalDate.now(ZoneId.systemDefault()).toString();
+    }
+
+    @Override
+    public void setHome(UUID playerUuid, String world, double x, double y, double z, float yaw, float pitch) {
+        String sql = "INSERT INTO homes (player_uuid, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?) " +
+                "ON CONFLICT(player_uuid) DO UPDATE SET world = excluded.world, x = excluded.x, " +
+                "y = excluded.y, z = excluded.z, yaw = excluded.yaw, pitch = excluded.pitch;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString());
+            ps.setString(2, world);
+            ps.setDouble(3, x);
+            ps.setDouble(4, y);
+            ps.setDouble(5, z);
+            ps.setFloat(6, yaw);
+            ps.setFloat(7, pitch);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la définition du home de " + playerUuid, e);
+        }
+    }
+
+    @Override
+    public HomeData getHome(UUID playerUuid) {
+        String sql = "SELECT * FROM homes WHERE player_uuid = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new HomeData(
+                            playerUuid,
+                            rs.getString("world"),
+                            rs.getDouble("x"),
+                            rs.getDouble("y"),
+                            rs.getDouble("z"),
+                            rs.getFloat("yaw"),
+                            rs.getFloat("pitch")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la lecture du home de " + playerUuid, e);
+        }
+        return null;
     }
 
     private BountyEntry readBounty(ResultSet rs) throws SQLException {

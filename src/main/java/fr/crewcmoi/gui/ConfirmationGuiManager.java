@@ -1,8 +1,8 @@
 package fr.crewcmoi.gui;
 
+import fr.crewcmoi.utils.GuiItems;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -49,30 +49,14 @@ public class ConfirmationGuiManager {
         }
 
         gui.setItem(ConfirmationHolder.CONFIRM_SLOT,
-                createButton(Material.LIME_STAINED_GLASS_PANE, "&a&lᴄᴏɴꜰɪʀᴍᴇʀ"));
+                GuiItems.checkmarkButton("&a&lᴄᴏɴꜰɪʀᴍᴇʀ"));
         gui.setItem(ConfirmationHolder.CANCEL_SLOT,
-                createButton(Material.RED_STAINED_GLASS_PANE, "&c&lᴀɴɴᴜʟᴇʀ"));
+                GuiItems.cancelButton("&c&lᴀɴɴᴜʟᴇʀ"));
 
         player.openInventory(gui);
     }
 
     private ItemStack createFiller() {
-        ItemStack item = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(" ");
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    private ItemStack createButton(Material material, String name) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-            item.setItemMeta(meta);
-        }
-        return item;
+        return GuiItems.nothing(" ");
     }
 }

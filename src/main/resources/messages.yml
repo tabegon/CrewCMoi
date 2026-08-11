@@ -56,7 +56,7 @@ ah:
   not-found: "&cᴄᴇᴛᴛᴇ ᴀɴɴᴏɴᴄᴇ ɴ'ᴇꜱᴛ ᴘʟᴜꜱ ᴅɪꜱᴘᴏɴɪʙʟᴇ."
 
 combat-log:
-  tagged: "&cᴠᴏᴜꜱ ᴇᴛᴇꜱ ᴍᴀɪɴᴛᴇɴᴀɴᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ ! ᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘʟᴜꜱ ᴠᴏᴜꜱ ᴛᴇʟᴇᴘᴏʀᴛᴇʀ ɴɪ ᴜᴛɪʟɪꜱᴇʀ ᴅ'ᴇʟʏᴛʀᴇ ᴘᴇɴᴅᴀɴᴛ 30 ꜱᴇᴄᴏɴᴅᴇꜱ."
+  tagged: "&cᴠᴏᴜꜱ ᴇᴛᴇꜱ ᴍᴀɪɴᴛᴇɴᴀɴᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ !"
   combat-ended: "&aᴠᴏᴜꜱ ɴ'ᴇᴛᴇꜱ ᴘʟᴜꜱ ᴇɴ ᴄᴏᴍʙᴀᴛ."
   action-blocked: "&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ꜰᴀɪʀᴇ ᴄᴀ ᴇɴ ᴄᴏᴍʙᴀᴛ ! (&e{seconds}ꜱ&c ʀᴇꜱᴛᴀɴᴛᴇꜱ)"
   opponent-fled: "&e{player}&c ꜱ'ᴇꜱᴛ ᴅᴇᴄᴏɴɴᴇᴄᴛᴇ ᴘᴇɴᴅᴀɴᴛ ᴠᴏᴛʀᴇ ᴄᴏᴍʙᴀᴛ ᴇᴛ ᴀ ᴇᴛᴇ ᴛᴜᴇ."
@@ -66,8 +66,32 @@ team:
 
 bounty:
   gui-title: "&4&lᴘʀɪᴍᴇꜱ ᴅᴇꜱ ᴊᴏᴜᴇᴜʀꜱ"
-  claimed: "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&a ᴇɴ ᴛᴜᴀɴᴛ &e{player}&a !"
-  server-bounty-applied: "&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴛᴜᴇ &e{player}&c ꜱᴀɴꜱ ǫᴜ'ɪʟ ɴ'ᴀɪᴛ ᴅᴇ ᴘʀɪᴍᴇ : ʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴠᴏᴜꜱ ɪɴꜰʟɪɢᴇ ᴜɴ ᴍᴀʟᴜꜱ ᴅᴇ &e{malus}&c ᴇᴛ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&c ꜱᴜʀ ᴠᴏᴜꜱ !"
+  claimed: "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&a"
+  server-bounty-applied: "ʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴠᴏᴜꜱ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&c ꜱᴜʀ ᴠᴏᴜꜱ !"
 
 coin-item:
   redeemed: "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴇᴄʜᴀɴɢᴇ ᴜɴᴇ ᴘɪᴇᴄᴇ ᴄᴏɴᴛʀᴇ &e{amount}&a !"
+
+tpa:
+  usage-tpa: "&cUsage : /tpa <joueur>"
+  usage-tpahere: "&cUsage : /tpahere <joueur>"
+  self: "&cVous ne pouvez pas vous téléporter à vous-même."
+  sent: "&aDemande de téléportation envoyée à &e{player}&a."
+  sent-here: "&aDemande de téléportation envoyée à &e{player}&a."
+  received: "&e{player} &asouhaite se téléporter jusqu'à vous."
+  received-here: "&e{player} &asouhaite vous téléporter jusqu'à lui."
+  accept-button: "&a&l[Teleporter]"
+  no-request: "&cVous n'avez aucune demande de téléportation en attente."
+  requester-offline: "&cCe joueur n'est plus en ligne."
+  accepted-requester: "&e{player} &aa accepté votre demande de téléportation."
+  accepted-target: "&aVous avez accepté la téléportation de &e{player}&a."
+  expired-requester: "&cVotre demande de téléportation envoyée à &e{player}&c a expiré."
+  expired-target: "&cLa demande de téléportation de &e{player}&c a expiré."
+  target-in-combat: "&c{player} est en combat et ne peut pas être téléporté."
+  moving-in-combat: "&c{player} est en combat, la téléportation est annulée."
+
+home:
+  set-success: "&aVotre home a été défini à votre position actuelle."
+  no-home: "&cVous n'avez pas encore défini de home. Utilisez /sethome."
+  world-missing: "&cLe monde de votre home est introuvable."
+  teleported: "&aVous avez été téléporté à votre home."
