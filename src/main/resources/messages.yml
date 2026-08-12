@@ -95,3 +95,15 @@ home:
   no-home: "&cVous n'avez pas encore défini de home. Utilisez /sethome."
   world-missing: "&cLe monde de votre home est introuvable."
   teleported: "&aVous avez été téléporté à votre home."
+
+claim:
+  success: "&aVous avez claim ce chunk. Personne d'autre ne peut y construire ou détruire."
+  already-claimed: "&cCe chunk est déjà claim."
+  limit-reached: "&cVous avez atteint votre nombre maximum de claims."
+  unclaim-success: "&aLe claim de ce chunk a été supprimé."
+  not-claimed: "&cCe chunk n'est pas claim."
+  not-owner: "&cVous n'êtes pas le propriétaire de ce claim."
+  trust-success: "&a{player} peut maintenant construire sur ce claim."
+  untrust-success: "&a{player} ne peut plus construire sur ce claim."
+  player-not-found: "&cJoueur introuvable."
+  protected: "&cCe chunk est protégé par un claim, vous ne pouvez pas faire cela ici."

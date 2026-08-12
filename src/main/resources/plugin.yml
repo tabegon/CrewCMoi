@@ -62,6 +62,12 @@ commands:
   tpaccept:
     description: Acceptation d'une invition de tp
     usage: /tpaccept
+  claim:
+    description: Réclame le chunk actuel pour empêcher les autres joueurs d'y construire/détruire.
+    usage: /claim [unclaim|trust <joueur>|untrust <joueur>|info|settings]
+  claims:
+    description: Alias de /claim, notamment pour /claims settings (GUI des règles du claim).
+    usage: /claims settings
 
 permissions:
   crew.balance.others:
@@ -69,4 +75,13 @@ permissions:
     default: op
   crew.admin:
     description: Permet d'utiliser les commandes admin d'économie.
+    default: op
+  crew.claim.bypass:
+    description: Permet de construire/détruire librement dans n'importe quel claim.
+    default: op
+  crew.claim.admin:
+    description: Permet de unclaim/trust/untrust n'importe quel claim, même sans en être le propriétaire.
+    default: op
+  crew.claim.bypasslimit:
+    description: Permet de dépasser la limite du nombre de claims par joueur.
     default: op

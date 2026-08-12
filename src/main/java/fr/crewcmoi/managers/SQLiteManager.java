@@ -4,6 +4,9 @@ import fr.crewcmoi.Main;
 import fr.crewcmoi.auction.AuctionItem;
 import fr.crewcmoi.database.BountyEntry;
 import fr.crewcmoi.database.BountyTarget;
+import fr.crewcmoi.database.ClaimData;
+import fr.crewcmoi.database.ClaimFlag;
+import fr.crewcmoi.database.ClaimPermission;
 import fr.crewcmoi.database.HomeData;
 import fr.crewcmoi.database.PlayerData;
 import fr.crewcmoi.database.TeamData;
@@ -15,6 +18,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,12 +134,31 @@ public class SQLiteManager implements DatabaseManager {
                 "pitch REAL NOT NULL" +
                 ");";
 
+        String claimsSql = "CREATE TABLE IF NOT EXISTS claims (" +
+                "world TEXT NOT NULL," +
+                "chunk_x INTEGER NOT NULL," +
+                "chunk_z INTEGER NOT NULL," +
+                "owner_uuid TEXT NOT NULL," +
+                "owner_name TEXT NOT NULL," +
+                "trusted TEXT NOT NULL DEFAULT ''," +
+                "flags TEXT NOT NULL DEFAULT ''," +
+                "PRIMARY KEY (world, chunk_x, chunk_z)" +
+                ");";
+
         try (Statement statement = connection.createStatement()) {
             statement.execute(teamsSql);
             statement.execute(teamMembersSql);
             statement.execute(bountiesSql);
             statement.execute(serverBountyCountSql);
             statement.execute(homesSql);
+            statement.execute(claimsSql);
+            // Migration : ajoute la colonne "flags" si la table "claims" existait déjà
+            // depuis une version antérieure du plugin (avant le système de règles).
+            try {
+                statement.execute("ALTER TABLE claims ADD COLUMN flags TEXT NOT NULL DEFAULT '';");
+            } catch (SQLException ignored) {
+                // La colonne existe déjà, rien à faire.
+            }
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création des tables team/bounty.", e);
         }
@@ -611,6 +634,198 @@ public class SQLiteManager implements DatabaseManager {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la lecture du home de " + playerUuid, e);
         }
         return null;
+    }
+
+    // ===================== CLAIMS =====================
+
+    @Override
+    public boolean createClaim(String world, int chunkX, int chunkZ, UUID ownerUuid, String ownerName) {
+        if (getClaim(world, chunkX, chunkZ) != null) {
+            return false;
+        }
+        String sql = "INSERT INTO claims (world, chunk_x, chunk_z, owner_uuid, owner_name, trusted) " +
+                "VALUES (?, ?, ?, ?, ?, '');";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, world);
+            ps.setInt(2, chunkX);
+            ps.setInt(3, chunkZ);
+            ps.setString(4, ownerUuid.toString());
+            ps.setString(5, ownerName);
+            ps.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création du claim.", e);
+            return false;
+        }
+    }
+
+    @Override
+    public void removeClaim(String world, int chunkX, int chunkZ) {
+        String sql = "DELETE FROM claims WHERE world = ? AND chunk_x = ? AND chunk_z = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, world);
+            ps.setInt(2, chunkX);
+            ps.setInt(3, chunkZ);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la suppression du claim.", e);
+        }
+    }
+
+    @Override
+    public ClaimData getClaim(String world, int chunkX, int chunkZ) {
+        String sql = "SELECT * FROM claims WHERE world = ? AND chunk_x = ? AND chunk_z = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, world);
+            ps.setInt(2, chunkX);
+            ps.setInt(3, chunkZ);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return readClaim(rs);
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la lecture du claim.", e);
+        }
+        return null;
+    }
+
+    @Override
+    public List<ClaimData> getClaimsByOwner(UUID ownerUuid) {
+        List<ClaimData> claims = new ArrayList<>();
+        String sql = "SELECT * FROM claims WHERE owner_uuid = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, ownerUuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    claims.add(readClaim(rs));
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la lecture des claims de " + ownerUuid, e);
+        }
+        return claims;
+    }
+
+    @Override
+    public List<ClaimData> getAllClaims() {
+        List<ClaimData> claims = new ArrayList<>();
+        String sql = "SELECT * FROM claims;";
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(sql)) {
+            while (rs.next()) {
+                claims.add(readClaim(rs));
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la lecture de tous les claims.", e);
+        }
+        return claims;
+    }
+
+    @Override
+    public void addTrusted(String world, int chunkX, int chunkZ, UUID trustedUuid) {
+        ClaimData claim = getClaim(world, chunkX, chunkZ);
+        if (claim == null) {
+            return;
+        }
+        java.util.Set<UUID> trusted = new java.util.LinkedHashSet<>(claim.getTrusted());
+        trusted.add(trustedUuid);
+        updateTrusted(world, chunkX, chunkZ, trusted);
+    }
+
+    @Override
+    public void removeTrusted(String world, int chunkX, int chunkZ, UUID trustedUuid) {
+        ClaimData claim = getClaim(world, chunkX, chunkZ);
+        if (claim == null) {
+            return;
+        }
+        java.util.Set<UUID> trusted = new java.util.LinkedHashSet<>(claim.getTrusted());
+        trusted.remove(trustedUuid);
+        updateTrusted(world, chunkX, chunkZ, trusted);
+    }
+
+    private void updateTrusted(String world, int chunkX, int chunkZ, java.util.Set<UUID> trusted) {
+        String serialized = String.join(",", trusted.stream().map(UUID::toString).toArray(String[]::new));
+        String sql = "UPDATE claims SET trusted = ? WHERE world = ? AND chunk_x = ? AND chunk_z = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, serialized);
+            ps.setString(2, world);
+            ps.setInt(3, chunkX);
+            ps.setInt(4, chunkZ);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la mise à jour des joueurs de confiance du claim.", e);
+        }
+    }
+
+    @Override
+    public void setClaimFlag(String world, int chunkX, int chunkZ, ClaimFlag flag, ClaimPermission permission) {
+        ClaimData claim = getClaim(world, chunkX, chunkZ);
+        if (claim == null) {
+            return;
+        }
+        Map<ClaimFlag, ClaimPermission> flags = new EnumMap<>(claim.getFlags());
+        flags.put(flag, permission);
+        String serialized = serializeFlags(flags);
+        String sql = "UPDATE claims SET flags = ? WHERE world = ? AND chunk_x = ? AND chunk_z = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, serialized);
+            ps.setString(2, world);
+            ps.setInt(3, chunkX);
+            ps.setInt(4, chunkZ);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la mise à jour des règles du claim.", e);
+        }
+    }
+
+    private String serializeFlags(Map<ClaimFlag, ClaimPermission> flags) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<ClaimFlag, ClaimPermission> entry : flags.entrySet()) {
+            if (sb.length() > 0) {
+                sb.append(',');
+            }
+            sb.append(entry.getKey().name()).append(':').append(entry.getValue().name());
+        }
+        return sb.toString();
+    }
+
+    private Map<ClaimFlag, ClaimPermission> deserializeFlags(String raw) {
+        Map<ClaimFlag, ClaimPermission> flags = ClaimData.defaultFlags();
+        if (raw == null || raw.isEmpty()) {
+            return flags;
+        }
+        for (String part : raw.split(",")) {
+            String[] kv = part.split(":");
+            if (kv.length != 2) {
+                continue;
+            }
+            try {
+                flags.put(ClaimFlag.valueOf(kv[0]), ClaimPermission.valueOf(kv[1]));
+            } catch (IllegalArgumentException ignored) {
+                // Valeur inconnue (ex: ancienne version), on garde la valeur par défaut.
+            }
+        }
+        return flags;
+    }
+
+    private ClaimData readClaim(ResultSet rs) throws SQLException {
+        String world = rs.getString("world");
+        int chunkX = rs.getInt("chunk_x");
+        int chunkZ = rs.getInt("chunk_z");
+        UUID ownerUuid = UUID.fromString(rs.getString("owner_uuid"));
+        String ownerName = rs.getString("owner_name");
+        String trustedRaw = rs.getString("trusted");
+        java.util.Set<UUID> trusted = new java.util.LinkedHashSet<>();
+        if (trustedRaw != null && !trustedRaw.isEmpty()) {
+            for (String part : trustedRaw.split(",")) {
+                if (!part.isEmpty()) {
+                    trusted.add(UUID.fromString(part));
+                }
+            }
+        }
+        Map<ClaimFlag, ClaimPermission> flags = deserializeFlags(rs.getString("flags"));
+        return new ClaimData(world, chunkX, chunkZ, ownerUuid, ownerName, trusted, flags);
     }
 
     private BountyEntry readBounty(ResultSet rs) throws SQLException {

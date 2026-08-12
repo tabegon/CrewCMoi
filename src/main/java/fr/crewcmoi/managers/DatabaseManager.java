@@ -3,6 +3,9 @@ package fr.crewcmoi.managers;
 import fr.crewcmoi.auction.AuctionItem;
 import fr.crewcmoi.database.BountyEntry;
 import fr.crewcmoi.database.BountyTarget;
+import fr.crewcmoi.database.ClaimData;
+import fr.crewcmoi.database.ClaimFlag;
+import fr.crewcmoi.database.ClaimPermission;
 import fr.crewcmoi.database.HomeData;
 import fr.crewcmoi.database.PlayerData;
 import fr.crewcmoi.database.TeamData;
@@ -155,4 +158,46 @@ public interface DatabaseManager {
      * Récupère le home d'un joueur, ou null s'il n'en a pas défini.
      */
     HomeData getHome(UUID playerUuid);
+
+    // ===================== CLAIMS =====================
+
+    /**
+     * Crée un claim pour ce chunk. Retourne false si le chunk est déjà claim.
+     */
+    boolean createClaim(String world, int chunkX, int chunkZ, UUID ownerUuid, String ownerName);
+
+    /**
+     * Supprime le claim de ce chunk (aucun effet s'il n'était pas claim).
+     */
+    void removeClaim(String world, int chunkX, int chunkZ);
+
+    /**
+     * Retourne le claim de ce chunk, ou null s'il n'est pas claim.
+     */
+    ClaimData getClaim(String world, int chunkX, int chunkZ);
+
+    /**
+     * Retourne tous les claims appartenant à ce joueur.
+     */
+    List<ClaimData> getClaimsByOwner(UUID ownerUuid);
+
+    /**
+     * Retourne tous les claims existants (utilisé pour peupler le cache mémoire au démarrage).
+     */
+    List<ClaimData> getAllClaims();
+
+    /**
+     * Ajoute un joueur de confiance à un claim (peut construire/détruire dessus).
+     */
+    void addTrusted(String world, int chunkX, int chunkZ, UUID trustedUuid);
+
+    /**
+     * Retire un joueur de confiance d'un claim.
+     */
+    void removeTrusted(String world, int chunkX, int chunkZ, UUID trustedUuid);
+
+    /**
+     * Modifie le niveau de permission d'une règle (flag) pour ce claim.
+     */
+    void setClaimFlag(String world, int chunkX, int chunkZ, ClaimFlag flag, ClaimPermission permission);
 }

@@ -1,14 +1,19 @@
 package fr.crewcmoi.listeners;
 
 import fr.crewcmoi.Main;
+import fr.crewcmoi.database.ClaimFlag;
+import fr.crewcmoi.database.ClaimPermission;
 import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.AuctionHolder;
 import fr.crewcmoi.gui.BountyGuiManager;
 import fr.crewcmoi.gui.BountyHolder;
+import fr.crewcmoi.gui.ClaimSettingsGuiManager;
+import fr.crewcmoi.gui.ClaimSettingsHolder;
 import fr.crewcmoi.gui.ConfirmationHolder;
 import fr.crewcmoi.gui.SellGuiManager;
 import fr.crewcmoi.gui.SellHolder;
 import fr.crewcmoi.managers.AuctionManager;
+import fr.crewcmoi.managers.ClaimManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,14 +33,19 @@ public class GuiListener implements Listener {
     private final AuctionManager auctionManager;
     private final AuctionGuiManager auctionGuiManager;
     private final BountyGuiManager bountyGuiManager;
+    private final ClaimManager claimManager;
+    private final ClaimSettingsGuiManager claimSettingsGuiManager;
 
     public GuiListener(Main plugin, SellGuiManager sellGuiManager, AuctionManager auctionManager,
-                        AuctionGuiManager auctionGuiManager, BountyGuiManager bountyGuiManager) {
+                        AuctionGuiManager auctionGuiManager, BountyGuiManager bountyGuiManager,
+                        ClaimManager claimManager, ClaimSettingsGuiManager claimSettingsGuiManager) {
         this.plugin = plugin;
         this.sellGuiManager = sellGuiManager;
         this.auctionManager = auctionManager;
         this.auctionGuiManager = auctionGuiManager;
         this.bountyGuiManager = bountyGuiManager;
+        this.claimManager = claimManager;
+        this.claimSettingsGuiManager = claimSettingsGuiManager;
     }
 
     @EventHandler
@@ -50,6 +60,8 @@ public class GuiListener implements Listener {
             handleConfirmationClick(event, confirmationHolder);
         } else if (holder instanceof BountyHolder bountyHolder) {
             handleBountyClick(event, bountyHolder);
+        } else if (holder instanceof ClaimSettingsHolder claimSettingsHolder) {
+            handleClaimSettingsClick(event, claimSettingsHolder);
         }
     }
 
@@ -179,5 +191,31 @@ public class GuiListener implements Listener {
         } else if (slot == BountyHolder.NEXT_PAGE_SLOT) {
             bountyGuiManager.open(player, holder.getPage() + 1);
         }
+    }
+
+    private void handleClaimSettingsClick(InventoryClickEvent event, ClaimSettingsHolder holder) {
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        int slot = event.getRawSlot();
+        if (slot < 0 || slot >= event.getInventory().getSize()) {
+            return;
+        }
+
+        ClaimFlag flag = holder.getFlag(slot);
+        if (flag == null) {
+            return;
+        }
+
+        var claim = claimManager.getClaim(holder.getWorld(), holder.getChunkX(), holder.getChunkZ());
+        if (claim == null) {
+            player.closeInventory();
+            return;
+        }
+
+        ClaimPermission next = claim.getPermission(flag).next();
+        claimManager.setFlag(player, holder.getWorld(), holder.getChunkX(), holder.getChunkZ(), flag, next);
+        claimSettingsGuiManager.render(holder);
     }
 }

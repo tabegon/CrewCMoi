@@ -66,6 +66,11 @@ tpa:
   # avec le solde du joueur (ex: "100.00 ").
   text-id: "balance"
 
+claims:
+  # Nombre maximum de chunks qu'un joueur peut claim (0 = illimité).
+  # Ignoré pour les joueurs ayant la permission crew.claim.bypasslimit.
+  max-per-player: 3
+
 coin-item:
   # Active/désactive la possibilité d'échanger une "pièce" ItemsAdder contre de l'argent.
   enabled: true

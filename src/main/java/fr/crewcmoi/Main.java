@@ -4,6 +4,7 @@ import fr.crewcmoi.commands.AuctionCommand;
 import fr.crewcmoi.commands.BalanceCommand;
 import fr.crewcmoi.commands.BalanceTopCommand;
 import fr.crewcmoi.commands.BountyCommand;
+import fr.crewcmoi.commands.ClaimCommand;
 import fr.crewcmoi.commands.HomeCommand;
 import fr.crewcmoi.commands.InfoCommand;
 import fr.crewcmoi.commands.MoneyCommand;
@@ -17,14 +18,17 @@ import fr.crewcmoi.commands.TpaCommand;
 import fr.crewcmoi.commands.TpaHereCommand;
 import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.BountyGuiManager;
+import fr.crewcmoi.gui.ClaimSettingsGuiManager;
 import fr.crewcmoi.gui.SellGuiManager;
 import fr.crewcmoi.listeners.BountyListener;
+import fr.crewcmoi.listeners.ClaimListener;
 import fr.crewcmoi.listeners.CoinItemListener;
 import fr.crewcmoi.listeners.CombatListener;
 import fr.crewcmoi.listeners.GuiListener;
 import fr.crewcmoi.listeners.JoinListener;
 import fr.crewcmoi.managers.AuctionManager;
 import fr.crewcmoi.managers.BountyManager;
+import fr.crewcmoi.managers.ClaimManager;
 import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.DatabaseManager;
 import fr.crewcmoi.managers.EconomyManager;
@@ -61,6 +65,8 @@ public class Main extends JavaPlugin {
     private MalusEffectManager malusEffectManager;
     private TeleportManager teleportManager;
     private HomeManager homeManager;
+    private ClaimManager claimManager;
+    private ClaimSettingsGuiManager claimSettingsGuiManager;
     private FileConfiguration messages;
     private File messagesFile;
 
@@ -88,12 +94,16 @@ public class Main extends JavaPlugin {
         this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
         this.teleportManager = new TeleportManager(this, combatManager);
         this.homeManager = new HomeManager(this, databaseManager);
+        this.claimManager = new ClaimManager(this, databaseManager);
+        this.claimManager.loadAll();
+        this.claimSettingsGuiManager = new ClaimSettingsGuiManager(this, claimManager);
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager), this);
-        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager), this);
+        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
+        getServer().getPluginManager().registerEvents(new ClaimListener(this, claimManager), this);
         // ItemsAdder est optionnel : on n'enregistre ce listener (qui référence les classes
         // de son API) que s'il est bien installé et activé, pour éviter un crash au démarrage
         // si ce plugin n'est pas présent sur le serveur.
@@ -134,6 +144,9 @@ public class Main extends JavaPlugin {
         registerCommand("tpaccept", new TpAcceptCommand(this, teleportManager));
         registerCommand("sethome", new SetHomeCommand(this, homeManager));
         registerCommand("home", new HomeCommand(this, homeManager));
+        ClaimCommand claimCommand = new ClaimCommand(this, claimManager, claimSettingsGuiManager);
+        registerCommand("claim", claimCommand);
+        registerCommand("claims", claimCommand);
 
         getLogger().info("EconomyPlugin activé avec succès !");
     }
@@ -224,6 +237,14 @@ public class Main extends JavaPlugin {
 
     public HomeManager getHomeManager() {
         return homeManager;
+    }
+
+    public ClaimManager getClaimManager() {
+        return claimManager;
+    }
+
+    public ClaimSettingsGuiManager getClaimSettingsGuiManager() {
+        return claimSettingsGuiManager;
     }
 
 }
