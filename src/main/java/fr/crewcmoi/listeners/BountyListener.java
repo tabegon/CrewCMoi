@@ -16,9 +16,12 @@ import java.util.UUID;
 
 /**
  * Gère les conséquences économiques d'une mort en JcJ :
- *  - si la victime avait une prime active, le tueur la récupère (hors contributions qu'il a lui-même placées).
- *  - sinon, si le tueur a initié le combat (premier coup) et que la victime n'a pas de prime,
- *    le serveur lui attribue automatiquement une prime + un malus, sauf si :
+ *  - le tueur récupère TOUJOURS l'intégralité de la prime active de la victime, s'il y en a
+ *    une (y compris les contributions qu'il a lui-même placées, ou celles de ses alliés).
+ *  - en plus de ça, si cette prime n'était pas "légitime" (aucune prime du tout, ou
+ *    uniquement des contributions du tueur/de ses alliés, ou avec une raison jamais
+ *    approuvée par un admin) ET que le tueur a initié le combat (premier coup), le serveur
+ *    lui attribue automatiquement une prime + un malus sur sa propre tête, sauf si :
  *      - la victime fait partie d'une équipe (les membres d'équipe ne déclenchent pas ce malus),
  *      - le tueur s'est déjà vu attribuer cette prime serveur 3 fois aujourd'hui,
  *      - le tueur se défendait (c'est la victime qui avait initié le combat).
@@ -62,14 +65,28 @@ public class BountyListener implements Listener {
 
         String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
-        double claimed = bountyManager.claimBounty(killer.getUniqueId(), victim.getUniqueId());
-        if (claimed > 0) {
-            sendMessage(killer, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(claimed) + currency
+        // On ne compte pas comme prime "légitime" les contributions placées par le tueur
+        // lui-même ou par l'un de ses alliés d'équipe : sinon il suffirait de se placer
+        // (ou de faire placer par un allié) une prime sur sa cible pour toucher l'argent
+        // en la tuant, tout en évitant le malus prévu pour un kill sans prime réelle. Notez
+        // que l'argent est quand même versé au tueur dans TOUS les cas (voir claimBounty) :
+        // seule la légitimité change, et détermine si le malus/mise à prix ci-dessous
+        // s'applique en plus.
+        UUID killerUuid = killer.getUniqueId();
+        BountyManager.BountyClaimResult claim = bountyManager.claimBounty(killerUuid, victim.getUniqueId(),
+                contributorUuid -> contributorUuid.equals(killerUuid) || teamManager.isSameTeam(contributorUuid, killerUuid));
+        if (claim.amount() > 0) {
+            sendMessage(killer, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(claim.amount()) + currency
                     + "&a ᴇɴ ᴛᴜᴀɴᴛ &e" + victim.getName() + "&a !");
+        }
+        if (claim.legitimate()) {
             return;
         }
 
-        // Pas de prime réclamable : on vérifie si une prime + malus serveur doit être attribuée.
+        // Pas de prime légitime (aucune prime, ou seulement des contributions du tueur/de ses
+        // alliés, ou avec une raison jamais approuvée) : on vérifie si une prime + malus
+        // serveur doit être attribuée. L'argent ci-dessus (s'il y en avait) reste malgré tout
+        // acquis au tueur.
         if (!killerInitiated) {
             // Le tueur se défendait : pas de malus, conformément à la règle.
             return;

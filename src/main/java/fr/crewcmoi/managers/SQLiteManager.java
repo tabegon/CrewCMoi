@@ -114,7 +114,9 @@ public class SQLiteManager implements DatabaseManager {
                 "contributor_uuid TEXT," +
                 "contributor_name TEXT NOT NULL," +
                 "amount REAL NOT NULL," +
-                "created_at INTEGER NOT NULL" +
+                "created_at INTEGER NOT NULL," +
+                "reason TEXT," +
+                "approved INTEGER NOT NULL DEFAULT 1" +
                 ");";
 
         String serverBountyCountSql = "CREATE TABLE IF NOT EXISTS server_bounty_count (" +
@@ -142,7 +144,13 @@ public class SQLiteManager implements DatabaseManager {
                 "owner_name TEXT NOT NULL," +
                 "trusted TEXT NOT NULL DEFAULT ''," +
                 "flags TEXT NOT NULL DEFAULT ''," +
+                "sale_price REAL NOT NULL DEFAULT -1," +
                 "PRIMARY KEY (world, chunk_x, chunk_z)" +
+                ");";
+
+        String claimBonusSql = "CREATE TABLE IF NOT EXISTS claim_bonus (" +
+                "player_uuid TEXT PRIMARY KEY," +
+                "extra INTEGER NOT NULL DEFAULT 0" +
                 ");";
 
         try (Statement statement = connection.createStatement()) {
@@ -152,10 +160,32 @@ public class SQLiteManager implements DatabaseManager {
             statement.execute(serverBountyCountSql);
             statement.execute(homesSql);
             statement.execute(claimsSql);
+            statement.execute(claimBonusSql);
             // Migration : ajoute la colonne "flags" si la table "claims" existait déjà
             // depuis une version antérieure du plugin (avant le système de règles).
             try {
                 statement.execute("ALTER TABLE claims ADD COLUMN flags TEXT NOT NULL DEFAULT '';");
+            } catch (SQLException ignored) {
+                // La colonne existe déjà, rien à faire.
+            }
+            // Migration : ajoute la colonne "sale_price" si la table "claims" existait déjà
+            // depuis une version antérieure du plugin (avant /claim sell et /claim buy).
+            try {
+                statement.execute("ALTER TABLE claims ADD COLUMN sale_price REAL NOT NULL DEFAULT -1;");
+            } catch (SQLException ignored) {
+                // La colonne existe déjà, rien à faire.
+            }
+            // Migration : ajoute la colonne "reason" si la table "bounties" existait déjà
+            // depuis une version antérieure du plugin (avant /bounty add <joueur> <montant> <raison>).
+            try {
+                statement.execute("ALTER TABLE bounties ADD COLUMN reason TEXT;");
+            } catch (SQLException ignored) {
+                // La colonne existe déjà, rien à faire.
+            }
+            // Migration : ajoute la colonne "approved" (défaut 1 = valide) si la table
+            // "bounties" existait déjà, depuis avant le système de validation /bounty review.
+            try {
+                statement.execute("ALTER TABLE bounties ADD COLUMN approved INTEGER NOT NULL DEFAULT 1;");
             } catch (SQLException ignored) {
                 // La colonne existe déjà, rien à faire.
             }
@@ -478,8 +508,13 @@ public class SQLiteManager implements DatabaseManager {
     // ===================== BOUNTIES =====================
 
     @Override
-    public void addBounty(UUID targetUuid, String targetName, UUID contributorUuid, String contributorName, double amount) {
-        String sql = "INSERT INTO bounties (target_uuid, target_name, contributor_uuid, contributor_name, amount, created_at) VALUES (?, ?, ?, ?, ?, ?);";
+    public void addBounty(UUID targetUuid, String targetName, UUID contributorUuid, String contributorName, double amount, String reason) {
+        // Une prime avec une raison fournie par un joueur doit être validée par un admin
+        // (/bounty review) avant de compter comme "légitime" (voir BountyManager#claimBounty) :
+        // elle démarre donc non-approuvée. Une prime sans raison (ou attribuée par le serveur,
+        // contributorUuid == null) reste valide immédiatement, comme avant ce système.
+        boolean needsReview = contributorUuid != null && reason != null && !reason.isBlank();
+        String sql = "INSERT INTO bounties (target_uuid, target_name, contributor_uuid, contributor_name, amount, created_at, reason, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, targetUuid.toString());
             ps.setString(2, targetName);
@@ -491,9 +526,69 @@ public class SQLiteManager implements DatabaseManager {
             ps.setString(4, contributorName);
             ps.setDouble(5, amount);
             ps.setLong(6, System.currentTimeMillis());
+            if (reason != null && !reason.isBlank()) {
+                ps.setString(7, reason);
+            } else {
+                ps.setNull(7, Types.VARCHAR);
+            }
+            ps.setInt(8, needsReview ? 0 : 1);
             ps.executeUpdate();
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de l'ajout d'une prime sur " + targetName, e);
+        }
+    }
+
+    @Override
+    public BountyEntry getBountyEntry(int entryId) {
+        String sql = "SELECT * FROM bounties WHERE id = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, entryId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return readBounty(rs);
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération de la prime " + entryId, e);
+        }
+        return null;
+    }
+
+    @Override
+    public List<BountyEntry> getPendingReasonedBounties() {
+        List<BountyEntry> list = new ArrayList<>();
+        String sql = "SELECT * FROM bounties WHERE reason IS NOT NULL AND approved = 0 ORDER BY created_at ASC;";
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(readBounty(rs));
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération des primes en attente de validation.", e);
+        }
+        return list;
+    }
+
+    @Override
+    public void setBountyApproved(int entryId, boolean approved) {
+        String sql = "UPDATE bounties SET approved = ? WHERE id = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, approved ? 1 : 0);
+            ps.setInt(2, entryId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la mise à jour de la prime " + entryId, e);
+        }
+    }
+
+    @Override
+    public void deleteBountyEntry(int entryId) {
+        String sql = "DELETE FROM bounties WHERE id = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, entryId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la suppression de la prime " + entryId, e);
         }
     }
 
@@ -660,15 +755,22 @@ public class SQLiteManager implements DatabaseManager {
     }
 
     @Override
-    public void removeClaim(String world, int chunkX, int chunkZ) {
+    public boolean removeClaim(String world, int chunkX, int chunkZ) {
         String sql = "DELETE FROM claims WHERE world = ? AND chunk_x = ? AND chunk_z = ?;";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, world);
             ps.setInt(2, chunkX);
             ps.setInt(3, chunkZ);
-            ps.executeUpdate();
+            // On vérifie le nombre de lignes réellement supprimées : si 0, la ligne n'existait
+            // déjà plus (rien à faire, ce n'est pas une erreur) ou la suppression n'a pas eu
+            // l'effet attendu. Dans les deux cas, l'appelant doit pouvoir le distinguer d'un
+            // vrai succès pour éviter que le cache mémoire ne se désynchronise de la base
+            // (symptôme observé : un chunk "unclaim" redevient éternellement impossible à
+            // re-claim, car il reste en réalité toujours présent en base).
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la suppression du claim.", e);
+            return false;
         }
     }
 
@@ -809,6 +911,65 @@ public class SQLiteManager implements DatabaseManager {
         return flags;
     }
 
+    @Override
+    public int getExtraClaims(UUID playerUuid) {
+        String sql = "SELECT extra FROM claim_bonus WHERE player_uuid = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("extra");
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la lecture des claims bonus de " + playerUuid, e);
+        }
+        return 0;
+    }
+
+    @Override
+    public void setExtraClaims(UUID playerUuid, int amount) {
+        String sql = "INSERT INTO claim_bonus (player_uuid, extra) VALUES (?, ?) " +
+                "ON CONFLICT(player_uuid) DO UPDATE SET extra = excluded.extra;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString());
+            ps.setInt(2, amount);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la mise à jour des claims bonus de " + playerUuid, e);
+        }
+    }
+
+    @Override
+    public void setClaimSalePrice(String world, int chunkX, int chunkZ, double price) {
+        String sql = "UPDATE claims SET sale_price = ? WHERE world = ? AND chunk_x = ? AND chunk_z = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setDouble(1, price);
+            ps.setString(2, world);
+            ps.setInt(3, chunkX);
+            ps.setInt(4, chunkZ);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la mise en vente du claim.", e);
+        }
+    }
+
+    @Override
+    public void transferClaim(String world, int chunkX, int chunkZ, UUID newOwnerUuid, String newOwnerName) {
+        String sql = "UPDATE claims SET owner_uuid = ?, owner_name = ?, trusted = '', sale_price = -1 " +
+                "WHERE world = ? AND chunk_x = ? AND chunk_z = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, newOwnerUuid.toString());
+            ps.setString(2, newOwnerName);
+            ps.setString(3, world);
+            ps.setInt(4, chunkX);
+            ps.setInt(5, chunkZ);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors du transfert de propriété du claim.", e);
+        }
+    }
+
     private ClaimData readClaim(ResultSet rs) throws SQLException {
         String world = rs.getString("world");
         int chunkX = rs.getInt("chunk_x");
@@ -825,7 +986,8 @@ public class SQLiteManager implements DatabaseManager {
             }
         }
         Map<ClaimFlag, ClaimPermission> flags = deserializeFlags(rs.getString("flags"));
-        return new ClaimData(world, chunkX, chunkZ, ownerUuid, ownerName, trusted, flags);
+        double salePrice = rs.getDouble("sale_price");
+        return new ClaimData(world, chunkX, chunkZ, ownerUuid, ownerName, trusted, flags, salePrice);
     }
 
     private BountyEntry readBounty(ResultSet rs) throws SQLException {
@@ -837,6 +999,8 @@ public class SQLiteManager implements DatabaseManager {
         String contributorName = rs.getString("contributor_name");
         double amount = rs.getDouble("amount");
         long createdAt = rs.getLong("created_at");
-        return new BountyEntry(id, targetUuid, targetName, contributorUuid, contributorName, amount, createdAt);
+        String reason = rs.getString("reason");
+        boolean approved = rs.getInt("approved") != 0;
+        return new BountyEntry(id, targetUuid, targetName, contributorUuid, contributorName, amount, createdAt, reason, approved);
     }
 }

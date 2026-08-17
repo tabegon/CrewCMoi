@@ -18,7 +18,10 @@ import fr.crewcmoi.commands.TpaCommand;
 import fr.crewcmoi.commands.TpaHereCommand;
 import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.BountyGuiManager;
+import fr.crewcmoi.gui.BountyReviewGuiManager;
+import fr.crewcmoi.gui.ClaimAuctionGuiManager;
 import fr.crewcmoi.gui.ClaimSettingsGuiManager;
+import fr.crewcmoi.gui.ClaimShopGuiManager;
 import fr.crewcmoi.gui.SellGuiManager;
 import fr.crewcmoi.listeners.BountyListener;
 import fr.crewcmoi.listeners.ClaimListener;
@@ -29,6 +32,7 @@ import fr.crewcmoi.listeners.JoinListener;
 import fr.crewcmoi.managers.AuctionManager;
 import fr.crewcmoi.managers.BountyManager;
 import fr.crewcmoi.managers.ClaimManager;
+import fr.crewcmoi.managers.ClaimVisualizer;
 import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.DatabaseManager;
 import fr.crewcmoi.managers.EconomyManager;
@@ -62,11 +66,15 @@ public class Main extends JavaPlugin {
     private TeamManager teamManager;
     private BountyManager bountyManager;
     private BountyGuiManager bountyGuiManager;
+    private BountyReviewGuiManager bountyReviewGuiManager;
     private MalusEffectManager malusEffectManager;
     private TeleportManager teleportManager;
     private HomeManager homeManager;
     private ClaimManager claimManager;
     private ClaimSettingsGuiManager claimSettingsGuiManager;
+    private ClaimShopGuiManager claimShopGuiManager;
+    private ClaimVisualizer claimVisualizer;
+    private ClaimAuctionGuiManager claimAuctionGuiManager;
     private FileConfiguration messages;
     private File messagesFile;
 
@@ -88,19 +96,24 @@ public class Main extends JavaPlugin {
         this.auctionManager = new AuctionManager(this, databaseManager, economyManager);
         this.auctionGuiManager = new AuctionGuiManager(this, auctionManager);
         this.combatManager = new CombatManager(this);
+        this.combatManager.startActionBar();
         this.teamManager = new TeamManager(this, databaseManager);
         this.malusEffectManager = new MalusEffectManager(this);
         this.bountyManager = new BountyManager(this, databaseManager, economyManager, malusEffectManager);
         this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
+        this.bountyReviewGuiManager = new BountyReviewGuiManager(this, bountyManager);
         this.teleportManager = new TeleportManager(this, combatManager);
         this.homeManager = new HomeManager(this, databaseManager);
         this.claimManager = new ClaimManager(this, databaseManager);
         this.claimManager.loadAll();
         this.claimSettingsGuiManager = new ClaimSettingsGuiManager(this, claimManager);
+        this.claimShopGuiManager = new ClaimShopGuiManager(this, claimManager);
+        this.claimVisualizer = new ClaimVisualizer(this, claimManager);
+        this.claimAuctionGuiManager = new ClaimAuctionGuiManager(this, claimManager);
 
         // Enregistrement des listeners
-        getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager), this);
-        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager), this);
+        getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer), this);
+        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
         getServer().getPluginManager().registerEvents(new ClaimListener(this, claimManager), this);
@@ -136,7 +149,7 @@ public class Main extends JavaPlugin {
         registerCommand("pay", new PayCommand(this, economyManager));
         registerCommand("ah", new AuctionCommand(this, auctionManager, auctionGuiManager));
         registerCommand("team", new TeamCommand(this, teamManager));
-        registerCommand("bounty", new BountyCommand(this, bountyManager, bountyGuiManager));
+        registerCommand("bounty", new BountyCommand(this, bountyManager, bountyGuiManager, bountyReviewGuiManager));
         registerCommand("info", new InfoCommand(this, bountyManager, malusEffectManager));
         registerCommand("spawn", new SpawnCommand(this));
         registerCommand("tpa", new TpaCommand(this, teleportManager, combatManager));
@@ -144,7 +157,7 @@ public class Main extends JavaPlugin {
         registerCommand("tpaccept", new TpAcceptCommand(this, teleportManager));
         registerCommand("sethome", new SetHomeCommand(this, homeManager));
         registerCommand("home", new HomeCommand(this, homeManager));
-        ClaimCommand claimCommand = new ClaimCommand(this, claimManager, claimSettingsGuiManager);
+        ClaimCommand claimCommand = new ClaimCommand(this, claimManager, claimSettingsGuiManager, claimShopGuiManager, claimVisualizer, claimAuctionGuiManager);
         registerCommand("claim", claimCommand);
         registerCommand("claims", claimCommand);
 
@@ -153,6 +166,9 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (combatManager != null) {
+            combatManager.stopActionBar();
+        }
         if (databaseManager != null) {
             databaseManager.disconnect();
         }
@@ -227,6 +243,10 @@ public class Main extends JavaPlugin {
         return bountyManager;
     }
 
+    public BountyReviewGuiManager getBountyReviewGuiManager() {
+        return bountyReviewGuiManager;
+    }
+
     public MalusEffectManager getMalusEffectManager() {
         return malusEffectManager;
     }
@@ -245,6 +265,18 @@ public class Main extends JavaPlugin {
 
     public ClaimSettingsGuiManager getClaimSettingsGuiManager() {
         return claimSettingsGuiManager;
+    }
+
+    public ClaimShopGuiManager getClaimShopGuiManager() {
+        return claimShopGuiManager;
+    }
+
+    public ClaimVisualizer getClaimVisualizer() {
+        return claimVisualizer;
+    }
+
+    public ClaimAuctionGuiManager getClaimAuctionGuiManager() {
+        return claimAuctionGuiManager;
     }
 
 }

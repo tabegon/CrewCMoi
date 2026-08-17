@@ -2,6 +2,7 @@ package fr.crewcmoi.commands;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.gui.BountyGuiManager;
+import fr.crewcmoi.gui.BountyReviewGuiManager;
 import fr.crewcmoi.managers.BountyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,18 +19,22 @@ import java.util.List;
 /**
  * Commande /bounty :
  *  - /bounty                       : ouvre la GUI listant les primes actives.
- *  - /bounty add <joueur> <montant> : place une prime sur un joueur (le montant est débité immédiatement).
+ *  - /bounty add <joueur> <montant> [raison] : place une prime sur un joueur (le montant est débité immédiatement).
+ *  - /bounty review                          : (admins/op) ouvre la GUI de validation des raisons de primes en attente.
  */
 public class BountyCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
     private final BountyManager bountyManager;
     private final BountyGuiManager bountyGuiManager;
+    private final BountyReviewGuiManager bountyReviewGuiManager;
 
-    public BountyCommand(Main plugin, BountyManager bountyManager, BountyGuiManager bountyGuiManager) {
+    public BountyCommand(Main plugin, BountyManager bountyManager, BountyGuiManager bountyGuiManager,
+                          BountyReviewGuiManager bountyReviewGuiManager) {
         this.plugin = plugin;
         this.bountyManager = bountyManager;
         this.bountyGuiManager = bountyGuiManager;
+        this.bountyReviewGuiManager = bountyReviewGuiManager;
     }
 
     @Override
@@ -49,13 +54,22 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        sendMessage(player, "&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ &7ᴏᴜ&c /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>");
+        if (args[0].equalsIgnoreCase("review")) {
+            if (!player.isOp() && !player.hasPermission("crew.admin")) {
+                sendMessage(player, "&cᴘᴇʀᴍɪꜱꜱɪᴏɴ ʀᴇꜰᴜꜱᴇᴇ.");
+                return true;
+            }
+            bountyReviewGuiManager.open(player, 0);
+            return true;
+        }
+
+        sendMessage(player, "&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ &7ᴏᴜ&c /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ> [ʀᴀɪꜱᴏɴ]");
         return true;
     }
 
     private void handleAdd(Player player, String[] args) {
         if (args.length < 3) {
-            sendMessage(player, "&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>");
+            sendMessage(player, "&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ> [ʀᴀɪꜱᴏɴ]");
             return;
         }
 
@@ -68,15 +82,25 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
+        // Raison optionnelle : tout ce qui suit le montant, rejoint en une seule chaîne.
+        String reason = null;
+        if (args.length > 3) {
+            reason = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
+        }
+        String finalReason = reason;
+
         String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
-        bountyManager.addPlayerBounty(player, targetName, amount, result -> {
+        bountyManager.addPlayerBounty(player, targetName, amount, finalReason, result -> {
             switch (result) {
                 case SUCCESS -> {
                     sendMessage(player, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(amount) + currency + "&a ꜱᴜʀ &e" + targetName + "&a !");
                     Player online = Bukkit.getPlayerExact(targetName);
                     if (online != null) {
-                        sendMessage(online, "&c" + player.getName() + " ᴀ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(amount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !");
+                        String reasonSuffix = (finalReason != null && !finalReason.isBlank())
+                                ? " &7(&e" + finalReason + "&7)"
+                                : "";
+                        sendMessage(online, "&c" + player.getName() + " ᴀ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(amount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !" + reasonSuffix);
                     }
                 }
                 case INVALID_AMOUNT -> sendMessage(player, "&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.");
@@ -96,6 +120,9 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
             if ("add".startsWith(partial)) {
                 completions.add("add");
             }
+            if ("review".startsWith(partial) && sender instanceof Player p && (p.isOp() || p.hasPermission("crew.admin"))) {
+                completions.add("review");
+            }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("add")) {
             String partial = args[1].toLowerCase();
             for (Player online : Bukkit.getOnlinePlayers()) {
@@ -106,6 +133,8 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("add")) {
             completions.add("100");
+        } else if (args.length == 4 && args[0].equalsIgnoreCase("add")) {
+            completions.add("raison");
         }
 
         return completions;

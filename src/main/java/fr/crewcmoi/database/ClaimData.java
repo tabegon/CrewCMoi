@@ -19,6 +19,9 @@ public class ClaimData {
     private final String ownerName;
     private final Set<UUID> trusted;
     private final Map<ClaimFlag, ClaimPermission> flags;
+    // Prix de vente si le propriétaire a mis ce claim en vente via /claim sell, sinon -1
+    // (claim non à vendre).
+    private final double salePrice;
 
     public ClaimData(String world, int chunkX, int chunkZ, UUID ownerUuid, String ownerName, Set<UUID> trusted) {
         this(world, chunkX, chunkZ, ownerUuid, ownerName, trusted, defaultFlags());
@@ -26,6 +29,11 @@ public class ClaimData {
 
     public ClaimData(String world, int chunkX, int chunkZ, UUID ownerUuid, String ownerName,
                       Set<UUID> trusted, Map<ClaimFlag, ClaimPermission> flags) {
+        this(world, chunkX, chunkZ, ownerUuid, ownerName, trusted, flags, -1);
+    }
+
+    public ClaimData(String world, int chunkX, int chunkZ, UUID ownerUuid, String ownerName,
+                      Set<UUID> trusted, Map<ClaimFlag, ClaimPermission> flags, double salePrice) {
         this.world = world;
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
@@ -33,6 +41,7 @@ public class ClaimData {
         this.ownerName = ownerName;
         this.trusted = trusted;
         this.flags = flags;
+        this.salePrice = salePrice;
     }
 
     /**
@@ -109,5 +118,16 @@ public class ClaimData {
 
     public String getOwnerName() {
         return ownerName;
+    }
+
+    /**
+     * Prix de vente demandé par le propriétaire, ou -1 si ce claim n'est pas à vendre.
+     */
+    public double getSalePrice() {
+        return salePrice;
+    }
+
+    public boolean isForSale() {
+        return salePrice >= 0;
     }
 }

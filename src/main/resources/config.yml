@@ -10,35 +10,18 @@ database:
 economy:
   # Solde de départ des nouveaux joueurs
   starting-balance: 100.0
-
-  # Symbole affiché après les montants (ex: 100.00§f). "§f" ne s'affiche pas comme
-  # un symbole visible : c'est un code couleur (blanc) qui vient simplement réinitialiser
-  # la couleur après le montant, à la place d'un vrai symbole de monnaie.
   currency-symbol: " "
-
-  # Si true, le solde d'un joueur peut devenir négatif via /money remove
   allow-negative-balance: false
-
-  # Prix minimum autorisé pour une mise en vente via /ah sell
   auction-min-price: 1
-
   # Pourcentage de taxe prélevé sur chaque vente réalisée à l'hôtel des ventes (0 = aucune taxe)
   auction-tax-percent: 0
 
 combat-log:
-  # Durée du tag de combat en secondes. Pendant ce délai, le joueur ne peut ni se
-  # téléporter, ni utiliser d'élytre. Une déconnexion durant ce délai le tue.
   duration-seconds: 30
 
 bounty:
-  # Montant de la prime automatiquement attribuée par le serveur à un joueur qui tue
-  # sans provocation (premier coup) une victime sans prime active.
   server-bounty-amount: 50.0
-
-  # Malus (argent retiré) infligé à ce même joueur en plus de la prime.
   server-malus-amount: 50.0
-
-  # Nombre maximum de fois par jour où le serveur peut attribuer prime + malus à un joueur.
   server-bounty-max-per-day: 1000
 
 team:
@@ -46,7 +29,6 @@ team:
   max-members: 8
 
 spawn:
-  # Coordonnées du spawn utilisées par la commande /spawn
   world: world
   x: 0.5
   y: 100.0
@@ -55,31 +37,22 @@ spawn:
   pitch: 0.0
 
 tpa:
-  # Délai en secondes avant qu'une demande /tpa ou /tpahere n'expire automatiquement.
   expiry-seconds: 60
 
-  # Id namespaced du HUD ItemsAdder à utiliser (défini côté resource pack/ItemsAdder,
-  # dans ItemsAdder/data/hud/, positionné au-dessus à droite de la barre de faim).
   itemsadder-id: "crewcmoi:balance_hud"
-
-  # Id du composant texte à l'intérieur de ce HUD, dont le contenu est mis à jour
-  # avec le solde du joueur (ex: "100.00 ").
   text-id: "balance"
 
 claims:
-  # Nombre maximum de chunks qu'un joueur peut claim (0 = illimité).
-  # Ignoré pour les joueurs ayant la permission crew.claim.bypasslimit.
+
   max-per-player: 3
+  see-radius: 5
+  see-duration: 10
+  shop:
+    base-price: 5000
+    price-increment: 2500
+    max-extra: 10
 
 coin-item:
-  # Active/désactive la possibilité d'échanger une "pièce" ItemsAdder contre de l'argent.
   enabled: true
-
-  # Id namespaced ItemsAdder de l'item "pièce" (ex: namespace:id, voir votre configuration
-  # ItemsAdder). L'item est reconnu via l'API ItemsAdder (donc son Custom Model Data réel),
-  # pas en dur, ce qui reste fiable même si ItemsAdder réattribue ses model data en interne.
   itemsadder-id: "server:ccoin"
-
-  # Montant crédité au joueur par pièce échangée (clic droit). Une pièce est consommée
-  # (retirée du stack en main) à chaque échange.
   value: 50.0

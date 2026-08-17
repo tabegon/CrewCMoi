@@ -110,7 +110,28 @@ public interface DatabaseManager {
      * Ajoute une contribution à la prime d'un joueur. contributorUuid == null signifie
      * qu'il s'agit d'une prime attribuée automatiquement par le serveur.
      */
-    void addBounty(UUID targetUuid, String targetName, UUID contributorUuid, String contributorName, double amount);
+    void addBounty(UUID targetUuid, String targetName, UUID contributorUuid, String contributorName, double amount, String reason);
+
+    /**
+     * Retourne une contribution de prime précise par son id, ou null si introuvable.
+     */
+    BountyEntry getBountyEntry(int entryId);
+
+    /**
+     * Retourne toutes les contributions de prime avec une raison fournie par un joueur,
+     * pas encore approuvées par un admin (voir /bounty review).
+     */
+    List<BountyEntry> getPendingReasonedBounties();
+
+    /**
+     * Marque une contribution de prime comme approuvée (ou non) par un admin.
+     */
+    void setBountyApproved(int entryId, boolean approved);
+
+    /**
+     * Supprime une contribution de prime précise (utilisé pour refuser une raison).
+     */
+    void deleteBountyEntry(int entryId);
 
     /**
      * Retourne toutes les contributions de prime pour un joueur donné.
@@ -169,7 +190,13 @@ public interface DatabaseManager {
     /**
      * Supprime le claim de ce chunk (aucun effet s'il n'était pas claim).
      */
-    void removeClaim(String world, int chunkX, int chunkZ);
+    /**
+     * Supprime le claim donné. Retourne true si la suppression a bien été effectuée en
+     * base de données (au moins une ligne affectée), false en cas d'erreur SQL ou si la
+     * ligne n'existait déjà plus. Le retour DOIT être vérifié par l'appelant avant de
+     * considérer l'opération comme réussie : voir ClaimManager#unclaim.
+     */
+    boolean removeClaim(String world, int chunkX, int chunkZ);
 
     /**
      * Retourne le claim de ce chunk, ou null s'il n'est pas claim.
@@ -200,4 +227,27 @@ public interface DatabaseManager {
      * Modifie le niveau de permission d'une règle (flag) pour ce claim.
      */
     void setClaimFlag(String world, int chunkX, int chunkZ, ClaimFlag flag, ClaimPermission permission);
+
+    /**
+     * Retourne le nombre de claims supplémentaires achetés par ce joueur (en plus du
+     * quota gratuit défini dans la config), 0 s'il n'en a jamais acheté.
+     */
+    int getExtraClaims(UUID playerUuid);
+
+    /**
+     * Définit le nombre de claims supplémentaires achetés par ce joueur.
+     */
+    void setExtraClaims(UUID playerUuid, int amount);
+
+    /**
+     * Met (ou retire, avec price = -1) ce claim en vente pour le prix donné.
+     */
+    void setClaimSalePrice(String world, int chunkX, int chunkZ, double price);
+
+    /**
+     * Transfère la propriété d'un claim à un nouveau propriétaire (achat via /claim buy) :
+     * met à jour le propriétaire, retire la mise en vente et réinitialise les joueurs de
+     * confiance (les anciens joueurs de confiance du vendeur n'ont pas vocation à le rester).
+     */
+    void transferClaim(String world, int chunkX, int chunkZ, UUID newOwnerUuid, String newOwnerName);
 }

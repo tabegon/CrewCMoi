@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
@@ -65,6 +66,22 @@ public class CombatListener implements Listener {
     public void onPlayerTeleport(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
         if (combatManager.isInCombat(player)) {
+            event.setCancelled(true);
+            sendActionBlocked(player);
+        }
+    }
+
+    /**
+     * Empêche un joueur en combat d'ouvrir son élytre (fuite aérienne). S'il était déjà
+     * en train de planer au moment où il a été tagué, CombatManager#tagCombat s'occupe
+     * de le faire atterrir directement.
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onEntityToggleGlide(EntityToggleGlideEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+        if (event.isGliding() && combatManager.isInCombat(player)) {
             event.setCancelled(true);
             sendActionBlocked(player);
         }

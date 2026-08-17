@@ -3,16 +3,17 @@ package fr.crewcmoi.managers;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.database.BountyEntry;
 import fr.crewcmoi.database.BountyTarget;
+import fr.crewcmoi.utils.MoneyFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
-import fr.crewcmoi.utils.MoneyFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Gère la logique des primes (bounty) :
@@ -27,9 +28,10 @@ public class BountyManager {
     private final EconomyManager economyManager;
     private final MalusEffectManager malusEffectManager;
 
-    // Préfixe des équipes de scoreboard utilisées uniquement pour l'affichage visuel
-    // (pseudo en rouge + prime en gold), une équipe dédiée par joueur ayant une prime.
-    private static final String TEAM_PREFIX = "bounty_";
+    // Préfixe des équipes scoreboard utilisées pour afficher la prime d'un joueur
+    // directement sur son tag, au-dessus de sa tête (suffixe de nametag), une équipe
+    // par joueur concerné.
+    private static final String TEAM_PREFIX = "crewbounty_";
 
     public BountyManager(Main plugin, DatabaseManager databaseManager, EconomyManager economyManager,
                           MalusEffectManager malusEffectManager) {
@@ -46,7 +48,7 @@ public class BountyManager {
     /**
      * Ajoute une prime placée par un joueur sur un autre : l'argent est immédiatement débité.
      */
-    public void addPlayerBounty(Player sender, String targetName, double amount, Consumer<AddResult> callback) {
+    public void addPlayerBounty(Player sender, String targetName, double amount, String reason, Consumer<AddResult> callback) {
         if (!Double.isFinite(amount) || amount <= 0) {
             callback.accept(AddResult.INVALID_AMOUNT);
             return;
@@ -68,7 +70,7 @@ public class BountyManager {
             return;
         }
 
-        addBountyAndRefresh(targetData.getUuid(), targetData.getName(), sender.getUniqueId(), sender.getName(), amount);
+        addBountyAndRefresh(targetData.getUuid(), targetData.getName(), sender.getUniqueId(), sender.getName(), amount, reason);
         callback.accept(AddResult.SUCCESS);
     }
 
@@ -76,7 +78,7 @@ public class BountyManager {
      * Ajoute une prime attribuée automatiquement par le serveur (contributeur = null).
      */
     public void addServerBounty(UUID targetUuid, String targetName, double amount) {
-        addBountyAndRefresh(targetUuid, targetName, null, "Serveur", amount);
+        addBountyAndRefresh(targetUuid, targetName, null, "Serveur", amount, null);
     }
 
     /**
@@ -88,9 +90,9 @@ public class BountyManager {
      * changement (le malus ne s'appliquait alors qu'au prochain recalcul, ex: le kill suivant).
      */
     private void addBountyAndRefresh(UUID targetUuid, String targetName, UUID contributorUuid,
-                                      String contributorName, double amount) {
+                                      String contributorName, double amount, String reason) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            databaseManager.addBounty(targetUuid, targetName, contributorUuid, contributorName, amount);
+            databaseManager.addBounty(targetUuid, targetName, contributorUuid, contributorName, amount, reason);
 
             List<BountyEntry> entries = databaseManager.getBounties(targetUuid);
             double total = entries.stream().mapToDouble(BountyEntry::getAmount).sum();
@@ -126,31 +128,64 @@ public class BountyManager {
     }
 
     /**
+     * Résultat d'une réclamation de prime après un kill (voir claimBounty) : le montant
+     * effectivement versé au killer, et si cette prime était "légitime" (auquel cas le kill
+     * n'est PAS traité comme un kill sans prime valide : pas de malus/mise à prix du killer,
+     * voir BountyListener).
+     */
+    public record BountyClaimResult(double amount, boolean legitimate) {
+    }
+
+    /**
      * Tente de faire réclamer par le killer la prime placée sur la victime.
-     * Ne s'applique QUE lors d'une mort causée par un autre joueur (voir BountyListener) :
-     * dans ce cas, le killer récupère la TOTALITÉ de la prime de la victime, y compris la
-     * part attribuée par le serveur, même s'il en avait lui-même placé une partie. La prime
-     * est alors intégralement effacée, ce qui lève au passage l'effet de malchance associé.
+     * Ne s'applique QUE lors d'une mort causée par un autre joueur (voir BountyListener).
+     * Le killer touche TOUJOURS l'intégralité de la prime de la victime (y compris les
+     * contributions placées par lui-même/ses alliés, ou avec une raison jamais approuvée) :
+     * il "récupère la prime qu'avait le joueur sur sa tête" dans tous les cas.
+     * Ce qui change, c'est la légitimité retournée, qui détermine si BountyListener applique
+     * le malus serveur (mise à prix du killer) :
+     *  - légitime (true) si AU MOINS une contribution valide existe : une prime serveur, ou
+     *    une prime posée par un joueur qui n'est ni le killer ni un de ses alliés d'équipe
+     *    (voir excludedContributor), et qui est soit sans raison, soit approuvée par un admin
+     *    (/bounty review) — pas de malus dans ce cas.
+     *  - non légitime (false) si la victime n'avait aucune prime, ou si TOUTES ses
+     *    contributions viennent du killer/ses alliés, ou ont une raison jamais approuvée :
+     *    le kill est alors traité comme un kill sans prime valide (malus + mise à prix du
+     *    killer, voir BountyListener), même si de l'argent a quand même été versé au killer.
+     * Dans tous les cas, la totalité des contributions de la victime est effacée par ce
+     * kill, ce qui lève au passage l'effet de malchance associé.
      *
      * En cas de mort d'une autre nature (cause naturelle, suicide, etc.), cette méthode
      * n'est jamais appelée : la prime (et donc l'effet de malchance) reste intacte.
      *
-     * @return le montant effectivement versé au killer (0 si la victime n'avait aucune prime).
+     * @param excludedContributor prédicat renvoyant vrai pour un contributeur (le killer
+     *                             lui-même ou l'un de ses alliés) dont la contribution ne
+     *                             doit pas compter comme une prime "légitime".
      */
-    public double claimBounty(UUID killerUuid, UUID victimUuid) {
+    public BountyClaimResult claimBounty(UUID killerUuid, UUID victimUuid, Predicate<UUID> excludedContributor) {
         List<BountyEntry> entries = databaseManager.getBounties(victimUuid);
         if (entries.isEmpty()) {
-            return 0.0;
+            return new BountyClaimResult(0.0, false);
         }
 
-        double claimable = entries.stream()
-                .mapToDouble(BountyEntry::getAmount)
-                .sum();
+        double total = 0.0;
+        boolean legitimate = false;
+        for (BountyEntry entry : entries) {
+            total += entry.getAmount();
 
+            boolean excluded = !entry.isServerBounty() && excludedContributor.test(entry.getContributorUuid());
+            boolean valid = entry.isServerBounty() || (!excluded && (!entry.hasReason() || entry.isApproved()));
+            if (valid) {
+                legitimate = true;
+            }
+        }
+
+        // On efface systématiquement TOUTES les contributions : elles ne peuvent plus être
+        // "récupérées" ni révisées plus tard, que la prime ait été jugée légitime ou non.
         databaseManager.clearBounties(victimUuid);
 
-        if (claimable > 0) {
-            economyManager.deposit(killerUuid, claimable);
+        if (total > 0) {
+            economyManager.deposit(killerUuid, total);
         }
 
         Player victim = Bukkit.getPlayer(victimUuid);
@@ -161,7 +196,65 @@ public class BountyManager {
             malusEffectManager.updateBountyEffect(victim, 0.0);
         }
 
-        return claimable;
+        return new BountyClaimResult(total, legitimate);
+    }
+
+    /**
+     * Retourne les contributions de prime avec une raison fournie par un joueur, en attente
+     * de validation par un admin (voir /bounty review).
+     */
+    public List<BountyEntry> getPendingReasonedBounties() {
+        return databaseManager.getPendingReasonedBounties();
+    }
+
+    /**
+     * Approuve une raison de prime : elle devient valide pour un futur kill (le tueur pourra
+     * la réclamer, et le kill ne déclenchera pas le malus serveur).
+     */
+    public void approveBounty(int entryId, Consumer<Boolean> callback) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            BountyEntry entry = databaseManager.getBountyEntry(entryId);
+            if (entry == null) {
+                Bukkit.getScheduler().runTask(plugin, () -> callback.accept(false));
+                return;
+            }
+            databaseManager.setBountyApproved(entryId, true);
+            Bukkit.getScheduler().runTask(plugin, () -> callback.accept(true));
+        });
+    }
+
+    /**
+     * Refuse une raison de prime : la contribution est supprimée et son montant remboursé
+     * au contributeur.
+     */
+    public void denyBounty(int entryId, Consumer<Boolean> callback) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            BountyEntry entry = databaseManager.getBountyEntry(entryId);
+            if (entry == null) {
+                Bukkit.getScheduler().runTask(plugin, () -> callback.accept(false));
+                return;
+            }
+            databaseManager.deleteBountyEntry(entryId);
+            if (!entry.isServerBounty()) {
+                economyManager.deposit(entry.getContributorUuid(), entry.getAmount());
+            }
+
+            List<BountyEntry> remaining = databaseManager.getBounties(entry.getTargetUuid());
+            double total = remaining.stream().mapToDouble(BountyEntry::getAmount).sum();
+            double serverTotal = remaining.stream()
+                    .filter(BountyEntry::isServerBounty)
+                    .mapToDouble(BountyEntry::getAmount)
+                    .sum();
+
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                applyBountyDisplay(entry.getTargetName(), total);
+                Player target = Bukkit.getPlayer(entry.getTargetUuid());
+                if (target != null && target.isOnline()) {
+                    malusEffectManager.updateBountyEffect(target, serverTotal);
+                }
+                callback.accept(true);
+            });
+        });
     }
 
     /**
@@ -196,21 +289,21 @@ public class BountyManager {
         refreshBountyDisplay(uuid, name);
     }
 
+    /**
+     * Affiche (ou met à jour) la prime du joueur directement au-dessus de sa tête, en
+     * ajoutant un suffixe à son nametag via une équipe scoreboard dédiée. N'est affichée
+     * que si le joueur a effectivement une prime (montant différent de 0), sous la forme
+     * "<montant> <symbole>".
+     */
     private void applyBountyDisplay(String playerName, double total) {
         if (total > 0) {
             Scoreboard board = getMainScoreboard();
-            String teamName = teamName(playerName);
-            Team team = board.getTeam(teamName);
+            Team team = board.getTeam(TEAM_PREFIX + playerName);
             if (team == null) {
-                team = board.registerNewTeam(teamName);
+                team = board.registerNewTeam(TEAM_PREFIX + playerName);
             }
-            team.setColor(ChatColor.RED);
-            // Garantit que le suffixe (montant de la prime) s'affiche à la fois dans le tab
-            // (liste des joueurs) ET au-dessus de la tête du joueur (nametag) : ce sont les
-            // deux endroits gérés par une même équipe de scoreboard sous Bukkit/Spigot.
-            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
             String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
-            team.setSuffix(" §6[§e" + MoneyFormat.format(total) + currency + "§6]");
+            team.setSuffix(ChatColor.GOLD + " " + MoneyFormat.format(total) + " " + currency);
             if (!team.hasEntry(playerName)) {
                 team.addEntry(playerName);
             }
@@ -221,16 +314,10 @@ public class BountyManager {
 
     private void clearBountyDisplay(String playerName) {
         Scoreboard board = getMainScoreboard();
-        Team team = board.getTeam(teamName(playerName));
+        Team team = board.getTeam(TEAM_PREFIX + playerName);
         if (team != null) {
             team.unregister();
         }
-    }
-
-    private String teamName(String playerName) {
-        // Les noms d'équipe sont limités en longueur sur certaines versions : on tronque prudemment.
-        String base = TEAM_PREFIX + playerName;
-        return base.length() > 40 ? base.substring(0, 40) : base;
     }
 
     private Scoreboard getMainScoreboard() {

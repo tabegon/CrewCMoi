@@ -7,12 +7,19 @@ import fr.crewcmoi.gui.AuctionGuiManager;
 import fr.crewcmoi.gui.AuctionHolder;
 import fr.crewcmoi.gui.BountyGuiManager;
 import fr.crewcmoi.gui.BountyHolder;
+import fr.crewcmoi.gui.BountyReviewGuiManager;
+import fr.crewcmoi.gui.BountyReviewHolder;
+import fr.crewcmoi.gui.ClaimAuctionGuiManager;
+import fr.crewcmoi.gui.ClaimAuctionHolder;
 import fr.crewcmoi.gui.ClaimSettingsGuiManager;
 import fr.crewcmoi.gui.ClaimSettingsHolder;
+import fr.crewcmoi.gui.ClaimShopGuiManager;
+import fr.crewcmoi.gui.ClaimShopHolder;
 import fr.crewcmoi.gui.ConfirmationHolder;
 import fr.crewcmoi.gui.SellGuiManager;
 import fr.crewcmoi.gui.SellHolder;
 import fr.crewcmoi.managers.AuctionManager;
+import fr.crewcmoi.managers.BountyManager;
 import fr.crewcmoi.managers.ClaimManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -33,12 +40,18 @@ public class GuiListener implements Listener {
     private final AuctionManager auctionManager;
     private final AuctionGuiManager auctionGuiManager;
     private final BountyGuiManager bountyGuiManager;
+    private final BountyReviewGuiManager bountyReviewGuiManager;
+    private final BountyManager bountyManager;
     private final ClaimManager claimManager;
     private final ClaimSettingsGuiManager claimSettingsGuiManager;
+    private final ClaimShopGuiManager claimShopGuiManager;
+    private final ClaimAuctionGuiManager claimAuctionGuiManager;
 
     public GuiListener(Main plugin, SellGuiManager sellGuiManager, AuctionManager auctionManager,
                         AuctionGuiManager auctionGuiManager, BountyGuiManager bountyGuiManager,
-                        ClaimManager claimManager, ClaimSettingsGuiManager claimSettingsGuiManager) {
+                        ClaimManager claimManager, ClaimSettingsGuiManager claimSettingsGuiManager,
+                        ClaimShopGuiManager claimShopGuiManager, BountyReviewGuiManager bountyReviewGuiManager,
+                        BountyManager bountyManager, ClaimAuctionGuiManager claimAuctionGuiManager) {
         this.plugin = plugin;
         this.sellGuiManager = sellGuiManager;
         this.auctionManager = auctionManager;
@@ -46,6 +59,10 @@ public class GuiListener implements Listener {
         this.bountyGuiManager = bountyGuiManager;
         this.claimManager = claimManager;
         this.claimSettingsGuiManager = claimSettingsGuiManager;
+        this.claimShopGuiManager = claimShopGuiManager;
+        this.bountyReviewGuiManager = bountyReviewGuiManager;
+        this.bountyManager = bountyManager;
+        this.claimAuctionGuiManager = claimAuctionGuiManager;
     }
 
     @EventHandler
@@ -62,6 +79,12 @@ public class GuiListener implements Listener {
             handleBountyClick(event, bountyHolder);
         } else if (holder instanceof ClaimSettingsHolder claimSettingsHolder) {
             handleClaimSettingsClick(event, claimSettingsHolder);
+        } else if (holder instanceof ClaimShopHolder claimShopHolder) {
+            handleClaimShopClick(event, claimShopHolder);
+        } else if (holder instanceof BountyReviewHolder bountyReviewHolder) {
+            handleBountyReviewClick(event, bountyReviewHolder);
+        } else if (holder instanceof ClaimAuctionHolder claimAuctionHolder) {
+            handleClaimAuctionClick(event, claimAuctionHolder);
         }
     }
 
@@ -217,5 +240,132 @@ public class GuiListener implements Listener {
         ClaimPermission next = claim.getPermission(flag).next();
         claimManager.setFlag(player, holder.getWorld(), holder.getChunkX(), holder.getChunkZ(), flag, next);
         claimSettingsGuiManager.render(holder);
+    }
+
+    private void handleClaimShopClick(InventoryClickEvent event, ClaimShopHolder holder) {
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        if (event.getRawSlot() != ClaimShopHolder.BUY_SLOT) {
+            return;
+        }
+
+        fr.crewcmoi.managers.ClaimManager.ShopResult result = claimManager.buyExtraClaim(player);
+        String prefix = plugin.getMessages().getString("prefix", "");
+        switch (result) {
+            case SUCCESS:
+                player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix +
+                        plugin.getMessages().getString("claim.shop-success", "&aVous avez acheté un claim supplémentaire !")));
+                break;
+            case NOT_ENOUGH_MONEY:
+                player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix +
+                        plugin.getMessages().getString("claim.shop-not-enough-money", "&cVous n'avez pas assez d'argent.")));
+                break;
+            case LIMIT_REACHED:
+                player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix +
+                        plugin.getMessages().getString("claim.shop-limit-reached", "&cVous avez atteint la limite de claims achetables.")));
+                break;
+        }
+        claimShopGuiManager.render(player, holder);
+    }
+
+    private void handleBountyReviewClick(InventoryClickEvent event, BountyReviewHolder holder) {
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        int slot = event.getRawSlot();
+        if (slot == BountyReviewHolder.PREV_PAGE_SLOT) {
+            bountyReviewGuiManager.open(player, holder.getPage() - 1);
+            return;
+        }
+        if (slot == BountyReviewHolder.NEXT_PAGE_SLOT) {
+            bountyReviewGuiManager.open(player, holder.getPage() + 1);
+            return;
+        }
+
+        Integer entryId = holder.getEntryId(slot);
+        if (entryId == null) {
+            return;
+        }
+
+        String prefix = plugin.getMessages().getString("prefix", "");
+        if (event.isLeftClick()) {
+            bountyManager.approveBounty(entryId, success -> {
+                if (success) {
+                    player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix
+                            + "&aʀᴀɪꜱᴏɴ ᴀᴘᴘʀᴏᴜᴠᴇᴇ, ʟᴀ ᴘʀɪᴍᴇ ᴇꜱᴛ ᴍᴀɪɴᴛᴇɴᴀɴᴛ ᴠᴀʟɪᴅᴇ."));
+                }
+                bountyReviewGuiManager.render(holder);
+            });
+        } else if (event.isRightClick()) {
+            bountyManager.denyBounty(entryId, success -> {
+                if (success) {
+                    player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix
+                            + "&cʀᴀɪꜱᴏɴ ʀᴇꜰᴜꜱᴇᴇ, ʟᴇ ᴄᴏɴᴛʀɪʙᴜᴛᴇᴜʀ ᴀ ᴇᴛᴇ ʀᴇᴍʙᴏᴜʀꜱᴇ."));
+                }
+                bountyReviewGuiManager.render(holder);
+            });
+        }
+    }
+
+    private void handleClaimAuctionClick(InventoryClickEvent event, ClaimAuctionHolder holder) {
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        int slot = event.getRawSlot();
+        if (slot == ClaimAuctionHolder.PREV_PAGE_SLOT) {
+            claimAuctionGuiManager.open(player, holder.getPage() - 1);
+            return;
+        }
+        if (slot == ClaimAuctionHolder.NEXT_PAGE_SLOT) {
+            claimAuctionGuiManager.open(player, holder.getPage() + 1);
+            return;
+        }
+
+        String chunkKey = holder.getChunkKey(slot);
+        if (chunkKey == null || !event.isLeftClick()) {
+            return;
+        }
+        String[] parts = chunkKey.split(";", 3);
+        if (parts.length != 3) {
+            return;
+        }
+        String world = parts[0];
+        int chunkX;
+        int chunkZ;
+        try {
+            chunkX = Integer.parseInt(parts[1]);
+            chunkZ = Integer.parseInt(parts[2]);
+        } catch (NumberFormatException e) {
+            return;
+        }
+
+        String prefix = plugin.getMessages().getString("prefix", "");
+        ClaimManager.BuyResult result = claimManager.buyClaimAt(player, world, chunkX, chunkZ);
+        switch (result) {
+            case SUCCESS -> player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix
+                    + plugin.getMessages().getString("claim.buy-success", "&aVous avez acheté ce claim.")));
+            case NOT_FOR_SALE -> player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix
+                    + plugin.getMessages().getString("claim.not-for-sale", "&cCe claim n'est pas en vente.")));
+            case OWN_CLAIM -> player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix
+                    + plugin.getMessages().getString("claim.own-claim", "&cVous êtes déjà le propriétaire de ce claim.")));
+            case NOT_ENOUGH_MONEY -> player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix
+                    + plugin.getMessages().getString("claim.not-enough-money", "&cVous n'avez pas assez d'argent pour acheter ce claim.")));
+            case LIMIT_REACHED -> {
+                String def = "&cVous avez atteint votre nombre maximum de claims (&e{max}&c).";
+                String message = plugin.getMessages().getString("claim.limit-reached-buy", def)
+                        .replace("{max}", String.valueOf(claimManager.getMaxClaims(player)));
+                player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix + message));
+            }
+            case NOT_CLAIMED -> {
+                // Le claim a été retiré/unclaim entre-temps (ex: annulé par le vendeur) : on
+                // se contente de rafraîchir la GUI, il n'apparaîtra simplement plus.
+            }
+        }
+
+        claimAuctionGuiManager.render(holder);
     }
 }

@@ -1,6 +1,8 @@
 package fr.crewcmoi.managers;
 
 import fr.crewcmoi.Main;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -40,9 +42,46 @@ public class CombatManager {
     // des coups). Utilisé pour stopper le combat log des deux joueurs dès que l'un d'eux meurt.
     private final Map<UUID, UUID> currentOpponent = new ConcurrentHashMap<>();
 
+    // Tâche répétitive affichant le compte à rebours de combat dans l'action bar des
+    // joueurs actuellement tagués.
+    private BukkitTask actionBarTask;
+
     public CombatManager(Main plugin) {
         this.plugin = plugin;
         this.combatDurationSeconds = plugin.getConfig().getInt("combat-log.duration-seconds", 30);
+    }
+
+    /**
+     * Démarre la tâche répétitive qui affiche "Combat : Xs" dans l'action bar de chaque
+     * joueur actuellement en combat. À appeler une seule fois, au démarrage du plugin.
+     */
+    public void startActionBar() {
+        if (actionBarTask != null) {
+            return;
+        }
+        actionBarTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (UUID uuid : combatExpiry.keySet()) {
+                Player player = Bukkit.getPlayer(uuid);
+                if (player == null || !player.isOnline()) {
+                    continue;
+                }
+                int remaining = getRemainingSeconds(player);
+                if (remaining <= 0) {
+                    continue;
+                }
+                player.sendActionBar(Component.text("Combat : " + remaining + "s", NamedTextColor.RED));
+            }
+        }, 0L, 20L);
+    }
+
+    /**
+     * Arrête la tâche d'action bar (à appeler au disable du plugin).
+     */
+    public void stopActionBar() {
+        if (actionBarTask != null) {
+            actionBarTask.cancel();
+            actionBarTask = null;
+        }
     }
 
     /**
@@ -51,6 +90,12 @@ public class CombatManager {
     public void tagCombat(Player player) {
         UUID uuid = player.getUniqueId();
         combatExpiry.put(uuid, System.currentTimeMillis() + (combatDurationSeconds * 1000L));
+
+        // Empêche de fuir un combat en élytre : si le joueur est déjà en vol plané au
+        // moment où il est tagué (ou re-tagué), on le force à atterrir.
+        if (player.isGliding()) {
+            player.setGliding(false);
+        }
 
         BukkitTask existing = combatTasks.get(uuid);
         if (existing != null) {

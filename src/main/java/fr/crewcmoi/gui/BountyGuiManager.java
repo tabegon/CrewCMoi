@@ -87,8 +87,9 @@ public class BountyGuiManager {
                         lore.add(ChatColor.translateAlternateColorCodes('&', "&8... ᴇᴛ " + (entries.size() - shown) + " de plus"));
                         break;
                     }
+                    String reasonSuffix = entry.hasReason() ? " &8(&7" + entry.getReason() + "&8)" : "";
                     lore.add(ChatColor.translateAlternateColorCodes('&',
-                            "&8- &7" + entry.getContributorName() + " &8: &a" + MoneyFormat.format(entry.getAmount()) + currency));
+                            "&8- &7" + entry.getContributorName() + " &8: &a" + MoneyFormat.format(entry.getAmount()) + currency + reasonSuffix));
                     shown++;
                 }
 

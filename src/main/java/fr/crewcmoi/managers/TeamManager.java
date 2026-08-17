@@ -71,6 +71,16 @@ public class TeamManager {
         return playerTeamCache.containsKey(uuid);
     }
 
+    /**
+     * Indique (lecture synchrone via le cache) si deux joueurs font partie de la même
+     * équipe. Utilisé notamment pour exclure les contributions de prime du tueur et de
+     * ses alliés lors du calcul de la prime "légitime" d'une victime.
+     */
+    public boolean isSameTeam(UUID a, UUID b) {
+        Integer teamA = playerTeamCache.get(a);
+        return teamA != null && teamA.equals(playerTeamCache.get(b));
+    }
+
     public void createTeam(Player owner, String name, Consumer<CreateResult> callback) {
         if (name == null || !name.matches("[a-zA-Z0-9_]{3,16}")) {
             callback.accept(CreateResult.INVALID_NAME);

@@ -17,9 +17,11 @@ public class BountyEntry {
     private final String contributorName;
     private final double amount;
     private final long createdAt;
+    private final String reason; // null/vide si aucune raison fournie
+    private final boolean approved; // pertinent seulement si hasReason() est vrai (voir isApproved())
 
     public BountyEntry(int id, UUID targetUuid, String targetName, UUID contributorUuid,
-                        String contributorName, double amount, long createdAt) {
+                        String contributorName, double amount, long createdAt, String reason, boolean approved) {
         this.id = id;
         this.targetUuid = targetUuid;
         this.targetName = targetName;
@@ -27,6 +29,8 @@ public class BountyEntry {
         this.contributorName = contributorName;
         this.amount = amount;
         this.createdAt = createdAt;
+        this.reason = reason;
+        this.approved = approved;
     }
 
     public int getId() {
@@ -59,5 +63,23 @@ public class BountyEntry {
 
     public boolean isServerBounty() {
         return contributorUuid == null;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public boolean hasReason() {
+        return reason != null && !reason.isBlank();
+    }
+
+    /**
+     * Une prime sans raison (ou une prime serveur) est considérée valide par défaut, comme
+     * avant l'introduction du système de validation. Une prime avec une raison ne devient
+     * valide (comptée pour la réclamation par un tueur, et pour éviter le malus) qu'une fois
+     * approuvée par un admin via /bounty review.
+     */
+    public boolean isApproved() {
+        return approved;
     }
 }

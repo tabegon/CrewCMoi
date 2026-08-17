@@ -37,8 +37,8 @@ commands:
     usage: /team <create|add|accept|deny|leave|disband|info> [argument]
     aliases: [t]
   bounty:
-    description: Ouvre la liste des primes ou en place une sur un joueur.
-    usage: /bounty [add <joueur> <montant>]
+    description: Ouvre la liste des primes, en place une sur un joueur, ou (admin) valide les raisons en attente.
+    usage: /bounty [add <joueur> <montant> [raison]|review]
     aliases: [prime]
   info:
     description: Tableau de bord d'informations sur un joueur (prime, malchance, coeurs retirés).
@@ -64,7 +64,7 @@ commands:
     usage: /tpaccept
   claim:
     description: Réclame le chunk actuel pour empêcher les autres joueurs d'y construire/détruire.
-    usage: /claim [unclaim|trust <joueur>|untrust <joueur>|info|settings]
+    usage: /claim [unclaim|trust <joueur>|untrust <joueur>|info|settings|see|shop|sell <prix>|buy|ah]
   claims:
     description: Alias de /claim, notamment pour /claims settings (GUI des règles du claim).
     usage: /claims settings
