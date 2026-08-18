@@ -45,6 +45,7 @@ public class JoinListener implements Listener {
         Player player = event.getPlayer();
         economyManager.unloadPlayer(player.getUniqueId());
         teamManager.unloadPlayer(player.getUniqueId());
+        bountyManager.removeDisplayOnQuit(player.getUniqueId());
         malusEffectManager.clearVolatileState(player);
         claimVisualizer.stop(player);
     }

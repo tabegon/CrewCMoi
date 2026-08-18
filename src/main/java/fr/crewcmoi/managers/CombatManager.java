@@ -151,7 +151,13 @@ public class CombatManager {
         currentOpponent.put(victimId, attackerId);
         currentOpponent.put(attackerId, victimId);
 
+        // Les DEUX joueurs doivent être tagués en combat (et donc présents dans
+        // combatExpiry) pour que la tâche d'action bar (voir startActionBar) affiche le
+        // compte à rebours des deux côtés. Avant ce correctif, seule la victime était
+        // taguée : l'attaquant ne se retrouvait jamais dans combatExpiry et ne voyait donc
+        // jamais l'action bar "Combat : Xs" pendant qu'il combat.
         tagCombat(victim);
+        tagCombat(attacker);
     }
 
     /**

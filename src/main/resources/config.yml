@@ -23,6 +23,14 @@ bounty:
   server-bounty-amount: 50.0
   server-malus-amount: 50.0
   server-bounty-max-per-day: 1000
+  display:
+    # Hauteur (en blocs) de l'affichage flottant de la prime au-dessus des yeux du joueur.
+    # Augmente cette valeur si le texte chevauche le pseudo vanilla, diminue-la pour le
+    # rapprocher davantage de la tête.
+    height-offset: 0.35
+    # Intervalle (en ticks) auquel l'affichage flottant est repositionné sur le joueur
+    # qu'il suit. 2 = fluide (10 fois/seconde), augmente si tu veux réduire la charge serveur.
+    follow-interval-ticks: 2
 
 team:
   # Taille maximale d'une équipe (propriétaire inclus). 0 = illimité.

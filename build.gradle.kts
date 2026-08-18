@@ -23,6 +23,9 @@ repositories {
     // Dépôts nécessaires pour l'API ItemsAdder (CustomStack) et sa dépendance LoneLibs
     maven("https://jitpack.io")
     maven("https://www.matteodev.it/spigot/public/maven/")
+
+    // Dépôt PlaceholderAPI (BountyPlaceholderExpansion)
+    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
 }
 
 dependencies {
@@ -42,6 +45,11 @@ dependencies {
     // serveur (softdepend), pas besoin de l'embarquer dans le jar final.
     // Publiée sur jitpack.io (déjà ajouté au bloc repositories ci-dessus).
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
+
+    // API PlaceholderAPI (classe PlaceholderExpansion, utilisée par
+    // BountyPlaceholderExpansion). "compileOnly" : PlaceholderAPI est installé
+    // séparément sur le serveur (softdepend), pas besoin de l'embarquer dans le jar final.
+    compileOnly("me.clip:placeholderapi:2.11.6")
 }
 
 val targetJavaVersion = 21

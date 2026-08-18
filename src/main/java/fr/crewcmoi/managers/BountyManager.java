@@ -3,12 +3,8 @@ package fr.crewcmoi.managers;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.database.BountyEntry;
 import fr.crewcmoi.database.BountyTarget;
-import fr.crewcmoi.utils.MoneyFormat;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,18 +23,22 @@ public class BountyManager {
     private final DatabaseManager databaseManager;
     private final EconomyManager economyManager;
     private final MalusEffectManager malusEffectManager;
+    private final BountyDisplayManager displayManager;
 
-    // Préfixe des équipes scoreboard utilisées pour afficher la prime d'un joueur
-    // directement sur son tag, au-dessus de sa tête (suffixe de nametag), une équipe
-    // par joueur concerné.
-    private static final String TEAM_PREFIX = "crewbounty_";
+    // Cache en mémoire du total de prime actif de chaque joueur, tenu à jour à chaque
+    // recalcul (voir applyBountyDisplay/clearBountyDisplay). Permet une lecture instantanée
+    // et synchrone, nécessaire pour exposer %crewcmoi_bounty% à PlaceholderAPI (voir
+    // BountyPlaceholderExpansion), sans requête base de données à chaque rendu de placeholder
+    // (potentiellement plusieurs fois par seconde et par joueur, ex: HUD de RPGhuds).
+    private final java.util.Map<UUID, Double> cachedTotals = new java.util.concurrent.ConcurrentHashMap<>();
 
     public BountyManager(Main plugin, DatabaseManager databaseManager, EconomyManager economyManager,
-                          MalusEffectManager malusEffectManager) {
+                          MalusEffectManager malusEffectManager, BountyDisplayManager displayManager) {
         this.plugin = plugin;
         this.databaseManager = databaseManager;
         this.economyManager = economyManager;
         this.malusEffectManager = malusEffectManager;
+        this.displayManager = displayManager;
     }
 
     public enum AddResult {
@@ -91,23 +91,33 @@ public class BountyManager {
      */
     private void addBountyAndRefresh(UUID targetUuid, String targetName, UUID contributorUuid,
                                       String contributorName, double amount, String reason) {
+        plugin.getLogger().info("[Bounty] addBountyAndRefresh() appelee pour targetUuid=" + targetUuid
+                + " targetName=" + targetName + " amount=" + amount);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            databaseManager.addBounty(targetUuid, targetName, contributorUuid, contributorName, amount, reason);
+            try {
+                databaseManager.addBounty(targetUuid, targetName, contributorUuid, contributorName, amount, reason);
 
-            List<BountyEntry> entries = databaseManager.getBounties(targetUuid);
-            double total = entries.stream().mapToDouble(BountyEntry::getAmount).sum();
-            double serverTotal = entries.stream()
-                    .filter(BountyEntry::isServerBounty)
-                    .mapToDouble(BountyEntry::getAmount)
-                    .sum();
+                List<BountyEntry> entries = databaseManager.getBounties(targetUuid);
+                double total = entries.stream().mapToDouble(BountyEntry::getAmount).sum();
+                double serverTotal = entries.stream()
+                        .filter(BountyEntry::isServerBounty)
+                        .mapToDouble(BountyEntry::getAmount)
+                        .sum();
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                applyBountyDisplay(targetName, total);
-                Player player = Bukkit.getPlayer(targetUuid);
-                if (player != null && player.isOnline()) {
-                    malusEffectManager.updateBountyEffect(player, serverTotal);
-                }
-            });
+                plugin.getLogger().info("[Bounty] Apres insertion : " + entries.size()
+                        + " entree(s) en base pour " + targetName + ", total=" + total);
+
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    applyBountyDisplay(targetUuid, targetName, total);
+                    Player player = Bukkit.getPlayer(targetUuid);
+                    if (player != null && player.isOnline()) {
+                        malusEffectManager.updateBountyEffect(player, serverTotal);
+                    }
+                });
+            } catch (Exception e) {
+                plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                        "[Bounty] Erreur dans addBountyAndRefresh pour " + targetName, e);
+            }
         });
     }
 
@@ -125,6 +135,19 @@ public class BountyManager {
 
     public List<BountyTarget> getBountyTargets() {
         return databaseManager.getBountyTargets();
+    }
+
+    public void removeDisplayOnQuit(UUID playerUuid) {
+        displayManager.remove(playerUuid);
+    }
+
+    /**
+     * Retourne (de façon synchrone, depuis le cache mémoire) le total de prime actif d'un
+     * joueur, ou 0.0 s'il n'en a aucune. Utilisé par BountyPlaceholderExpansion pour exposer
+     * %crewcmoi_bounty% à PlaceholderAPI (ex: pour l'intégrer au HUD/nametag de RPGhuds).
+     */
+    public double getCachedBountyTotal(UUID playerUuid) {
+        return cachedTotals.getOrDefault(playerUuid, 0.0);
     }
 
     /**
@@ -190,7 +213,7 @@ public class BountyManager {
 
         Player victim = Bukkit.getPlayer(victimUuid);
         if (victim != null) {
-            clearBountyDisplay(victim.getName());
+            clearBountyDisplay(victimUuid);
             // Toute la prime (y compris la part serveur) vient d'être effacée par ce kill :
             // l'effet de malchance associé est donc levé immédiatement.
             malusEffectManager.updateBountyEffect(victim, 0.0);
@@ -247,7 +270,7 @@ public class BountyManager {
                     .sum();
 
             Bukkit.getScheduler().runTask(plugin, () -> {
-                applyBountyDisplay(entry.getTargetName(), total);
+                applyBountyDisplay(entry.getTargetUuid(), entry.getTargetName(), total);
                 Player target = Bukkit.getPlayer(entry.getTargetUuid());
                 if (target != null && target.isOnline()) {
                     malusEffectManager.updateBountyEffect(target, serverTotal);
@@ -272,7 +295,7 @@ public class BountyManager {
                     .mapToDouble(BountyEntry::getAmount)
                     .sum();
             Bukkit.getScheduler().runTask(plugin, () -> {
-                applyBountyDisplay(name, total);
+                applyBountyDisplay(uuid, name, total);
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null && player.isOnline()) {
                     malusEffectManager.updateBountyEffect(player, serverTotal);
@@ -290,37 +313,28 @@ public class BountyManager {
     }
 
     /**
-     * Affiche (ou met à jour) la prime du joueur directement au-dessus de sa tête, en
-     * ajoutant un suffixe à son nametag via une équipe scoreboard dédiée. N'est affichée
-     * que si le joueur a effectivement une prime (montant différent de 0), sous la forme
-     * "<montant> <symbole>".
+     * Affiche (ou met à jour) la prime du joueur, juste en dessous de son pseudo, via une
+     * entité TextDisplay flottante qui le suit (voir BountyDisplayManager). N'est affichée
+     * que si le joueur a effectivement une prime (montant différent de 0).
      */
-    private void applyBountyDisplay(String playerName, double total) {
-        if (total > 0) {
-            Scoreboard board = getMainScoreboard();
-            Team team = board.getTeam(TEAM_PREFIX + playerName);
-            if (team == null) {
-                team = board.registerNewTeam(TEAM_PREFIX + playerName);
+    private void applyBountyDisplay(UUID playerUuid, String playerName, double total) {
+        try {
+            if (total > 0) {
+                cachedTotals.put(playerUuid, total);
+            } else {
+                cachedTotals.remove(playerUuid);
             }
-            String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
-            team.setSuffix(ChatColor.GOLD + " " + MoneyFormat.format(total) + " " + currency);
-            if (!team.hasEntry(playerName)) {
-                team.addEntry(playerName);
-            }
-        } else {
-            clearBountyDisplay(playerName);
+            displayManager.update(playerUuid, total);
+            plugin.getLogger().info("[Bounty] Affichage flottant mis a jour pour "
+                    + playerName + " (montant=" + total + ").");
+        } catch (Exception e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "[Bounty] Erreur dans applyBountyDisplay pour " + playerName, e);
         }
     }
 
-    private void clearBountyDisplay(String playerName) {
-        Scoreboard board = getMainScoreboard();
-        Team team = board.getTeam(TEAM_PREFIX + playerName);
-        if (team != null) {
-            team.unregister();
-        }
-    }
-
-    private Scoreboard getMainScoreboard() {
-        return Bukkit.getScoreboardManager().getMainScoreboard();
+    private void clearBountyDisplay(UUID playerUuid) {
+        cachedTotals.remove(playerUuid);
+        displayManager.remove(playerUuid);
     }
 }

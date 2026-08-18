@@ -30,6 +30,7 @@ import fr.crewcmoi.listeners.CombatListener;
 import fr.crewcmoi.listeners.GuiListener;
 import fr.crewcmoi.listeners.JoinListener;
 import fr.crewcmoi.managers.AuctionManager;
+import fr.crewcmoi.managers.BountyDisplayManager;
 import fr.crewcmoi.managers.BountyManager;
 import fr.crewcmoi.managers.ClaimManager;
 import fr.crewcmoi.managers.ClaimVisualizer;
@@ -65,6 +66,7 @@ public class Main extends JavaPlugin {
     private CombatManager combatManager;
     private TeamManager teamManager;
     private BountyManager bountyManager;
+    private BountyDisplayManager bountyDisplayManager;
     private BountyGuiManager bountyGuiManager;
     private BountyReviewGuiManager bountyReviewGuiManager;
     private MalusEffectManager malusEffectManager;
@@ -99,7 +101,9 @@ public class Main extends JavaPlugin {
         this.combatManager.startActionBar();
         this.teamManager = new TeamManager(this, databaseManager);
         this.malusEffectManager = new MalusEffectManager(this);
-        this.bountyManager = new BountyManager(this, databaseManager, economyManager, malusEffectManager);
+        this.bountyDisplayManager = new BountyDisplayManager(this);
+        this.bountyDisplayManager.start();
+        this.bountyManager = new BountyManager(this, databaseManager, economyManager, malusEffectManager, bountyDisplayManager);
         this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
         this.bountyReviewGuiManager = new BountyReviewGuiManager(this, bountyManager);
         this.teleportManager = new TeleportManager(this, combatManager);
@@ -141,6 +145,22 @@ public class Main extends JavaPlugin {
             getLogger().warning("Vault n'est pas détecté : l'intégration économique Vault (ex: HUD money de RPGhuds) est désactivée.");
         }
 
+        // Enregistrement de l'expansion PlaceholderAPI exposant la prime (%crewcmoi_bounty%,
+        // %crewcmoi_bounty_suffix%, %crewcmoi_has_bounty%) : RPGhuds gère l'affichage
+        // au-dessus des joueurs par ses propres moyens (packets/HUD, pas le scoreboard
+        // vanilla), donc c'est via ce placeholder qu'il faut intégrer la prime dans SA
+        // config de nametag pour qu'elle soit réellement visible en jeu. Optionnel comme
+        // ItemsAdder ci-dessus : on ne s'enregistre que si PlaceholderAPI est bien présent.
+        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new fr.crewcmoi.placeholder.BountyPlaceholderExpansion(this, bountyManager).register();
+            getLogger().info("Placeholders CrewCMoi enregistrés auprès de PlaceholderAPI "
+                    + "(%crewcmoi_bounty%, %crewcmoi_bounty_suffix%, %crewcmoi_has_bounty%).");
+        } else {
+            getLogger().warning("PlaceholderAPI n'est pas détecté : les placeholders de prime "
+                    + "(%crewcmoi_bounty%...) ne sont pas disponibles, RPGhuds ne pourra pas "
+                    + "afficher la prime au-dessus des joueurs.");
+        }
+
         // Enregistrement des commandes
         registerCommand("balance", new BalanceCommand(this, economyManager));
         registerCommand("money", new MoneyCommand(this, economyManager));
@@ -168,6 +188,9 @@ public class Main extends JavaPlugin {
     public void onDisable() {
         if (combatManager != null) {
             combatManager.stopActionBar();
+        }
+        if (bountyDisplayManager != null) {
+            bountyDisplayManager.stop();
         }
         if (databaseManager != null) {
             databaseManager.disconnect();
