@@ -68,6 +68,12 @@ commands:
   claims:
     description: Alias de /claim, notamment pour /claims settings (GUI des règles du claim).
     usage: /claims settings
+  duel:
+    description: Provoque un joueur en duel, avec configuration des règles (keepinventory, mise) via une GUI.
+    usage: /duel <joueur>
+  duelaccept:
+    description: Accepte (ou refuse avec "deny") la demande de duel reçue.
+    usage: /duelaccept [deny]
 
 permissions:
   crew.balance.others:

@@ -23,7 +23,7 @@ public class BountyManager {
     private final DatabaseManager databaseManager;
     private final EconomyManager economyManager;
     private final MalusEffectManager malusEffectManager;
-    private final BountyDisplayManager displayManager;
+    private final BountyScoreboardManager displayManager;
 
     // Cache en mémoire du total de prime actif de chaque joueur, tenu à jour à chaque
     // recalcul (voir applyBountyDisplay/clearBountyDisplay). Permet une lecture instantanée
@@ -33,7 +33,7 @@ public class BountyManager {
     private final java.util.Map<UUID, Double> cachedTotals = new java.util.concurrent.ConcurrentHashMap<>();
 
     public BountyManager(Main plugin, DatabaseManager databaseManager, EconomyManager economyManager,
-                          MalusEffectManager malusEffectManager, BountyDisplayManager displayManager) {
+                          MalusEffectManager malusEffectManager, BountyScoreboardManager displayManager) {
         this.plugin = plugin;
         this.databaseManager = databaseManager;
         this.economyManager = economyManager;
@@ -313,9 +313,9 @@ public class BountyManager {
     }
 
     /**
-     * Affiche (ou met à jour) la prime du joueur, juste en dessous de son pseudo, via une
-     * entité TextDisplay flottante qui le suit (voir BountyDisplayManager). N'est affichée
-     * que si le joueur a effectivement une prime (montant différent de 0).
+     * Affiche (ou met à jour) la prime du joueur, sous forme de suffixe scoreboard juste
+     * à côté de son pseudo (voir BountyScoreboardManager). N'est affichée que si le
+     * joueur a effectivement une prime (montant différent de 0).
      */
     private void applyBountyDisplay(UUID playerUuid, String playerName, double total) {
         try {

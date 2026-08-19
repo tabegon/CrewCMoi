@@ -47,6 +47,34 @@ spawn:
 tpa:
   expiry-seconds: 60
 
+duel:
+  # Délai (en secondes) au bout duquel une demande de duel non traitée expire.
+  expiry-seconds: 60
+  # Compte à rebours (en secondes) affiché aux deux joueurs une fois téléportés
+  # dans l'arène, avant que les dégâts ne soient réellement pris en compte.
+  countdown-seconds: 5
+  # Montant ajouté/retiré à chaque clic sur l'item "Argent en jeu" de la GUI /duel.
+  bet-step: 100
+  # Mise maximum autorisée. 0 = illimité.
+  max-bet: 0
+  # Emplacements des deux côtés de l'arène de duel. À configurer avec les
+  # coordonnées réelles de ton serveur avant d'utiliser /duel.
+  arena:
+    pos1:
+      world: test
+      x: -43
+      y: -60
+      z: -42
+      yaw: 0.0
+      pitch: 0.0
+    pos2:
+      world: test
+      x: -131
+      y: -60
+      z: -42
+      yaw: 180.0
+      pitch: 0.0
+
   itemsadder-id: "crewcmoi:balance_hud"
   text-id: "balance"
 

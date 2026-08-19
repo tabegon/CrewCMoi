@@ -5,6 +5,8 @@ import fr.crewcmoi.commands.BalanceCommand;
 import fr.crewcmoi.commands.BalanceTopCommand;
 import fr.crewcmoi.commands.BountyCommand;
 import fr.crewcmoi.commands.ClaimCommand;
+import fr.crewcmoi.commands.DuelAcceptCommand;
+import fr.crewcmoi.commands.DuelCommand;
 import fr.crewcmoi.commands.HomeCommand;
 import fr.crewcmoi.commands.InfoCommand;
 import fr.crewcmoi.commands.MoneyCommand;
@@ -22,20 +24,23 @@ import fr.crewcmoi.gui.BountyReviewGuiManager;
 import fr.crewcmoi.gui.ClaimAuctionGuiManager;
 import fr.crewcmoi.gui.ClaimSettingsGuiManager;
 import fr.crewcmoi.gui.ClaimShopGuiManager;
+import fr.crewcmoi.gui.DuelConfigGuiManager;
 import fr.crewcmoi.gui.SellGuiManager;
 import fr.crewcmoi.listeners.BountyListener;
 import fr.crewcmoi.listeners.ClaimListener;
 import fr.crewcmoi.listeners.CoinItemListener;
 import fr.crewcmoi.listeners.CombatListener;
+import fr.crewcmoi.listeners.DuelListener;
 import fr.crewcmoi.listeners.GuiListener;
 import fr.crewcmoi.listeners.JoinListener;
 import fr.crewcmoi.managers.AuctionManager;
-import fr.crewcmoi.managers.BountyDisplayManager;
 import fr.crewcmoi.managers.BountyManager;
+import fr.crewcmoi.managers.BountyScoreboardManager;
 import fr.crewcmoi.managers.ClaimManager;
 import fr.crewcmoi.managers.ClaimVisualizer;
 import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.DatabaseManager;
+import fr.crewcmoi.managers.DuelManager;
 import fr.crewcmoi.managers.EconomyManager;
 import fr.crewcmoi.managers.HomeManager;
 import fr.crewcmoi.managers.MalusEffectManager;
@@ -66,7 +71,7 @@ public class Main extends JavaPlugin {
     private CombatManager combatManager;
     private TeamManager teamManager;
     private BountyManager bountyManager;
-    private BountyDisplayManager bountyDisplayManager;
+    private BountyScoreboardManager bountyScoreboardManager;
     private BountyGuiManager bountyGuiManager;
     private BountyReviewGuiManager bountyReviewGuiManager;
     private MalusEffectManager malusEffectManager;
@@ -77,6 +82,8 @@ public class Main extends JavaPlugin {
     private ClaimShopGuiManager claimShopGuiManager;
     private ClaimVisualizer claimVisualizer;
     private ClaimAuctionGuiManager claimAuctionGuiManager;
+    private DuelManager duelManager;
+    private DuelConfigGuiManager duelConfigGuiManager;
     private FileConfiguration messages;
     private File messagesFile;
 
@@ -101,9 +108,9 @@ public class Main extends JavaPlugin {
         this.combatManager.startActionBar();
         this.teamManager = new TeamManager(this, databaseManager);
         this.malusEffectManager = new MalusEffectManager(this);
-        this.bountyDisplayManager = new BountyDisplayManager(this);
-        this.bountyDisplayManager.start();
-        this.bountyManager = new BountyManager(this, databaseManager, economyManager, malusEffectManager, bountyDisplayManager);
+        this.bountyScoreboardManager = new BountyScoreboardManager(this);
+        this.bountyScoreboardManager.start();
+        this.bountyManager = new BountyManager(this, databaseManager, economyManager, malusEffectManager, bountyScoreboardManager);
         this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
         this.bountyReviewGuiManager = new BountyReviewGuiManager(this, bountyManager);
         this.teleportManager = new TeleportManager(this, combatManager);
@@ -114,6 +121,8 @@ public class Main extends JavaPlugin {
         this.claimShopGuiManager = new ClaimShopGuiManager(this, claimManager);
         this.claimVisualizer = new ClaimVisualizer(this, claimManager);
         this.claimAuctionGuiManager = new ClaimAuctionGuiManager(this, claimManager);
+        this.duelManager = new DuelManager(this, economyManager, combatManager);
+        this.duelConfigGuiManager = new DuelConfigGuiManager(this, duelManager);
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer), this);
@@ -121,6 +130,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
         getServer().getPluginManager().registerEvents(new ClaimListener(this, claimManager), this);
+        getServer().getPluginManager().registerEvents(new DuelListener(this, duelManager, duelConfigGuiManager), this);
         // ItemsAdder est optionnel : on n'enregistre ce listener (qui référence les classes
         // de son API) que s'il est bien installé et activé, pour éviter un crash au démarrage
         // si ce plugin n'est pas présent sur le serveur.
@@ -180,6 +190,8 @@ public class Main extends JavaPlugin {
         ClaimCommand claimCommand = new ClaimCommand(this, claimManager, claimSettingsGuiManager, claimShopGuiManager, claimVisualizer, claimAuctionGuiManager);
         registerCommand("claim", claimCommand);
         registerCommand("claims", claimCommand);
+        registerCommand("duel", new DuelCommand(this, duelManager, duelConfigGuiManager, combatManager));
+        registerCommand("duelaccept", new DuelAcceptCommand(this, duelManager));
 
         getLogger().info("EconomyPlugin activé avec succès !");
     }
@@ -189,8 +201,8 @@ public class Main extends JavaPlugin {
         if (combatManager != null) {
             combatManager.stopActionBar();
         }
-        if (bountyDisplayManager != null) {
-            bountyDisplayManager.stop();
+        if (bountyScoreboardManager != null) {
+            bountyScoreboardManager.stop();
         }
         if (databaseManager != null) {
             databaseManager.disconnect();
@@ -300,6 +312,14 @@ public class Main extends JavaPlugin {
 
     public ClaimAuctionGuiManager getClaimAuctionGuiManager() {
         return claimAuctionGuiManager;
+    }
+
+    public DuelManager getDuelManager() {
+        return duelManager;
+    }
+
+    public DuelConfigGuiManager getDuelConfigGuiManager() {
+        return duelConfigGuiManager;
     }
 
 }
