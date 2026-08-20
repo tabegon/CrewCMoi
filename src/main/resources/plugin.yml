@@ -4,7 +4,7 @@ author: MonsieurTh30
 version: 1.0.0
 api-version: '1.21'
 main: fr.crewcmoi.Main
-softdepend: [ItemsAdder, Vault, PlaceholderAPI]
+softdepend: [ItemsAdder, Vault, PlaceholderAPI, Citizens]
 # Force CrewCMoi à s'activer avant RPGhuds, pour que le fournisseur d'économie Vault
 # (VaultEconomyProvider) soit déjà enregistré quand RPGhuds essaie de le récupérer dans
 # son propre onEnable() (sinon RPGhuds obtient un Economy null -> erreur "econ is null").

@@ -33,6 +33,7 @@ import fr.crewcmoi.listeners.CombatListener;
 import fr.crewcmoi.listeners.DuelListener;
 import fr.crewcmoi.listeners.GuiListener;
 import fr.crewcmoi.listeners.JoinListener;
+import fr.crewcmoi.listeners.SellNpcListener;
 import fr.crewcmoi.managers.AuctionManager;
 import fr.crewcmoi.managers.BountyManager;
 import fr.crewcmoi.managers.BountyScoreboardManager;
@@ -131,6 +132,14 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
         getServer().getPluginManager().registerEvents(new ClaimListener(this, claimManager), this);
         getServer().getPluginManager().registerEvents(new DuelListener(this, duelManager, duelConfigGuiManager), this);
+        // Citizens est nécessaire pour déclencher /sell via clic droit sur le NPC d'id 1 :
+        // on n'enregistre ce listener (qui référence les classes de son API) que s'il est
+        // bien installé et activé, pour éviter un crash au démarrage si absent.
+        if (getServer().getPluginManager().isPluginEnabled("Citizens")) {
+            getServer().getPluginManager().registerEvents(new SellNpcListener(sellGuiManager), this);
+        } else {
+            getLogger().warning("Citizens n'est pas détecté : l'ouverture de /sell via clic droit sur le NPC est désactivée.");
+        }
         // ItemsAdder est optionnel : on n'enregistre ce listener (qui référence les classes
         // de son API) que s'il est bien installé et activé, pour éviter un crash au démarrage
         // si ce plugin n'est pas présent sur le serveur.
