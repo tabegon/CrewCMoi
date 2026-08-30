@@ -6,119 +6,151 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Affiche la prime d'un joueur sous forme de suffixe sur une scoreboard team vanilla
- * (visible directement sous son pseudo, sans dépendre d'aucun autre plugin).
- *
- * Remplace l'ancienne approche par entité TextDisplay (voir BountyDisplayManager,
- * conservée dans le projet mais plus utilisée par BountyManager). On avait initialement
- * abandonné les scoreboard teams en pensant qu'un autre plugin du serveur (LuckPerms
- * et/ou un système de nametag) reprenait la main dessus - après vérification, rien
- * d'autre sur ce serveur ne crée ni ne gère de scoreboard team, LuckPerms ne touche pas
- * du tout à la scoreboard vanilla par défaut. Le souci venait donc très probablement de
- * l'implémentation elle-même, pas d'un conflit externe.
- *
- * Chaque joueur ayant une prime active se voit attribuer sa propre team (une team =
- * une seule "entry" = son pseudo), avec un suffixe correspondant au montant. Un joueur
- * ne peut être membre que d'une seule scoreboard team sur une scoreboard donnée : comme
- * ce plugin est actuellement seul à utiliser des teams sur la scoreboard principale,
- * ceci ne rentre en conflit avec rien.
- */
-public class BountyScoreboardManager {
+public class BountyScoreboardManager implements Listener {
 
-    // Préfixe des noms de team créées par ce système (utilisé aussi pour le nettoyage
-    // des teams orphelines au redémarrage). Le total (préfixe + suffixe d'UUID) reste
-    // sous 16 caractères pour rester compatible avec les anciennes limites vanilla.
     private static final String TEAM_PREFIX = "ccbounty_";
 
     private final Main plugin;
-    private Scoreboard scoreboard;
 
-    // Team actuellement enregistrée pour chaque joueur ayant une prime active.
-    private final Map<UUID, Team> teams = new ConcurrentHashMap<>();
+
+    private final Map<UUID, Double> activeTotals = new ConcurrentHashMap<>();
+
+    private final Map<UUID, String> activeNames = new ConcurrentHashMap<>();
+
+    private final Map<Scoreboard, Map<UUID, Team>> teamsByScoreboard = new IdentityHashMap<>();
 
     public BountyScoreboardManager(Main plugin) {
         this.plugin = plugin;
     }
 
     /**
-     * À appeler une seule fois, au démarrage du plugin : récupère la scoreboard
-     * principale (celle utilisée par tous les joueurs par défaut) et nettoie
-     * d'éventuelles teams orphelines laissées par une session précédente (ex: crash).
+     * À appeler une seule fois, au démarrage du plugin : nettoie d'éventuelles teams
+     * orphelines laissées par une session précédente (ex: crash) sur toutes les scoreboards
+     * actuellement en jeu, puis commence à écouter les connexions de joueurs.
      */
     public void start() {
-        scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
+        Bukkit.getPluginManager().registerEvents(this, plugin);
 
-        for (Team team : new ArrayList<>(scoreboard.getTeams())) {
-            if (team.getName().startsWith(TEAM_PREFIX)) {
-                team.unregister();
+        for (Scoreboard scoreboard : onlineScoreboards()) {
+            for (Team team : new ArrayList<>(scoreboard.getTeams())) {
+                if (team.getName().startsWith(TEAM_PREFIX)) {
+                    team.unregister();
+                }
             }
         }
     }
 
     public void stop() {
-        for (Team team : teams.values()) {
-            if (team.getScoreboard() != null) {
-                team.unregister();
+        for (Map<UUID, Team> teams : teamsByScoreboard.values()) {
+            for (Team team : teams.values()) {
+                if (team.getScoreboard() != null) {
+                    team.unregister();
+                }
             }
         }
-        teams.clear();
+        teamsByScoreboard.clear();
+        activeTotals.clear();
+        activeNames.clear();
     }
 
     /**
-     * Crée (ou met à jour) le suffixe de prime d'un joueur actuellement en ligne.
-     * Ne fait rien si le joueur n'est pas en ligne (sera réappliqué à sa prochaine
-     * connexion via BountyManager#refreshBountyDisplayOnJoin).
+     * Réapplique toutes les primes actives sur la scoreboard du joueur qui vient de se
+     * connecter (voir le commentaire de classe : sa scoreboard peut être une instance
+     * différente de celle de tous les autres joueurs déjà en ligne).
      */
-    public void update(UUID playerUuid, double total) {
-        Player player = Bukkit.getPlayer(playerUuid);
-        if (player == null || !player.isOnline()) {
-            return;
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onJoin(PlayerJoinEvent event) {
+        Scoreboard scoreboard = event.getPlayer().getScoreboard();
+        for (Map.Entry<UUID, Double> entry : activeTotals.entrySet()) {
+            UUID targetUuid = entry.getKey();
+            applyToScoreboard(scoreboard, targetUuid, activeNames.get(targetUuid), entry.getValue());
         }
+    }
 
+    public void update(UUID targetUuid, String targetName, double total) {
         if (total <= 0) {
-            remove(playerUuid);
+            remove(targetUuid);
             return;
         }
 
-        Team team = teams.get(playerUuid);
-        if (team == null) {
-            String teamName = teamName(playerUuid);
-            // Sécurité : si une team du même nom existe déjà sans qu'on la connaisse
-            // (ex: rechargement du plugin), on la réutilise plutôt que d'échouer.
+        activeTotals.put(targetUuid, total);
+        activeNames.put(targetUuid, targetName);
+
+        for (Scoreboard scoreboard : onlineScoreboards()) {
+            applyToScoreboard(scoreboard, targetUuid, targetName, total);
+        }
+    }
+
+    /**
+     * Supprime le suffixe de prime d'un joueur de toutes les scoreboards sur lesquelles il
+     * avait été appliqué (prime retombée à 0, ou déconnexion).
+     */
+    public void remove(UUID targetUuid) {
+        activeTotals.remove(targetUuid);
+        activeNames.remove(targetUuid);
+
+        for (Map<UUID, Team> teams : teamsByScoreboard.values()) {
+            Team team = teams.remove(targetUuid);
+            if (team != null && team.getScoreboard() != null) {
+                team.unregister();
+            }
+        }
+    }
+
+    private void applyToScoreboard(Scoreboard scoreboard, UUID targetUuid, String targetName, double total) {
+        if (scoreboard == null || targetName == null) {
+            return;
+        }
+
+        Map<UUID, Team> teams = teamsByScoreboard.computeIfAbsent(scoreboard, s -> new HashMap<>());
+        Team team = teams.get(targetUuid);
+
+        if (team == null || team.getScoreboard() == null) {
+            String teamName = teamName(targetUuid);
             team = scoreboard.getTeam(teamName);
             if (team == null) {
                 team = scoreboard.registerNewTeam(teamName);
             }
-            if (!team.hasEntry(player.getName())) {
-                team.addEntry(player.getName());
-            }
-            teams.put(playerUuid, team);
+            team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+            teams.put(targetUuid, team);
         }
 
-        String amountText = MoneyFormat.format(total);
-        Component suffix = Component.text(amountText, NamedTextColor.GOLD)
-                .append(Component.text(" \uE517", NamedTextColor.WHITE));
+        if (!team.hasEntry(targetName)) {
+            team.addEntry(targetName);
+        }
+
+        Component suffix = Component.text(" [" + MoneyFormat.format(total), NamedTextColor.GOLD)
+                .append(Component.text(" \uE517", NamedTextColor.WHITE)).append(Component.text("]"));
         team.suffix(suffix);
     }
 
     /**
-     * Supprime le suffixe de prime d'un joueur (prime retombée à 0, ou déconnexion).
+     * Toutes les scoreboards actuellement "en jeu" : la scoreboard principale, ainsi que la
+     * scoreboard propre à chaque joueur en ligne si elle en utilise une différente.
      */
-    public void remove(UUID playerUuid) {
-        Team team = teams.remove(playerUuid);
-        if (team != null && team.getScoreboard() != null) {
-            team.unregister();
+    private Set<Scoreboard> onlineScoreboards() {
+        Set<Scoreboard> scoreboards = Collections.newSetFromMap(new IdentityHashMap<>());
+        scoreboards.add(Bukkit.getScoreboardManager().getMainScoreboard());
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            scoreboards.add(player.getScoreboard());
         }
+        return scoreboards;
     }
 
     private String teamName(UUID uuid) {

@@ -314,7 +314,7 @@ public class BountyManager {
 
     /**
      * Affiche (ou met à jour) la prime du joueur, sous forme de suffixe scoreboard juste
-     * à côté de son pseudo (voir BountyScoreboardManager). N'est affichée que si le
+     * sous son pseudo (voir BountyScoreboardManager). N'est affichée que si le
      * joueur a effectivement une prime (montant différent de 0).
      */
     private void applyBountyDisplay(UUID playerUuid, String playerName, double total) {
@@ -324,8 +324,8 @@ public class BountyManager {
             } else {
                 cachedTotals.remove(playerUuid);
             }
-            displayManager.update(playerUuid, total);
-            plugin.getLogger().info("[Bounty] Affichage flottant mis a jour pour "
+            displayManager.update(playerUuid, playerName, total);
+            plugin.getLogger().info("[Bounty] Suffixe de prime mis a jour pour "
                     + playerName + " (montant=" + total + ").");
         } catch (Exception e) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE,
