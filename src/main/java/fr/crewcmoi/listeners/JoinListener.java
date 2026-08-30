@@ -1,10 +1,10 @@
 package fr.crewcmoi.listeners;
 
 import fr.crewcmoi.Main;
-import fr.crewcmoi.managers.BountyManager;
-import fr.crewcmoi.managers.ClaimVisualizer;
-import fr.crewcmoi.managers.EconomyManager;
-import fr.crewcmoi.managers.MalusEffectManager;
+import fr.crewcmoi.pvp.managers.BountyManager;
+import fr.crewcmoi.claims.managers.ClaimVisualizer;
+import fr.crewcmoi.economie.managers.EconomyManager;
+import fr.crewcmoi.pvp.managers.MalusEffectManager;
 import fr.crewcmoi.managers.TeamManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

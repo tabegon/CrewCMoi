@@ -84,3 +84,28 @@ coin-item:
   enabled: true
   itemsadder-id: "server:ccoin"
   value: 50.0
+
+# Rôles affichés dans le tab (liste des joueurs), du plus haut (fonda) au plus bas
+# (player) : voir fr.crewcmoi.tab. Chaque rôle est détecté automatiquement via sa
+# permission (ex: "crew.role.vip"), ou attribué manuellement avec /role set
+# <joueur> <rôle>. prefix et permission sont personnalisables ci-dessous ; si tu
+# ne mets rien, les valeurs par défaut du plugin sont utilisées.
+roles:
+  fonda:
+    prefix: "&6- Fonda &f"
+    permission: "crew.role.fonda"
+  admin:
+    prefix: "&4- Admin &f"
+    permission: "crew.role.admin"
+  dev:
+    prefix: "&d- Dev &f"
+    permission: "crew.role.dev"
+  mod:
+    prefix: "&9- Mod &f"
+    permission: "crew.role.mod"
+  vip:
+    prefix: "&a- Vip &f"
+    permission: "crew.role.vip"
+  player:
+    prefix: "&7- Player &f"
+    permission: "crew.role.player"

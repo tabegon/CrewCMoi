@@ -1,0 +1,284 @@
+package fr.crewcmoi.economie.gui;
+
+import fr.crewcmoi.Main;
+import fr.crewcmoi.economie.managers.EconomyManager;
+import fr.crewcmoi.economie.managers.PricesManager;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.utils.GuiItems;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Construit la GUI de /sell et gère le calcul/la validation de la vente.
+ * La vente se fait en deux étapes : un premier clic sur le bouton émeraude
+ * bascule la GUI en mode "confirmation" (les objets sont mis de côté et
+ * remplacés par un récapitulatif avec des boutons confirmer/annuler), un
+ * second clic sur "confirmer" valide réellement la vente.
+ */
+public class SellGuiManager {
+
+    private final Main plugin;
+    private final PricesManager pricesManager;
+    private final EconomyManager economyManager;
+
+    public SellGuiManager(Main plugin, PricesManager pricesManager, EconomyManager economyManager) {
+        this.plugin = plugin;
+        this.pricesManager = pricesManager;
+        this.economyManager = economyManager;
+    }
+
+    public void open(Player player) {
+        SellHolder holder = new SellHolder();
+        Inventory gui = Bukkit.createInventory(holder, SellHolder.SIZE,
+                ChatColor.translateAlternateColorCodes('&', "&2&lᴠᴇɴᴛᴇ ᴅ'ᴏʙᴊᴇᴛꜱ"));
+        holder.setInventory(gui);
+
+        renderNormalState(gui);
+
+        player.openInventory(gui);
+    }
+
+    /**
+     * Remet la GUI dans son état normal (remplissage décoratif + bouton "vendre"
+     * recalculé). N'affecte pas les slots 0-17 : ils doivent déjà contenir les
+     * bons objets (ou avoir été restaurés au préalable par l'appelant).
+     */
+    private void renderNormalState(Inventory gui) {
+        ItemStack filler = createFiller();
+        for (int i = 18; i < SellHolder.SIZE; i++) {
+            gui.setItem(i, filler);
+        }
+        gui.setItem(SellHolder.SELL_SLOT, createConfirmButton(gui));
+    }
+
+    private ItemStack createFiller() {
+        return GuiItems.nothing(" ");
+    }
+
+    /**
+     * Construit le bouton émeraude avec, dans son lore, le montant total
+     * actuellement calculé pour les objets présents dans la GUI.
+     */
+    private ItemStack createConfirmButton(Inventory gui) {
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        double total = 0.0;
+        int itemCount = 0;
+        boolean hasUnsellable = false;
+
+        for (int slot : SellHolder.ITEM_SLOTS) {
+            ItemStack stack = gui.getItem(slot);
+            if (stack == null || stack.getType() == Material.AIR) {
+                continue;
+            }
+            double unitPrice = pricesManager.getPrice(stack.getType());
+            if (unitPrice <= 0) {
+                hasUnsellable = true;
+                continue;
+            }
+            total += unitPrice * stack.getAmount();
+            itemCount += stack.getAmount();
+        }
+
+        ItemStack item = new ItemStack(Material.EMERALD);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lᴠᴇɴᴅʀᴇ"));
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.translateAlternateColorCodes('&',
+                    "&7ᴘʟᴀᴄᴇᴢ ᴠᴏꜱ ᴏʙᴊᴇᴛꜱ ᴅᴀɴꜱ ʟᴇꜱ ᴇᴍᴘʟᴀᴄᴇᴍᴇɴᴛꜱ"));
+            lore.add(ChatColor.translateAlternateColorCodes('&',
+                    "&7ᴄɪ-ᴅᴇꜱꜱᴜꜱ ᴘᴜɪꜱ ᴄʟɪǫᴜᴇᴢ ɪᴄɪ ᴘᴏᴜʀ ᴠᴇɴᴅʀᴇ."));
+            lore.add("");
+            lore.add(ChatColor.translateAlternateColorCodes('&',
+                    "&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e" + itemCount));
+            lore.add(ChatColor.translateAlternateColorCodes('&',
+                    "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + MoneyFormat.format(total) + currency));
+            if (hasUnsellable) {
+                lore.add(ChatColor.translateAlternateColorCodes('&',
+                        "&8(ᴄᴇʀᴛᴀɪɴꜱ ᴏʙᴊᴇᴛꜱ ᴘʟᴀᴄᴇꜱ ɴᴇ ꜱᴏɴᴛ ᴘᴀꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ)"));
+            }
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    /**
+     * Recalcule et remet à jour le bouton émeraude (montant à gagner) après
+     * chaque ajout/retrait d'objet dans la GUI de vente.
+     */
+    public void refreshConfirmButton(Inventory gui) {
+        gui.setItem(SellHolder.SELL_SLOT, createConfirmButton(gui));
+    }
+
+    /**
+     * Étape 1 : le joueur a cliqué sur "vendre". On calcule le récapitulatif,
+     * on met les objets de côté (pendingItems) et on bascule l'affichage sur
+     * un écran de confirmation avec des boutons confirmer/annuler.
+     */
+    public void askConfirmation(Player player, Inventory gui, SellHolder holder) {
+        List<ItemStack> snapshot = new ArrayList<>();
+        double total = 0.0;
+        int itemCount = 0;
+
+        for (int slot : SellHolder.ITEM_SLOTS) {
+            ItemStack stack = gui.getItem(slot);
+            if (stack == null || stack.getType() == Material.AIR) {
+                continue;
+            }
+            snapshot.add(stack.clone());
+            double unitPrice = pricesManager.getPrice(stack.getType());
+            if (unitPrice > 0) {
+                total += unitPrice * stack.getAmount();
+                itemCount += stack.getAmount();
+            }
+        }
+
+        if (snapshot.isEmpty()) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));
+            return;
+        }
+
+        holder.setPendingItems(snapshot);
+        holder.setConfirming(true);
+
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        ItemStack filler = createFiller();
+
+        // On masque les objets (mis de côté dans pendingItems) et le remplissage.
+        for (int slot : SellHolder.ITEM_SLOTS) {
+            gui.setItem(slot, filler);
+        }
+        for (int i = 18; i < SellHolder.SIZE; i++) {
+            gui.setItem(i, filler);
+        }
+
+        ItemStack confirmButton = GuiItems.checkmarkButton("&a&lᴄᴏɴꜰɪʀᴍᴇʀ ʟᴀ ᴠᴇɴᴛᴇ");
+        ItemMeta confirmMeta = confirmButton.getItemMeta();
+        if (confirmMeta != null) {
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e" + itemCount));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + MoneyFormat.format(total) + currency));
+            confirmMeta.setLore(lore);
+            confirmButton.setItemMeta(confirmMeta);
+        }
+        gui.setItem(SellHolder.CONFIRM_SLOT, confirmButton);
+
+        ItemStack cancelButton = GuiItems.cancelButton("&c&lᴀɴɴᴜʟᴇʀ");
+        gui.setItem(SellHolder.CANCEL_CONFIRM_SLOT, cancelButton);
+    }
+
+    /**
+     * Le joueur a annulé la confirmation : on rend leurs emplacements aux objets
+     * mis de côté et on revient à l'état normal de la GUI.
+     */
+    public void cancelConfirmation(Inventory gui, SellHolder holder) {
+        List<ItemStack> pending = holder.getPendingItems();
+        holder.setConfirming(false);
+        holder.setPendingItems(null);
+
+        for (int slot : SellHolder.ITEM_SLOTS) {
+            gui.setItem(slot, null);
+        }
+
+        if (pending != null) {
+            int index = 0;
+            for (ItemStack stack : pending) {
+                if (index >= SellHolder.ITEM_SLOTS.length) {
+                    break;
+                }
+                gui.setItem(SellHolder.ITEM_SLOTS[index], stack);
+                index++;
+            }
+        }
+
+        renderNormalState(gui);
+    }
+
+    /**
+     * Étape 2 : le joueur a confirmé. On vend réellement les objets mis de côté
+     * lors de askConfirmation, puis on ferme la GUI.
+     */
+    public void confirmSale(Player player, Inventory gui, SellHolder holder) {
+        List<ItemStack> pending = holder.getPendingItems();
+        holder.setConfirming(false);
+        holder.setPendingItems(null);
+
+        if (pending == null || pending.isEmpty()) {
+            player.closeInventory();
+            return;
+        }
+
+        double total = 0.0;
+        int itemsSold = 0;
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+
+        for (ItemStack stack : pending) {
+            double unitPrice = pricesManager.getPrice(stack.getType());
+            if (unitPrice <= 0) {
+                // Ne devrait pas arriver (déjà filtré au moment du snapshot), mais on
+                // rend l'objet au joueur par sécurité s'il n'est pas vendable.
+                returnSingleItem(player, stack);
+                continue;
+            }
+            total += unitPrice * stack.getAmount();
+            itemsSold += stack.getAmount();
+        }
+
+        if (itemsSold > 0) {
+            economyManager.deposit(player.getUniqueId(), total);
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&aᴠᴇɴᴛᴇ ᴇꜰꜰᴇᴄᴛᴜᴇᴇ : &e" + itemsSold + " ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ &e"
+                            + MoneyFormat.format(total) + currency + "&a."));
+        } else {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));
+        }
+
+        for (int slot : SellHolder.ITEM_SLOTS) {
+            gui.setItem(slot, null);
+        }
+
+        player.closeInventory();
+    }
+
+    private void returnSingleItem(Player player, ItemStack stack) {
+        for (ItemStack leftover : player.getInventory().addItem(stack).values()) {
+            player.getWorld().dropItem(player.getLocation(), leftover);
+        }
+    }
+
+    /**
+     * Rend au joueur les objets restants dans la GUI (appelé à la fermeture de l'inventaire).
+     * Si le joueur ferme la GUI pendant l'étape de confirmation, on lui rend les objets
+     * mis de côté (pendingItems) plutôt que le contenu visuel (masqué par des vitres).
+     */
+    public void returnItems(Player player, Inventory gui, SellHolder holder) {
+        if (holder.isConfirming() && holder.getPendingItems() != null) {
+            for (ItemStack stack : holder.getPendingItems()) {
+                returnSingleItem(player, stack);
+            }
+            holder.setPendingItems(null);
+            holder.setConfirming(false);
+            return;
+        }
+
+        for (int slot : SellHolder.ITEM_SLOTS) {
+            ItemStack stack = gui.getItem(slot);
+            if (stack == null || stack.getType() == Material.AIR) {
+                continue;
+            }
+            gui.setItem(slot, null);
+            returnSingleItem(player, stack);
+        }
+    }
+}

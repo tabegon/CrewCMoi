@@ -1,11 +1,11 @@
 package fr.crewcmoi.managers;
 
-import fr.crewcmoi.auction.AuctionItem;
-import fr.crewcmoi.database.BountyEntry;
-import fr.crewcmoi.database.BountyTarget;
-import fr.crewcmoi.database.ClaimData;
-import fr.crewcmoi.database.ClaimFlag;
-import fr.crewcmoi.database.ClaimPermission;
+import fr.crewcmoi.economie.auction.AuctionItem;
+import fr.crewcmoi.pvp.database.BountyEntry;
+import fr.crewcmoi.pvp.database.BountyTarget;
+import fr.crewcmoi.claims.database.ClaimData;
+import fr.crewcmoi.claims.database.ClaimFlag;
+import fr.crewcmoi.claims.database.ClaimPermission;
 import fr.crewcmoi.database.HomeData;
 import fr.crewcmoi.database.PlayerData;
 import fr.crewcmoi.database.TeamData;

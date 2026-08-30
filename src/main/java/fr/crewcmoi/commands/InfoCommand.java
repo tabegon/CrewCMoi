@@ -1,10 +1,10 @@
 package fr.crewcmoi.commands;
 
 import fr.crewcmoi.Main;
-import fr.crewcmoi.database.BountyEntry;
+import fr.crewcmoi.pvp.database.BountyEntry;
 import fr.crewcmoi.database.PlayerData;
-import fr.crewcmoi.managers.BountyManager;
-import fr.crewcmoi.managers.MalusEffectManager;
+import fr.crewcmoi.pvp.managers.BountyManager;
+import fr.crewcmoi.pvp.managers.MalusEffectManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

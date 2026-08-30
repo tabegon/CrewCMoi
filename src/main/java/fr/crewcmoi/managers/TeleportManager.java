@@ -1,6 +1,7 @@
 package fr.crewcmoi.managers;
 
 import fr.crewcmoi.Main;
+import fr.crewcmoi.pvp.managers.CombatManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

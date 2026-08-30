@@ -1,63 +1,72 @@
 package fr.crewcmoi;
 
-import fr.crewcmoi.commands.AuctionCommand;
-import fr.crewcmoi.commands.BalanceCommand;
-import fr.crewcmoi.commands.BalanceTopCommand;
-import fr.crewcmoi.commands.BountyCommand;
-import fr.crewcmoi.commands.ClaimCommand;
-import fr.crewcmoi.commands.DuelAcceptCommand;
-import fr.crewcmoi.commands.DuelCommand;
+import fr.crewcmoi.claims.commands.ClaimCommand;
+import fr.crewcmoi.claims.gui.ClaimAuctionGuiManager;
+import fr.crewcmoi.claims.gui.ClaimSettingsGuiManager;
+import fr.crewcmoi.claims.gui.ClaimShopGuiManager;
+import fr.crewcmoi.claims.listeners.ClaimListener;
+import fr.crewcmoi.claims.managers.ClaimManager;
+import fr.crewcmoi.claims.managers.ClaimVisualizer;
 import fr.crewcmoi.commands.HomeCommand;
 import fr.crewcmoi.commands.InfoCommand;
-import fr.crewcmoi.commands.MoneyCommand;
-import fr.crewcmoi.commands.PayCommand;
-import fr.crewcmoi.commands.SellCommand;
 import fr.crewcmoi.commands.SetHomeCommand;
 import fr.crewcmoi.commands.SpawnCommand;
 import fr.crewcmoi.commands.TeamCommand;
 import fr.crewcmoi.commands.TpAcceptCommand;
 import fr.crewcmoi.commands.TpaCommand;
 import fr.crewcmoi.commands.TpaHereCommand;
-import fr.crewcmoi.gui.AuctionGuiManager;
-import fr.crewcmoi.gui.BountyGuiManager;
-import fr.crewcmoi.gui.BountyReviewGuiManager;
-import fr.crewcmoi.gui.ClaimAuctionGuiManager;
-import fr.crewcmoi.gui.ClaimSettingsGuiManager;
-import fr.crewcmoi.gui.ClaimShopGuiManager;
-import fr.crewcmoi.gui.DuelConfigGuiManager;
-import fr.crewcmoi.gui.SellGuiManager;
-import fr.crewcmoi.listeners.BountyListener;
-import fr.crewcmoi.listeners.ClaimListener;
-import fr.crewcmoi.listeners.CoinItemListener;
-import fr.crewcmoi.listeners.CombatListener;
-import fr.crewcmoi.listeners.DuelListener;
+import fr.crewcmoi.economie.commands.AuctionCommand;
+import fr.crewcmoi.economie.commands.BalanceCommand;
+import fr.crewcmoi.economie.commands.BalanceTopCommand;
+import fr.crewcmoi.economie.commands.MoneyCommand;
+import fr.crewcmoi.economie.commands.PayCommand;
+import fr.crewcmoi.economie.commands.SellCommand;
+import fr.crewcmoi.economie.gui.AuctionGuiManager;
+import fr.crewcmoi.economie.gui.SellGuiManager;
+import fr.crewcmoi.economie.listeners.CoinItemListener;
+import fr.crewcmoi.economie.listeners.SellNpcListener;
+import fr.crewcmoi.economie.managers.AuctionManager;
+import fr.crewcmoi.economie.managers.EconomyManager;
+import fr.crewcmoi.economie.managers.PricesManager;
+import fr.crewcmoi.economie.vault.VaultEconomyProvider;
 import fr.crewcmoi.listeners.GuiListener;
 import fr.crewcmoi.listeners.JoinListener;
-import fr.crewcmoi.listeners.SellNpcListener;
-import fr.crewcmoi.managers.AuctionManager;
-import fr.crewcmoi.managers.BountyManager;
-import fr.crewcmoi.managers.BountyScoreboardManager;
-import fr.crewcmoi.managers.ClaimManager;
-import fr.crewcmoi.managers.ClaimVisualizer;
-import fr.crewcmoi.managers.CombatManager;
 import fr.crewcmoi.managers.DatabaseManager;
-import fr.crewcmoi.managers.DuelManager;
-import fr.crewcmoi.managers.EconomyManager;
 import fr.crewcmoi.managers.HomeManager;
-import fr.crewcmoi.managers.MalusEffectManager;
-import fr.crewcmoi.managers.PricesManager;
 import fr.crewcmoi.managers.SQLiteManager;
 import fr.crewcmoi.managers.TeamManager;
 import fr.crewcmoi.managers.TeleportManager;
-import fr.crewcmoi.vault.VaultEconomyProvider;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
+import fr.crewcmoi.pvp.commands.BountyCommand;
+import fr.crewcmoi.pvp.commands.DuelAcceptCommand;
+import fr.crewcmoi.pvp.commands.DuelCommand;
+import fr.crewcmoi.pvp.gui.BountyGuiManager;
+import fr.crewcmoi.pvp.gui.BountyReviewGuiManager;
+import fr.crewcmoi.pvp.gui.DuelConfigGuiManager;
+import fr.crewcmoi.pvp.listeners.BountyListener;
+import fr.crewcmoi.pvp.listeners.CombatListener;
+import fr.crewcmoi.pvp.listeners.DuelListener;
+import fr.crewcmoi.pvp.listeners.InvisibilityListener;
+import fr.crewcmoi.pvp.managers.BountyManager;
+import fr.crewcmoi.pvp.managers.BountyScoreboardManager;
+import fr.crewcmoi.pvp.managers.CombatManager;
+import fr.crewcmoi.pvp.managers.DuelManager;
+import fr.crewcmoi.pvp.managers.InvisibilityManager;
+import fr.crewcmoi.pvp.managers.MalusEffectManager;
+import fr.crewcmoi.tab.commands.RoleCommand;
+import fr.crewcmoi.tab.listeners.TabListListener;
+import fr.crewcmoi.tab.managers.TabListManager;
+import fr.crewcmoi.tab.roles.RoleManager;
+import fr.crewcmoi.tab.staffmode.StaffCommand;
+import fr.crewcmoi.tab.staffmode.StaffModeListener;
+import fr.crewcmoi.tab.staffmode.StaffModeManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
 
@@ -85,6 +94,10 @@ public class Main extends JavaPlugin {
     private ClaimAuctionGuiManager claimAuctionGuiManager;
     private DuelManager duelManager;
     private DuelConfigGuiManager duelConfigGuiManager;
+    private InvisibilityManager invisibilityManager;
+    private RoleManager roleManager;
+    private TabListManager tabListManager;
+    private StaffModeManager staffModeManager;
     private FileConfiguration messages;
     private File messagesFile;
 
@@ -124,14 +137,30 @@ public class Main extends JavaPlugin {
         this.claimAuctionGuiManager = new ClaimAuctionGuiManager(this, claimManager);
         this.duelManager = new DuelManager(this, economyManager, combatManager);
         this.duelConfigGuiManager = new DuelConfigGuiManager(this, duelManager);
+        this.roleManager = new RoleManager(this);
+        this.tabListManager = new TabListManager(this, roleManager);
+        this.staffModeManager = new StaffModeManager(this, roleManager, tabListManager);
+        this.invisibilityManager = new InvisibilityManager(this);
+        // Permet à l'invisibilité de réappliquer la team de rôle (préfixe/tri du tab)
+        // d'un joueur dès la fin de son invisibilité (voir InvisibilityManager).
+        this.invisibilityManager.setTabListManager(tabListManager);
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager), this);
-        getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager), this);
+        getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager, invisibilityManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
         getServer().getPluginManager().registerEvents(new ClaimListener(this, claimManager), this);
         getServer().getPluginManager().registerEvents(new DuelListener(this, duelManager, duelConfigGuiManager), this);
+        // Rend le pseudo d'un joueur invisible (potion) invisible pour tout le monde
+        // (nametag masqué) et anonymise son nom en cas de kill (voir BountyListener).
+        getServer().getPluginManager().registerEvents(new InvisibilityListener(invisibilityManager), this);
+        // Applique le préfixe de rôle (Fonda/Admin/Dev/Mod/Vip/Player) et le tri dans
+        // le tab dès la connexion d'un joueur (voir fr.crewcmoi.tab).
+        getServer().getPluginManager().registerEvents(new TabListListener(tabListManager), this);
+        // Restaure le mode incognito (/staff) d'un joueur qui se reconnecte alors
+        // qu'il l'avait laissé activé (priorité NORMAL, avant TabListListener en MONITOR).
+        getServer().getPluginManager().registerEvents(new StaffModeListener(staffModeManager, roleManager), this);
         // Citizens est nécessaire pour déclencher /sell via clic droit sur le NPC d'id 1 :
         // on n'enregistre ce listener (qui référence les classes de son API) que s'il est
         // bien installé et activé, pour éviter un crash au démarrage si absent.
@@ -171,7 +200,7 @@ public class Main extends JavaPlugin {
         // config de nametag pour qu'elle soit réellement visible en jeu. Optionnel comme
         // ItemsAdder ci-dessus : on ne s'enregistre que si PlaceholderAPI est bien présent.
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            new fr.crewcmoi.placeholder.BountyPlaceholderExpansion(this, bountyManager).register();
+            new fr.crewcmoi.pvp.placeholder.BountyPlaceholderExpansion(this, bountyManager).register();
             getLogger().info("Placeholders CrewCMoi enregistrés auprès de PlaceholderAPI "
                     + "(%crewcmoi_bounty%, %crewcmoi_bounty_suffix%, %crewcmoi_has_bounty%).");
         } else {
@@ -201,6 +230,8 @@ public class Main extends JavaPlugin {
         registerCommand("claims", claimCommand);
         registerCommand("duel", new DuelCommand(this, duelManager, duelConfigGuiManager, combatManager));
         registerCommand("duelaccept", new DuelAcceptCommand(this, duelManager));
+        registerCommand("role", new RoleCommand(this, roleManager, tabListManager));
+        registerCommand("staff", new StaffCommand(staffModeManager));
 
         getLogger().info("EconomyPlugin activé avec succès !");
     }
@@ -329,6 +360,22 @@ public class Main extends JavaPlugin {
 
     public DuelConfigGuiManager getDuelConfigGuiManager() {
         return duelConfigGuiManager;
+    }
+
+    public InvisibilityManager getInvisibilityManager() {
+        return invisibilityManager;
+    }
+
+    public RoleManager getRoleManager() {
+        return roleManager;
+    }
+
+    public TabListManager getTabListManager() {
+        return tabListManager;
+    }
+
+    public StaffModeManager getStaffModeManager() {
+        return staffModeManager;
     }
 
 }

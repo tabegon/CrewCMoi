@@ -1,7 +1,7 @@
 package fr.crewcmoi.commands;
 
 import fr.crewcmoi.Main;
-import fr.crewcmoi.managers.CombatManager;
+import fr.crewcmoi.pvp.managers.CombatManager;
 import fr.crewcmoi.managers.TeleportManager;
 import fr.crewcmoi.utils.TeleportMessages;
 import org.bukkit.Bukkit;

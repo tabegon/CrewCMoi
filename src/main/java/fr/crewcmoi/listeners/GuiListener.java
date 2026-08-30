@@ -1,26 +1,26 @@
 package fr.crewcmoi.listeners;
 
 import fr.crewcmoi.Main;
-import fr.crewcmoi.database.ClaimFlag;
-import fr.crewcmoi.database.ClaimPermission;
-import fr.crewcmoi.gui.AuctionGuiManager;
-import fr.crewcmoi.gui.AuctionHolder;
-import fr.crewcmoi.gui.BountyGuiManager;
-import fr.crewcmoi.gui.BountyHolder;
-import fr.crewcmoi.gui.BountyReviewGuiManager;
-import fr.crewcmoi.gui.BountyReviewHolder;
-import fr.crewcmoi.gui.ClaimAuctionGuiManager;
-import fr.crewcmoi.gui.ClaimAuctionHolder;
-import fr.crewcmoi.gui.ClaimSettingsGuiManager;
-import fr.crewcmoi.gui.ClaimSettingsHolder;
-import fr.crewcmoi.gui.ClaimShopGuiManager;
-import fr.crewcmoi.gui.ClaimShopHolder;
+import fr.crewcmoi.claims.database.ClaimFlag;
+import fr.crewcmoi.claims.database.ClaimPermission;
+import fr.crewcmoi.economie.gui.AuctionGuiManager;
+import fr.crewcmoi.economie.gui.AuctionHolder;
+import fr.crewcmoi.pvp.gui.BountyGuiManager;
+import fr.crewcmoi.pvp.gui.BountyHolder;
+import fr.crewcmoi.pvp.gui.BountyReviewGuiManager;
+import fr.crewcmoi.pvp.gui.BountyReviewHolder;
+import fr.crewcmoi.claims.gui.ClaimAuctionGuiManager;
+import fr.crewcmoi.claims.gui.ClaimAuctionHolder;
+import fr.crewcmoi.claims.gui.ClaimSettingsGuiManager;
+import fr.crewcmoi.claims.gui.ClaimSettingsHolder;
+import fr.crewcmoi.claims.gui.ClaimShopGuiManager;
+import fr.crewcmoi.claims.gui.ClaimShopHolder;
 import fr.crewcmoi.gui.ConfirmationHolder;
-import fr.crewcmoi.gui.SellGuiManager;
-import fr.crewcmoi.gui.SellHolder;
-import fr.crewcmoi.managers.AuctionManager;
-import fr.crewcmoi.managers.BountyManager;
-import fr.crewcmoi.managers.ClaimManager;
+import fr.crewcmoi.economie.gui.SellGuiManager;
+import fr.crewcmoi.economie.gui.SellHolder;
+import fr.crewcmoi.economie.managers.AuctionManager;
+import fr.crewcmoi.pvp.managers.BountyManager;
+import fr.crewcmoi.claims.managers.ClaimManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -251,7 +251,7 @@ public class GuiListener implements Listener {
             return;
         }
 
-        fr.crewcmoi.managers.ClaimManager.ShopResult result = claimManager.buyExtraClaim(player);
+        fr.crewcmoi.claims.managers.ClaimManager.ShopResult result = claimManager.buyExtraClaim(player);
         String prefix = plugin.getMessages().getString("prefix", "");
         switch (result) {
             case SUCCESS:
