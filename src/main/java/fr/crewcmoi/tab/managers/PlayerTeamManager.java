@@ -23,7 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * scoreboard. Or plusieurs fonctionnalités du plugin ont besoin d'afficher
  * quelque chose via une team : le préfixe de rôle (voir TabListManager), le
  * suffixe de prime (voir BountyScoreboardManager), et le masquage du pseudo
- * pendant l'invisibilité (voir InvisibilityManager). Les gérer chacune avec
+ * pendant l'invisibilité (voir InvisibilityManager) — qui masque à la fois le
+ * pseudo flottant au-dessus de la tête ET le préfixe/suffixe dans le tab (rang,
+ * prime), pour qu'un joueur invisible reste vraiment anonyme partout. Les gérer chacune avec
  * leur propre team se marchait dessus : la dernière appliquée "volait"
  * l'entrée du joueur et faisait disparaître l'effet des autres (ex : un
  * joueur avec une prime active qui recevait son rôle dans le tab perdait le
@@ -127,7 +129,13 @@ public class PlayerTeamManager {
         }
     }
 
-    /** Masque ou réaffiche le pseudo au-dessus de la tête d'un joueur, pour tout le monde. */
+    /**
+     * Masque ou réaffiche, pour tout le monde, à la fois le pseudo au-dessus de
+     * la tête du joueur ET son préfixe/suffixe dans le tab (rôle, prime) —
+     * utilisé pendant l'invisibilité pour qu'il reste vraiment anonyme partout,
+     * pas seulement dans le monde. Le rôle/la prime réels ne sont pas oubliés :
+     * ils réapparaissent tels quels dès que hidden repasse à false.
+     */
     public void setNameTagHidden(Player player, boolean hidden) {
         UUID uuid = player.getUniqueId();
         names.put(uuid, player.getName());
@@ -205,8 +213,8 @@ public class PlayerTeamManager {
             team.addEntry(entryName);
         }
 
-        team.setPrefix(cut(prefixes.getOrDefault(uuid, ""), 64));
-        team.setSuffix(cut(suffixes.getOrDefault(uuid, ""), 64));
+        team.setPrefix(hiddenNameTags.getOrDefault(uuid, false) ? "" : cut(prefixes.getOrDefault(uuid, ""), 64));
+        team.setSuffix(hiddenNameTags.getOrDefault(uuid, false) ? "" : cut(suffixes.getOrDefault(uuid, ""), 64));
         team.setOption(Team.Option.NAME_TAG_VISIBILITY,
                 hiddenNameTags.getOrDefault(uuid, false) ? Team.OptionStatus.NEVER : Team.OptionStatus.ALWAYS);
     }

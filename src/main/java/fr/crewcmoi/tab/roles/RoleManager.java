@@ -156,6 +156,14 @@ public class RoleManager {
      * Détermine le rôle RÉEL d'un joueur, en ignorant le mode incognito (/staff).
      * Utilisé pour vérifier qu'un joueur a bien un rôle staff (Fonda/Admin/Dev/Mod)
      * avant de l'autoriser à utiliser /staff, même s'il est déjà en incognito.
+     * <p>
+     * Retient le rôle avec le PLUS HAUT poids parmi toutes les permissions
+     * possédées (ex : un joueur qui a à la fois "crew.role.vip" et
+     * "crew.role.admin" est considéré Admin, pas Vip). Un OP possède
+     * implicitement toutes les permissions non déclarées ailleurs — donc, tant
+     * qu'aucun rôle manuel n'est fixé (voir /rank set), un OP est
+     * automatiquement reconnu comme Fonda (le rôle le plus élevé). Pour lui
+     * donner un rôle réel différent (Admin/Dev/Mod), utilise /rank set.
      */
     public Role getRealRole(Player player) {
         Role manual = manualRoles.get(player.getUniqueId());
@@ -165,7 +173,7 @@ public class RoleManager {
 
         Role best = null;
         for (Role role : Role.values()) {
-            if (player.hasPermission(getPermission(role)) && (best == null || role.getWeight() < best.getWeight())) {
+            if (player.hasPermission(getPermission(role)) && (best == null || role.getWeight() > best.getWeight())) {
                 best = role;
             }
         }

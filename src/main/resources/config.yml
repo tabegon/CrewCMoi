@@ -92,20 +92,20 @@ coin-item:
 # ne mets rien, les valeurs par défaut du plugin sont utilisées.
 roles:
   fonda:
-    prefix: "&6- Fonda &f"
+    prefix: ""
     permission: "crew.role.fonda"
   admin:
-    prefix: "&4- Admin &f"
+    prefix: "&4Admin &f"
     permission: "crew.role.admin"
   dev:
-    prefix: "&d- Dev &f"
+    prefix: ""
     permission: "crew.role.dev"
   mod:
-    prefix: "&9- Mod &f"
+    prefix: ""
     permission: "crew.role.mod"
   vip:
-    prefix: "&a- Vip &f"
+    prefix: ""
     permission: "crew.role.vip"
   player:
-    prefix: "&7- Player &f"
+    prefix: ""
     permission: "crew.role.player"
