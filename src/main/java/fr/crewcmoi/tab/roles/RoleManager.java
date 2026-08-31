@@ -17,14 +17,14 @@ import java.util.logging.Level;
 
 /**
  * Détermine le rôle affiché pour chaque joueur, et gère les attributions
- * manuelles (/role set), persistées dans un fichier roles.yml séparé (pas dans
+ * manuelles (/rank set), persistées dans un fichier roles.yml séparé (pas dans
  * la base SQLite du reste du plugin, pour rester totalement autonome).
  *
  * Un joueur a un rôle déterminé, dans l'ordre de priorité suivant :
  *  0. S'il est en "mode incognito" (voir /staff, StaffModeManager) : Player,
  *     quel que soit son rôle réel — le temps de ce mode, il apparaît comme un
  *     joueur normal dans le tab (voir getRole vs getRealRole) ;
- *  1. Sinon, rôle attribué manuellement via /role set (persisté dans roles.yml) ;
+ *  1. Sinon, rôle attribué manuellement via /rank set (persisté dans roles.yml) ;
  *  2. Sinon, le plus haut rôle (voir Role#getWeight) dont il a la permission
  *     associée (par défaut "crew.role.<id>", personnalisable en config.yml) ;
  *  3. Sinon Role.getDefault() (PLAYER).
@@ -92,7 +92,7 @@ public class RoleManager {
     /**
      * Attribue manuellement un rôle à un joueur (persisté dans roles.yml). Reste
      * actif tant qu'il n'est pas retiré via clearRole, même après reconnexion.
-     * Voir RoleCommand ("/role set <joueur> <rôle>").
+     * Voir RoleCommand ("/rank set <joueur> <rôle>").
      */
     public void setRole(UUID uuid, Role role) {
         manualRoles.put(uuid, role);
@@ -111,7 +111,7 @@ public class RoleManager {
     }
 
     /**
-     * Rôle assigné manuellement à ce joueur (/role set), ou null s'il n'en a pas
+     * Rôle assigné manuellement à ce joueur (/rank set), ou null s'il n'en a pas
      * (son rôle est alors déterminé par ses permissions).
      */
     public Role getManualRole(UUID uuid) {

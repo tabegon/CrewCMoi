@@ -32,7 +32,7 @@ public enum Role {
 
     /**
      * Identifiant utilisé en config.yml (section "roles.<id>") et dans les
-     * commandes (ex: /role set Steve dev).
+     * commandes (ex: /rank set Steve dev).
      */
     public String getId() {
         return id;

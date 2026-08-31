@@ -19,6 +19,6 @@ public class TabListListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        tabListManager.applyRole(event.getPlayer());
+        tabListManager.onPlayerJoin(event.getPlayer());
     }
 }

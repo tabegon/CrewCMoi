@@ -54,6 +54,7 @@ import fr.crewcmoi.pvp.managers.InvisibilityManager;
 import fr.crewcmoi.pvp.managers.MalusEffectManager;
 import fr.crewcmoi.tab.commands.RoleCommand;
 import fr.crewcmoi.tab.listeners.TabListListener;
+import fr.crewcmoi.tab.managers.PlayerTeamManager;
 import fr.crewcmoi.tab.managers.TabListManager;
 import fr.crewcmoi.tab.roles.RoleManager;
 import fr.crewcmoi.tab.staffmode.StaffCommand;
@@ -97,6 +98,7 @@ public class Main extends JavaPlugin {
     private InvisibilityManager invisibilityManager;
     private RoleManager roleManager;
     private TabListManager tabListManager;
+    private PlayerTeamManager playerTeamManager;
     private StaffModeManager staffModeManager;
     private FileConfiguration messages;
     private File messagesFile;
@@ -122,8 +124,11 @@ public class Main extends JavaPlugin {
         this.combatManager.startActionBar();
         this.teamManager = new TeamManager(this, databaseManager);
         this.malusEffectManager = new MalusEffectManager(this);
-        this.bountyScoreboardManager = new BountyScoreboardManager(this);
-        this.bountyScoreboardManager.start();
+        // Gestionnaire central des teams scoreboard "par joueur" (préfixe de rôle,
+        // suffixe de prime, masquage du pseudo en invisibilité) : voir sa Javadoc.
+        this.playerTeamManager = new PlayerTeamManager(this);
+        this.playerTeamManager.start();
+        this.bountyScoreboardManager = new BountyScoreboardManager(this, playerTeamManager);
         this.bountyManager = new BountyManager(this, databaseManager, economyManager, malusEffectManager, bountyScoreboardManager);
         this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
         this.bountyReviewGuiManager = new BountyReviewGuiManager(this, bountyManager);
@@ -138,12 +143,9 @@ public class Main extends JavaPlugin {
         this.duelManager = new DuelManager(this, economyManager, combatManager);
         this.duelConfigGuiManager = new DuelConfigGuiManager(this, duelManager);
         this.roleManager = new RoleManager(this);
-        this.tabListManager = new TabListManager(this, roleManager);
+        this.tabListManager = new TabListManager(this, roleManager, playerTeamManager);
         this.staffModeManager = new StaffModeManager(this, roleManager, tabListManager);
-        this.invisibilityManager = new InvisibilityManager(this);
-        // Permet à l'invisibilité de réappliquer la team de rôle (préfixe/tri du tab)
-        // d'un joueur dès la fin de son invisibilité (voir InvisibilityManager).
-        this.invisibilityManager.setTabListManager(tabListManager);
+        this.invisibilityManager = new InvisibilityManager(this, playerTeamManager);
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer), this);
@@ -230,7 +232,7 @@ public class Main extends JavaPlugin {
         registerCommand("claims", claimCommand);
         registerCommand("duel", new DuelCommand(this, duelManager, duelConfigGuiManager, combatManager));
         registerCommand("duelaccept", new DuelAcceptCommand(this, duelManager));
-        registerCommand("role", new RoleCommand(this, roleManager, tabListManager));
+        registerCommand("rank", new RoleCommand(this, roleManager, tabListManager));
         registerCommand("staff", new StaffCommand(staffModeManager));
 
         getLogger().info("EconomyPlugin activé avec succès !");
@@ -241,8 +243,8 @@ public class Main extends JavaPlugin {
         if (combatManager != null) {
             combatManager.stopActionBar();
         }
-        if (bountyScoreboardManager != null) {
-            bountyScoreboardManager.stop();
+        if (playerTeamManager != null) {
+            playerTeamManager.stop();
         }
         if (databaseManager != null) {
             databaseManager.disconnect();

@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Commande /role :
- *  - /role                          : affiche votre propre rôle.
- *  - /role <joueur>                 : affiche le rôle d'un autre joueur.
- *  - /role list                     : liste tous les rôles disponibles (dans l'ordre du tab).
- *  - /role set <joueur> <rôle>      : (admin) attribue manuellement un rôle à un joueur.
- *  - /role clear <joueur>           : (admin) retire l'attribution manuelle (retombe sur les permissions).
+ * Commande /rank :
+ *  - /rank                          : affiche votre propre rôle.
+ *  - /rank <joueur>                 : affiche le rôle d'un autre joueur.
+ *  - /rank list                     : liste tous les rôles disponibles (dans l'ordre du tab).
+ *  - /rank set <joueur> <rôle>      : (admin) attribue manuellement un rôle à un joueur.
+ *  - /rank clear <joueur>           : (admin) retire l'attribution manuelle (retombe sur les permissions).
  */
 public class RoleCommand implements CommandExecutor, TabCompleter {
 
@@ -41,7 +41,7 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
             if (!(sender instanceof Player)) {
-                sendMessage(sender, "&cPrécisez un joueur : /role <joueur>");
+                sendMessage(sender, "&cPrécisez un joueur : /rank <joueur>");
                 return true;
             }
             Role role = roleManager.getRole((Player) sender);
@@ -58,12 +58,12 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args[0].equalsIgnoreCase("set")) {
-            if (!sender.hasPermission("crew.role.set")) {
+            if (!sender.hasPermission("crew.rank.set")) {
                 sendMessage(sender, "&cVous n'avez pas la permission d'utiliser cette commande.");
                 return true;
             }
             if (args.length < 3) {
-                sendMessage(sender, "&cUsage : /role set <joueur> <" + rolesIdsJoined() + ">");
+                sendMessage(sender, "&cUsage : /rank set <joueur> <" + rolesIdsJoined() + ">");
                 return true;
             }
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
@@ -87,12 +87,12 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args[0].equalsIgnoreCase("clear")) {
-            if (!sender.hasPermission("crew.role.set")) {
+            if (!sender.hasPermission("crew.rank.set")) {
                 sendMessage(sender, "&cVous n'avez pas la permission d'utiliser cette commande.");
                 return true;
             }
             if (args.length < 2) {
-                sendMessage(sender, "&cUsage : /role clear <joueur>");
+                sendMessage(sender, "&cUsage : /rank clear <joueur>");
                 return true;
             }
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
@@ -105,7 +105,7 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // /role <joueur> : affiche le rôle d'un autre joueur
+        // /rank <joueur> : affiche le rôle d'un autre joueur
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
         if (!target.isOnline()) {
             sendMessage(sender, "&cCe joueur n'est pas en ligne.");
@@ -122,7 +122,7 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             completions.add("list");
-            if (sender.hasPermission("crew.role.set")) {
+            if (sender.hasPermission("crew.rank.set")) {
                 completions.add("set");
                 completions.add("clear");
             }

@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
  * habituel, vrai rôle affiché dans le tab) et son état incognito (inventaire
  * dédié au staff, affiché comme "Player" dans le tab). Voir StaffModeManager.
  * Réservé aux vrais rôles Fonda/Admin/Dev/Mod (Vip/Player ne peuvent pas
- * l'utiliser, même avec un rôle manuel via /role set).
+ * l'utiliser, même avec un rôle manuel via /rank set).
  */
 public class StaffCommand implements CommandExecutor {
 

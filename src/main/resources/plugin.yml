@@ -74,16 +74,16 @@ commands:
   duelaccept:
     description: Accepte (ou refuse avec "deny") la demande de duel reçue.
     usage: /duelaccept [deny]
-  role:
+  rank:
     description: Affiche ou gère les rôles (Player/Vip/Mod/Dev/Admin/Fonda) affichés dans le tab.
-    usage: /role [joueur|list|set <joueur> <rôle>|clear <joueur>]
+    usage: /rank [joueur|list|set <joueur> <rôle>|clear <joueur>]
   staff:
     description: Bascule entre ton inventaire/rôle normal et ton inventaire/mode staff incognito (Player dans le tab).
     usage: /staff
 
 permissions:
-  crew.role.set:
-    description: Permet d'attribuer/retirer manuellement un rôle à un joueur (/role set, /role clear).
+  crew.rank.set:
+    description: Permet d'attribuer/retirer manuellement un rôle à un joueur (/rank set, /rank clear).
     default: op
   crew.balance.others:
     description: Permet de voir le solde d'un autre joueur.
