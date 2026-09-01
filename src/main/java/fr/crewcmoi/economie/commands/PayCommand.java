@@ -1,7 +1,7 @@
 package fr.crewcmoi.economie.commands;
 
 import fr.crewcmoi.Main;
-import fr.crewcmoi.database.PlayerData;
+import fr.crewcmoi.other.database.PlayerData;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 

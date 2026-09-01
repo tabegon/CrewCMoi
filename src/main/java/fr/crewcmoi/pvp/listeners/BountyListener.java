@@ -5,7 +5,7 @@ import fr.crewcmoi.pvp.managers.BountyManager;
 import fr.crewcmoi.pvp.managers.CombatManager;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import fr.crewcmoi.pvp.managers.InvisibilityManager;
-import fr.crewcmoi.managers.TeamManager;
+import fr.crewcmoi.pvp.managers.TeamManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,7 +13,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
-import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.MoneyFormat;
 import java.util.UUID;
 
 /**

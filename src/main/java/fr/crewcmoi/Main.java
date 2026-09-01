@@ -7,14 +7,14 @@ import fr.crewcmoi.claims.gui.ClaimShopGuiManager;
 import fr.crewcmoi.claims.listeners.ClaimListener;
 import fr.crewcmoi.claims.managers.ClaimManager;
 import fr.crewcmoi.claims.managers.ClaimVisualizer;
-import fr.crewcmoi.commands.HomeCommand;
-import fr.crewcmoi.commands.InfoCommand;
-import fr.crewcmoi.commands.SetHomeCommand;
-import fr.crewcmoi.commands.SpawnCommand;
-import fr.crewcmoi.commands.TeamCommand;
-import fr.crewcmoi.commands.TpAcceptCommand;
-import fr.crewcmoi.commands.TpaCommand;
-import fr.crewcmoi.commands.TpaHereCommand;
+import fr.crewcmoi.teleport.commands.HomeCommand;
+import fr.crewcmoi.moderation.commands.InfoCommand;
+import fr.crewcmoi.teleport.commands.SetHomeCommand;
+import fr.crewcmoi.teleport.commands.SpawnCommand;
+import fr.crewcmoi.pvp.commands.TeamCommand;
+import fr.crewcmoi.teleport.commands.TpAcceptCommand;
+import fr.crewcmoi.teleport.commands.TpaCommand;
+import fr.crewcmoi.teleport.commands.TpaHereCommand;
 import fr.crewcmoi.economie.commands.AuctionCommand;
 import fr.crewcmoi.economie.commands.BalanceCommand;
 import fr.crewcmoi.economie.commands.BalanceTopCommand;
@@ -29,13 +29,13 @@ import fr.crewcmoi.economie.managers.AuctionManager;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import fr.crewcmoi.economie.managers.PricesManager;
 import fr.crewcmoi.economie.vault.VaultEconomyProvider;
-import fr.crewcmoi.listeners.GuiListener;
-import fr.crewcmoi.listeners.JoinListener;
-import fr.crewcmoi.managers.DatabaseManager;
-import fr.crewcmoi.managers.HomeManager;
-import fr.crewcmoi.managers.SQLiteManager;
-import fr.crewcmoi.managers.TeamManager;
-import fr.crewcmoi.managers.TeleportManager;
+import fr.crewcmoi.other.listeners.GuiListener;
+import fr.crewcmoi.other.listeners.JoinListener;
+import fr.crewcmoi.other.managers.DatabaseManager;
+import fr.crewcmoi.teleport.managers.HomeManager;
+import fr.crewcmoi.other.managers.SQLiteManager;
+import fr.crewcmoi.pvp.managers.TeamManager;
+import fr.crewcmoi.teleport.managers.TeleportManager;
 import fr.crewcmoi.pvp.commands.BountyCommand;
 import fr.crewcmoi.pvp.commands.DuelAcceptCommand;
 import fr.crewcmoi.pvp.commands.DuelCommand;
@@ -52,14 +52,17 @@ import fr.crewcmoi.pvp.managers.CombatManager;
 import fr.crewcmoi.pvp.managers.DuelManager;
 import fr.crewcmoi.pvp.managers.InvisibilityManager;
 import fr.crewcmoi.pvp.managers.MalusEffectManager;
+import fr.crewcmoi.moderation.commands.StaffCommand;
+import fr.crewcmoi.moderation.commands.VanishCommand;
+import fr.crewcmoi.moderation.listeners.StaffModeListener;
+import fr.crewcmoi.moderation.listeners.VanishListener;
+import fr.crewcmoi.moderation.managers.StaffModeManager;
+import fr.crewcmoi.moderation.managers.VanishManager;
 import fr.crewcmoi.tab.commands.RoleCommand;
 import fr.crewcmoi.tab.listeners.TabListListener;
 import fr.crewcmoi.tab.managers.PlayerTeamManager;
 import fr.crewcmoi.tab.managers.TabListManager;
 import fr.crewcmoi.tab.roles.RoleManager;
-import fr.crewcmoi.tab.staffmode.StaffCommand;
-import fr.crewcmoi.tab.staffmode.StaffModeListener;
-import fr.crewcmoi.tab.staffmode.StaffModeManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,6 +103,7 @@ public class Main extends JavaPlugin {
     private TabListManager tabListManager;
     private PlayerTeamManager playerTeamManager;
     private StaffModeManager staffModeManager;
+    private VanishManager vanishManager;
     private FileConfiguration messages;
     private File messagesFile;
 
@@ -144,7 +148,8 @@ public class Main extends JavaPlugin {
         this.duelConfigGuiManager = new DuelConfigGuiManager(this, duelManager);
         this.roleManager = new RoleManager(this);
         this.tabListManager = new TabListManager(this, roleManager, playerTeamManager);
-        this.staffModeManager = new StaffModeManager(this, roleManager, tabListManager);
+        this.vanishManager = new VanishManager(this);
+        this.staffModeManager = new StaffModeManager(this, roleManager, tabListManager, vanishManager);
         this.invisibilityManager = new InvisibilityManager(this, playerTeamManager);
 
         // Enregistrement des listeners
@@ -163,6 +168,8 @@ public class Main extends JavaPlugin {
         // Restaure le mode incognito (/staff) d'un joueur qui se reconnecte alors
         // qu'il l'avait laissé activé (priorité NORMAL, avant TabListListener en MONITOR).
         getServer().getPluginManager().registerEvents(new StaffModeListener(staffModeManager, roleManager), this);
+        // Masque/affiche les joueurs vanish selon les connexions/déconnexions (voir VanishManager).
+        getServer().getPluginManager().registerEvents(new VanishListener(vanishManager), this);
         // Citizens est nécessaire pour déclencher /sell via clic droit sur le NPC d'id 1 :
         // on n'enregistre ce listener (qui référence les classes de son API) que s'il est
         // bien installé et activé, pour éviter un crash au démarrage si absent.
@@ -233,7 +240,8 @@ public class Main extends JavaPlugin {
         registerCommand("duel", new DuelCommand(this, duelManager, duelConfigGuiManager, combatManager));
         registerCommand("duelaccept", new DuelAcceptCommand(this, duelManager));
         registerCommand("rank", new RoleCommand(this, roleManager, tabListManager));
-        registerCommand("staff", new StaffCommand(staffModeManager));
+        registerCommand("staff", new StaffCommand(staffModeManager, roleManager, vanishManager));
+        registerCommand("vanish", new VanishCommand(staffModeManager, vanishManager));
 
         getLogger().info("EconomyPlugin activé avec succès !");
     }
@@ -378,6 +386,10 @@ public class Main extends JavaPlugin {
 
     public StaffModeManager getStaffModeManager() {
         return staffModeManager;
+    }
+
+    public VanishManager getVanishManager() {
+        return vanishManager;
     }
 
 }

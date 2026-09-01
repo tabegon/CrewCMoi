@@ -11,8 +11,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import fr.crewcmoi.utils.MoneyFormat;
-import fr.crewcmoi.utils.GuiItems;
+import fr.crewcmoi.other.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.GuiItems;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,11 +46,7 @@ public class SellGuiManager {
         player.openInventory(gui);
     }
 
-    /**
-     * Remet la GUI dans son état normal (remplissage décoratif + bouton "vendre"
-     * recalculé). N'affecte pas les slots 0-17 : ils doivent déjà contenir les
-     * bons objets (ou avoir été restaurés au préalable par l'appelant).
-     */
+
     private void renderNormalState(Inventory gui) {
         ItemStack filler = createFiller();
         for (int i = 18; i < SellHolder.SIZE; i++) {
@@ -63,10 +59,6 @@ public class SellGuiManager {
         return GuiItems.nothing(" ");
     }
 
-    /**
-     * Construit le bouton émeraude avec, dans son lore, le montant total
-     * actuellement calculé pour les objets présents dans la GUI.
-     */
     private ItemStack createConfirmButton(Inventory gui) {
         String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
         double total = 0.0;
@@ -111,19 +103,12 @@ public class SellGuiManager {
         return item;
     }
 
-    /**
-     * Recalcule et remet à jour le bouton émeraude (montant à gagner) après
-     * chaque ajout/retrait d'objet dans la GUI de vente.
-     */
+
     public void refreshConfirmButton(Inventory gui) {
         gui.setItem(SellHolder.SELL_SLOT, createConfirmButton(gui));
     }
 
-    /**
-     * Étape 1 : le joueur a cliqué sur "vendre". On calcule le récapitulatif,
-     * on met les objets de côté (pendingItems) et on bascule l'affichage sur
-     * un écran de confirmation avec des boutons confirmer/annuler.
-     */
+
     public void askConfirmation(Player player, Inventory gui, SellHolder holder) {
         List<ItemStack> snapshot = new ArrayList<>();
         double total = 0.0;

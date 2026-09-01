@@ -2,7 +2,7 @@ package fr.crewcmoi.pvp.placeholder;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.managers.BountyManager;
-import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.MoneyFormat;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;

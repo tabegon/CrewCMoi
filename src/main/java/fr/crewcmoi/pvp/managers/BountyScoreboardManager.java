@@ -2,7 +2,7 @@ package fr.crewcmoi.pvp.managers;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.tab.managers.PlayerTeamManager;
-import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.MoneyFormat;
 import org.bukkit.ChatColor;
 
 import java.util.UUID;

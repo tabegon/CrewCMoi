@@ -21,9 +21,11 @@ import java.util.logging.Level;
  * la base SQLite du reste du plugin, pour rester totalement autonome).
  *
  * Un joueur a un rôle déterminé, dans l'ordre de priorité suivant :
- *  0. S'il est en "mode incognito" (voir /staff, StaffModeManager) : Player,
- *     quel que soit son rôle réel — le temps de ce mode, il apparaît comme un
- *     joueur normal dans le tab (voir getRole vs getRealRole) ;
+ *  0. Si son rôle réel est un rôle de staff (Fonda/Admin/Dev/Mod, voir
+ *     Role#isStaffRole) ET qu'il n'a pas activé /staff : rôle de "façade" Vip,
+ *     quel que soit son rôle réel — son vrai rôle ne s'affiche QUE quand son
+ *     mode staff est actif (voir getRole vs getRealRole, et
+ *     StaffModeManager) ;
  *  1. Sinon, rôle attribué manuellement via /rank set (persisté dans roles.yml) ;
  *  2. Sinon, le plus haut rôle (voir Role#getWeight) dont il a la permission
  *     associée (par défaut "crew.role.<id>", personnalisable en config.yml) ;
@@ -39,7 +41,7 @@ public class RoleManager {
     private YamlConfiguration rolesConfig;
 
     private final Map<UUID, Role> manualRoles = new HashMap<>();
-    private final Set<UUID> incognito = new HashSet<>();
+    private final Set<UUID> staffModeActive = new HashSet<>();
 
     public RoleManager(Main plugin) {
         this.plugin = plugin;
@@ -118,44 +120,46 @@ public class RoleManager {
         return manualRoles.get(uuid);
     }
 
-    // ===================== Mode incognito (/staff) =====================
+    // ===================== Mode staff (/staff) =====================
 
     /**
-     * Active/désactive le mode incognito d'un joueur : tant qu'il est actif,
-     * {@link #getRole(Player)} renvoie toujours Player, quel que soit son rôle
-     * réel. Utilisé par StaffModeManager (/staff) pour permettre à un membre du
-     * staff de se faire passer pour un joueur normal dans le tab.
+     * Active/désactive le mode staff d'un joueur (voir StaffModeManager). Tant
+     * que son rôle réel est un rôle de staff et que ce mode N'est PAS actif,
+     * {@link #getRole(Player)} affiche le rôle de façade Vip à sa place.
      */
-    public void setIncognito(UUID uuid, boolean value) {
-        if (value) {
-            incognito.add(uuid);
+    public void setStaffModeActive(UUID uuid, boolean active) {
+        if (active) {
+            staffModeActive.add(uuid);
         } else {
-            incognito.remove(uuid);
+            staffModeActive.remove(uuid);
         }
     }
 
-    public boolean isIncognito(UUID uuid) {
-        return incognito.contains(uuid);
+    public boolean isStaffModeActive(UUID uuid) {
+        return staffModeActive.contains(uuid);
     }
 
     // ===================== Détection du rôle =====================
 
     /**
      * Détermine le rôle AFFICHÉ d'un joueur en ligne (voir priorité en tête de
-     * classe) : Player si le mode incognito (/staff) est actif, sinon son rôle
-     * réel (voir getRealRole).
+     * classe) : si son rôle réel est un rôle de staff et que son mode staff
+     * n'est pas actif, il apparaît comme Vip (façade) ; sinon son rôle réel
+     * (voir getRealRole) s'affiche normalement.
      */
     public Role getRole(Player player) {
-        if (incognito.contains(player.getUniqueId())) {
-            return Role.getDefault();
+        Role real = getRealRole(player);
+        if (real.isStaffRole() && !staffModeActive.contains(player.getUniqueId())) {
+            return Role.VIP;
         }
-        return getRealRole(player);
+        return real;
     }
 
     /**
-     * Détermine le rôle RÉEL d'un joueur, en ignorant le mode incognito (/staff).
-     * Utilisé pour vérifier qu'un joueur a bien un rôle staff (Fonda/Admin/Dev/Mod)
-     * avant de l'autoriser à utiliser /staff, même s'il est déjà en incognito.
+     * Détermine le rôle RÉEL d'un joueur, en ignorant la façade appliquée par
+     * le mode staff. Utilisé pour vérifier qu'un joueur a bien un rôle staff
+     * (Fonda/Admin/Dev/Mod) avant de l'autoriser à utiliser /staff ou /vanish,
+     * même s'il est actuellement affiché comme Vip.
      * <p>
      * Retient le rôle avec le PLUS HAUT poids parmi toutes les permissions
      * possédées (ex : un joueur qui a à la fois "crew.role.vip" et

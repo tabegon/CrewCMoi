@@ -3,7 +3,7 @@ package fr.crewcmoi.pvp.managers;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.database.BountyEntry;
 import fr.crewcmoi.pvp.database.BountyTarget;
-import fr.crewcmoi.managers.DatabaseManager;
+import fr.crewcmoi.other.managers.DatabaseManager;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

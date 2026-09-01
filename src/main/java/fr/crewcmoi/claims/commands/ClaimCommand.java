@@ -7,7 +7,7 @@ import fr.crewcmoi.claims.gui.ClaimSettingsGuiManager;
 import fr.crewcmoi.claims.gui.ClaimShopGuiManager;
 import fr.crewcmoi.claims.managers.ClaimManager;
 import fr.crewcmoi.claims.managers.ClaimVisualizer;
-import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.MoneyFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;

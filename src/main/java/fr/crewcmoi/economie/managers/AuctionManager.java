@@ -2,7 +2,7 @@ package fr.crewcmoi.economie.managers;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.auction.AuctionItem;
-import fr.crewcmoi.managers.DatabaseManager;
+import fr.crewcmoi.other.managers.DatabaseManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

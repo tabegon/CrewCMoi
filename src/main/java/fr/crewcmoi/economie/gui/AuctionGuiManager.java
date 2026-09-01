@@ -3,7 +3,7 @@ package fr.crewcmoi.economie.gui;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.auction.AuctionItem;
 import fr.crewcmoi.economie.managers.AuctionManager;
-import fr.crewcmoi.gui.ConfirmationGuiManager;
+import fr.crewcmoi.other.gui.ConfirmationGuiManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -12,7 +12,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -3,7 +3,7 @@ package fr.crewcmoi.pvp.managers;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.utils.DuelMessages;
 import fr.crewcmoi.economie.managers.EconomyManager;
-import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.MoneyFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

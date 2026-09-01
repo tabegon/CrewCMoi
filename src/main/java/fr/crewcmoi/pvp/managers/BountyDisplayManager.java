@@ -1,7 +1,7 @@
 package fr.crewcmoi.pvp.managers;
 
 import fr.crewcmoi.Main;
-import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.MoneyFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;

@@ -10,7 +10,7 @@ database:
 economy:
   # Solde de départ des nouveaux joueurs
   starting-balance: 100.0
-  currency-symbol: " "
+  currency-symbol: "§f "
   allow-negative-balance: false
   auction-min-price: 1
   # Pourcentage de taxe prélevé sur chaque vente réalisée à l'hôtel des ventes (0 = aucune taxe)
@@ -85,27 +85,19 @@ coin-item:
   itemsadder-id: "server:ccoin"
   value: 50.0
 
-# Rôles affichés dans le tab (liste des joueurs), du plus haut (fonda) au plus bas
-# (player) : voir fr.crewcmoi.tab. Chaque rôle est détecté automatiquement via sa
-# permission (ex: "crew.role.vip"), ou attribué manuellement avec /rank set
-# <joueur> <rôle>. prefix et permission sont personnalisables ci-dessous ; si tu
-# ne mets rien, les valeurs par défaut du plugin sont utilisées.
 roles:
   fonda:
-    prefix: ""
+    prefix: "§f "
     permission: "crew.role.fonda"
-  admin:
-    prefix: "&4Admin &f"
-    permission: "crew.role.admin"
   dev:
-    prefix: ""
+    prefix: "§f "
     permission: "crew.role.dev"
   mod:
-    prefix: ""
+    prefix: "§f "
     permission: "crew.role.mod"
   vip:
-    prefix: ""
+    prefix: "§f "
     permission: "crew.role.vip"
   player:
-    prefix: ""
+    prefix: "§f "
     permission: "crew.role.player"

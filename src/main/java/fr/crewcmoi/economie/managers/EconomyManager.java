@@ -1,8 +1,8 @@
 package fr.crewcmoi.economie.managers;
 
 import fr.crewcmoi.Main;
-import fr.crewcmoi.database.PlayerData;
-import fr.crewcmoi.managers.DatabaseManager;
+import fr.crewcmoi.other.database.PlayerData;
+import fr.crewcmoi.other.managers.DatabaseManager;
 import org.bukkit.Bukkit;
 
 import java.util.List;

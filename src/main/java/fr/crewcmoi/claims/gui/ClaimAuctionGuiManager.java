@@ -3,7 +3,7 @@ package fr.crewcmoi.claims.gui;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.claims.database.ClaimData;
 import fr.crewcmoi.claims.managers.ClaimManager;
-import fr.crewcmoi.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.MoneyFormat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

@@ -4,7 +4,7 @@ import fr.crewcmoi.Main;
 import fr.crewcmoi.claims.database.ClaimData;
 import fr.crewcmoi.claims.database.ClaimFlag;
 import fr.crewcmoi.claims.database.ClaimPermission;
-import fr.crewcmoi.managers.DatabaseManager;
+import fr.crewcmoi.other.managers.DatabaseManager;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

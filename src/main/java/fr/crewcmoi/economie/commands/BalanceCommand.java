@@ -1,7 +1,7 @@
 package fr.crewcmoi.economie.commands;
 
 import fr.crewcmoi.Main;
-import fr.crewcmoi.database.PlayerData;
+import fr.crewcmoi.other.database.PlayerData;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;

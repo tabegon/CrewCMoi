@@ -9,13 +9,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Charge et donne accès aux prix de vente définis dans prices.yml.
- * Format du fichier :
- * prices:
- *   COBBLESTONE: 0.5
- *   DIAMOND: 50.0
- */
+
 public class PricesManager {
 
     private final Main plugin;

@@ -78,8 +78,11 @@ commands:
     description: Affiche ou gère les rôles (Player/Vip/Mod/Dev/Admin/Fonda) affichés dans le tab.
     usage: /rank [joueur|list|set <joueur> <rôle>|clear <joueur>]
   staff:
-    description: Bascule entre ton inventaire/rôle normal et ton inventaire/mode staff incognito (Player dans le tab).
-    usage: /staff
+    description: Bascule ton mode staff (façade Vip <-> vrai rôle + inventaire dédié). "/staff info [joueur]" affiche le vrai rôle/mode staff/vanish (OP et staff uniquement).
+    usage: /staff [info <joueur>]
+  vanish:
+    description: Bascule le vanish (invisibilité totale, armure comprise, et disparition du tab). Nécessite le mode staff.
+    usage: /vanish
 
 permissions:
   crew.rank.set:
