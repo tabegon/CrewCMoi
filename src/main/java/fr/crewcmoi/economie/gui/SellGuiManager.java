@@ -1,5 +1,7 @@
 package fr.crewcmoi.economie.gui;
 
+import fr.crewcmoi.other.utils.Messages;
+
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import fr.crewcmoi.economie.managers.PricesManager;
@@ -128,8 +130,7 @@ public class SellGuiManager {
         }
 
         if (snapshot.isEmpty()) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));
+            Messages.send(player, "server.sell-gui-no-sellable-items", java.util.Map.of(), false);
             return;
         }
 
@@ -221,12 +222,9 @@ public class SellGuiManager {
 
         if (itemsSold > 0) {
             economyManager.deposit(player.getUniqueId(), total);
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&aᴠᴇɴᴛᴇ ᴇꜰꜰᴇᴄᴛᴜᴇᴇ : &e" + itemsSold + " ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ &e"
-                            + MoneyFormat.format(total) + currency + "&a."));
+            Messages.send(player, "server.sell-gui-sold", java.util.Map.of("count", itemsSold, "amount", MoneyFormat.format(total) + currency), false);
         } else {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));
+            Messages.send(player, "server.sell-gui-no-sellable-items", java.util.Map.of(), false);
         }
 
         for (int slot : SellHolder.ITEM_SLOTS) {

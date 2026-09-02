@@ -1,5 +1,7 @@
 package fr.crewcmoi.economie.gui;
 
+import fr.crewcmoi.other.utils.Messages;
+
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.auction.AuctionItem;
 import fr.crewcmoi.economie.managers.AuctionManager;
@@ -41,8 +43,7 @@ public class AuctionGuiManager {
                 .orElse(null);
 
         if (auction == null) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cCette annonce n'est plus disponible."));
+            Messages.send(player, "server.auction-not-available", java.util.Map.of(), false);
             open(player, page);
             return;
         }
@@ -63,16 +64,11 @@ public class AuctionGuiManager {
                 extraLore,
                 () -> auctionManager.buy(player, auctionId, result -> {
                     switch (result) {
-                        case SUCCESS -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&aAchat effectué avec succès !"));
-                        case NOT_ENOUGH_MONEY -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cVous n'avez pas assez d'argent pour cet achat."));
-                        case INVENTORY_FULL -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cVotre inventaire est plein."));
-                        case OWN_ITEM -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cVous ne pouvez pas acheter votre propre annonce."));
-                        case NOT_FOUND -> player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                                "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cCette annonce n'est plus disponible."));
+                        case SUCCESS -> Messages.send(player, "server.auction-buy-success", java.util.Map.of(), false);
+                        case NOT_ENOUGH_MONEY -> Messages.send(player, "server.auction-buy-not-enough-money", java.util.Map.of(), false);
+                        case INVENTORY_FULL -> Messages.send(player, "server.auction-buy-inventory-full", java.util.Map.of(), false);
+                        case OWN_ITEM -> Messages.send(player, "server.auction-buy-own-item", java.util.Map.of(), false);
+                        case NOT_FOUND -> Messages.send(player, "server.auction-not-available", java.util.Map.of(), false);
                     }
                     open(player, page);
                 }),

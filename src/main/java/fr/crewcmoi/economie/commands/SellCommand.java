@@ -1,4 +1,5 @@
 package fr.crewcmoi.economie.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.economie.gui.SellGuiManager;
 import fr.crewcmoi.economie.managers.PricesManager;
@@ -31,20 +32,20 @@ public class SellCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length >= 1 && args[0].equalsIgnoreCase("reload")) {
             if (!sender.isOp() && !sender.hasPermission("crewcmoi.sell.reload")) {
-                sender.sendMessage(ChatColor.RED + "Tu n'as pas la permission d'utiliser cette commande.");
+                Messages.send(sender, "server.sell-1091a9a");
                 return true;
             }
             pricesManager.reload();
-            sender.sendMessage(ChatColor.GREEN + "prices.yml rechargé, les prix de vente sont à jour.");
+            Messages.send(sender, "server.sell-a1b999f");
             return true;
         }
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "Cette commande doit être exécutée par un joueur.");
+            Messages.send(sender, "server.sell-8660550");
             return true;
         }
 
-        player.sendMessage(ChatColor.RED + "Cette commande est désactivée. Rendez-vous chez le PNJ dédié et faites un clic droit dessus pour vendre vos objets.");
+        Messages.send(player, "server.sell-c3c6159");
         return true;
     }
 }

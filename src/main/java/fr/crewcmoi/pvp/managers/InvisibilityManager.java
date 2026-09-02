@@ -8,7 +8,7 @@ import org.bukkit.potion.PotionEffectType;
 /**
  * Gère l'anonymat des joueurs sous l'effet d'invisibilité (potion) :
  *  - masque leur pseudo (nametag) au-dessus de la tête, pour tout le monde, tant que
- *    l'effet est actif ;
+ *    l'effet est actif ; les préfixes/suffixes du TAB restent visibles ;
  *  - permet de savoir si un joueur doit être traité comme "anonyme" au moment d'un
  *    kill, pour masquer son nom dans le message de mort diffusé au serveur (voir
  *    BountyListener#onPlayerDeathAnonymizeInvisibleKiller). Il reste malgré tout

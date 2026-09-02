@@ -1,153 +1,306 @@
-# =========================================
-#          Messages EconomyPlugin
-# Les couleurs utilisent le format & (ex: &a, &c, &6)
-# =========================================
-
-prefix: "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r"
-
+prefix: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r'
 general:
-  no-permission: "&cᴘᴇʀᴍɪꜱꜱɪᴏɴ ʀᴇꜰᴜꜱᴇᴇ."
-  player-only: "&cʀᴇꜱᴇʀᴠᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ."
-  player-not-found: "&cᴊᴏᴜᴇᴜʀ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ."
-  invalid-amount: "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ."
-
+  no-permission: '&cᴘᴇʀᴍɪꜱꜱɪᴏɴ ʀᴇꜰᴜꜱᴇᴇ.'
+  player-only: '&cʀᴇꜱᴇʀᴠᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
+  player-not-found: '&cᴊᴏᴜᴇᴜʀ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ.'
+  invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.'
 balance:
-  self: "&7ꜱᴏʟᴅᴇ : &a{amount}"
-  other: "&7ꜱᴏʟᴅᴇ ᴅᴇ &e{player}&7 : &a{amount}"
-
+  self: '&7ꜱᴏʟᴅᴇ : &a{amount}'
+  other: '&7ꜱᴏʟᴅᴇ ᴅᴇ &e{player}&7 : &a{amount}'
 money:
-  usage: "&cᴜꜱᴀɢᴇ : /ᴍᴏɴᴇʏ <ᴀᴅᴅ|ʀᴇᴍᴏᴠᴇ|ꜱᴇᴛ> <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>"
-  add-success: "&aᴀᴊᴏᴜᴛᴇ &e{amount}&a ᴀ &e{player}&a."
-  add-received: "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e{amount}&a !"
-  remove-success: "&aʀᴇᴛɪʀᴇ &e{amount}&a ᴀ &e{player}&a."
-  remove-received: "&cᴏɴ ᴠᴏᴜꜱ ᴀ ʀᴇᴛɪʀᴇ &e{amount}&c."
-  remove-not-enough: "&c{player} ɴ'ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ."
-  set-success: "&aꜱᴏʟᴅᴇ ᴅᴇ &e{player}&a ᴅᴇꜰɪɴɪ ᴀ &e{amount}&a."
-  set-received: "&eᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ ᴇꜱᴛ ᴍᴀɪɴᴛᴇɴᴀɴᴛ {amount}."
-
+  usage: '&cᴜꜱᴀɢᴇ : /ᴍᴏɴᴇʏ <ᴀᴅᴅ|ʀᴇᴍᴏᴠᴇ|ꜱᴇᴛ> <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>'
+  add-success: '&aᴀᴊᴏᴜᴛᴇ &e{amount}&a ᴀ &e{player}&a.'
+  add-received: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e{amount}&a !'
+  remove-success: '&aʀᴇᴛɪʀᴇ &e{amount}&a ᴀ &e{player}&a.'
+  remove-received: '&cᴏɴ ᴠᴏᴜꜱ ᴀ ʀᴇᴛɪʀᴇ &e{amount}&c.'
+  remove-not-enough: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  set-success: '&aꜱᴏʟᴅᴇ ᴅᴇ &e{player}&a ᴅᴇꜰɪɴɪ ᴀ &e{amount}&a.'
+  set-received: '&eᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ ᴇꜱᴛ ᴍᴀɪɴᴛᴇɴᴀɴᴛ {amount}.'
 baltop:
-  title: "&6&lᴄʟᴀꜱꜱᴇᴍᴇɴᴛ ᴅᴇꜱ ʀɪᴄʜᴇꜱꜱᴇꜱ"
-
+  title: '&6&lᴄʟᴀꜱꜱᴇᴍᴇɴᴛ ᴅᴇꜱ ʀɪᴄʜᴇꜱꜱᴇꜱ'
 sell:
-  gui-title: "&2&lᴠᴇɴᴛᴇ ᴅ'ᴏʙᴊᴇᴛꜱ"
-  success: "&aᴠᴇɴᴅᴜ &e{count} ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ &e{amount}&a."
-  nothing-sold: "&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ."
-
+  gui-title: '&2&lᴠᴇɴᴛᴇ ᴅ''ᴏʙᴊᴇᴛꜱ'
+  success: '&aᴠᴇɴᴅᴜ &e{count} ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ &e{amount}&a.'
+  nothing-sold: '&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ.'
 pay:
-  usage: "&cᴜꜱᴀɢᴇ : /ᴘᴀʏ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>"
-  invalid-amount: "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ."
-  self: "&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴅᴇ ᴠᴏᴜꜱ ᴘᴀʏᴇʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ."
-  not-enough-money: "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ."
-  sent: "&aᴇɴᴠᴏʏᴇ &e{amount}&a ᴀ &e{player}&a."
-  received: "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e{amount}&a ᴅᴇ &e{player}&a !"
-
+  usage: '&cᴜꜱᴀɢᴇ : /ᴘᴀʏ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>'
+  invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.'
+  self: '&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴅᴇ ᴠᴏᴜꜱ ᴘᴀʏᴇʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.'
+  not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  sent: '&aᴇɴᴠᴏʏᴇ &e{amount}&a ᴀ &e{player}&a.'
+  received: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e{amount}&a ᴅᴇ &e{player}&a !'
 ah:
-  gui-title: "&5&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ"
-  usage: "&cᴜꜱᴀɢᴇ : /ᴀʜ ᴏᴜ /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>"
-  invalid-price: "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ."
-  price-too-low: "&cᴘʀɪx ᴍɪɴɪᴍᴜᴍ : {amount}."
-  no-item-in-hand: "&cᴛᴇɴᴇᴢ ᴜɴ ᴏʙᴊᴇᴛ ᴇɴ ᴍᴀɪɴ."
-  listed: "&aᴍɪꜱ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{amount}&a !"
-  bought: "&aᴀᴄʜᴀᴛ ʀᴇᴜꜱꜱɪ !"
-  cancelled: "&aᴀɴɴᴏɴᴄᴇ ʀᴇᴛɪʀᴇᴇ."
-  not-enough-money: "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ."
-  inventory-full: "&cɪɴᴠᴇɴᴛᴀɪʀᴇ ᴘʟᴇɪɴ."
-  own-item: "&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴀᴄʜᴇᴛᴇʀ ᴠᴏᴛʀᴇ ᴀɴɴᴏɴᴄᴇ."
-  not-found: "&cᴀɴɴᴏɴᴄᴇ ɪɴᴅɪꜱᴘᴏɴɪʙʟᴇ."
-
+  gui-title: '&5&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ'
+  usage: '&cᴜꜱᴀɢᴇ : /ᴀʜ ᴏᴜ /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>'
+  invalid-price: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.'
+  price-too-low: '&cᴘʀɪx ᴍɪɴɪᴍᴜᴍ : {amount}.'
+  no-item-in-hand: '&cᴛᴇɴᴇᴢ ᴜɴ ᴏʙᴊᴇᴛ ᴇɴ ᴍᴀɪɴ.'
+  listed: '&aᴍɪꜱ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{amount}&a !'
+  bought: '&aᴀᴄʜᴀᴛ ʀᴇᴜꜱꜱɪ !'
+  cancelled: '&aᴀɴɴᴏɴᴄᴇ ʀᴇᴛɪʀᴇᴇ.'
+  not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  inventory-full: '&cɪɴᴠᴇɴᴛᴀɪʀᴇ ᴘʟᴇɪɴ.'
+  own-item: '&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴀᴄʜᴇᴛᴇʀ ᴠᴏᴛʀᴇ ᴀɴɴᴏɴᴄᴇ.'
+  not-found: '&cᴀɴɴᴏɴᴄᴇ ɪɴᴅɪꜱᴘᴏɴɪʙʟᴇ.'
 combat-log:
-  tagged: "&cᴠᴏᴜꜱ ᴇᴛᴇꜱ ᴇɴ ᴄᴏᴍʙᴀᴛ !"
-  combat-ended: "&aᴠᴏᴜꜱ ɴ'ᴇᴛᴇꜱ ᴘʟᴜꜱ ᴇɴ ᴄᴏᴍʙᴀᴛ."
-  action-blocked: "&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴇɴ ᴄᴏᴍʙᴀᴛ ! (&e{seconds}ꜱ&c)"
-  opponent-fled: "&e{player}&c ꜱ'ᴇꜱᴛ ᴅᴇᴄᴏɴɴᴇᴄᴛᴇ ᴇᴛ ᴀ ᴇᴛᴇ ᴛᴜᴇ."
-
+  tagged: '&cᴠᴏᴜꜱ ᴇᴛᴇꜱ ᴇɴ ᴄᴏᴍʙᴀᴛ !'
+  combat-ended: '&aᴠᴏᴜꜱ ɴ''ᴇᴛᴇꜱ ᴘʟᴜꜱ ᴇɴ ᴄᴏᴍʙᴀᴛ.'
+  action-blocked: '&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴇɴ ᴄᴏᴍʙᴀᴛ ! (&e{seconds}ꜱ&c)'
+  opponent-fled: '&e{player}&c ꜱ''ᴇꜱᴛ ᴅᴇᴄᴏɴɴᴇᴄᴛᴇ ᴇᴛ ᴀ ᴇᴛᴇ ᴛᴜᴇ.'
 team:
-  gui-title: "&6&lᴇǫᴜɪᴘᴇ"
-
+  gui-title: '&6&lᴇǫᴜɪᴘᴇ'
 bounty:
-  gui-title: "&4&lᴘʀɪᴍᴇꜱ ᴅᴇꜱ ᴊᴏᴜᴇᴜʀꜱ"
-  claimed: "&aᴘʀɪᴍᴇ ʀᴇᴄᴜᴘᴇʀᴇᴇ : &e{amount}&a"
-  server-bounty-applied: "&cʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴘʟᴀᴄᴇ &e{amount}&c ꜱᴜʀ ᴠᴏᴜꜱ !"
-
+  gui-title: '&4&lᴘʀɪᴍᴇꜱ ᴅᴇꜱ ᴊᴏᴜᴇᴜʀꜱ'
+  claimed: '&aᴘʀɪᴍᴇ ʀᴇᴄᴜᴘᴇʀᴇᴇ : &e{amount}&a'
+  server-bounty-applied: '&cʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴘʟᴀᴄᴇ &e{amount}&c ꜱᴜʀ ᴠᴏᴜꜱ !'
 coin-item:
-  redeemed: "&aᴘɪᴇᴄᴇ ᴇᴄʜᴀɴɢᴇᴇ ᴄᴏɴᴛʀᴇ &e{amount}&a !"
-
+  redeemed: '&aᴘɪᴇᴄᴇ ᴇᴄʜᴀɴɢᴇᴇ ᴄᴏɴᴛʀᴇ &e{amount}&a !'
 tpa:
-  usage-tpa: "&cᴜꜱᴀɢᴇ : /ᴛᴘᴀ <ᴊᴏᴜᴇᴜʀ>"
-  usage-tpahere: "&cᴜꜱᴀɢᴇ : /ᴛᴘᴀʜᴇʀᴇ <ᴊᴏᴜᴇᴜʀ>"
-  self: "&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴀᴠᴇᴄ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ."
-  sent: "&aᴅᴇᴍᴀɴᴅᴇ ᴇɴᴠᴏʏᴇᴇ ᴀ &e{player}&a."
-  sent-here: "&aᴅᴇᴍᴀɴᴅᴇ ᴇɴᴠᴏʏᴇᴇ ᴀ &e{player}&a."
-  received: "&e{player} &aꜱᴏᴜʜᴀɪᴛᴇ ꜱᴇ ᴛᴇʟᴇᴘᴏʀᴛᴇʀ ᴀ ᴠᴏᴜꜱ."
-  received-here: "&e{player} &aꜱᴏᴜʜᴀɪᴛᴇ ᴠᴏᴜꜱ ᴛᴇʟᴇᴘᴏʀᴛᴇʀ ᴀ ʟᴜɪ."
-  accept-button: "&a&l[ᴛᴇʟᴇᴘᴏʀᴛᴇʀ]"
-  no-request: "&cᴀᴜᴄᴜɴᴇ ᴅᴇᴍᴀɴᴅᴇ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ."
-  requester-offline: "&cᴊᴏᴜᴇᴜʀ ʜᴏʀꜱ ʟɪɢɴᴇ."
-  accepted-requester: "&e{player} &aᴀ ᴀᴄᴄᴇᴘᴛᴇ."
-  accepted-target: "&aᴛᴇʟᴇᴘᴏʀᴛᴀᴛɪᴏɴ ᴀᴄᴄᴇᴘᴛᴇᴇ."
-  expired-requester: "&cᴅᴇᴍᴀɴᴅᴇ ᴀ &e{player}&c ᴇxᴘɪʀᴇᴇ."
-  expired-target: "&cᴅᴇᴍᴀɴᴅᴇ ᴅᴇ &e{player}&c ᴇxᴘɪʀᴇᴇ."
-  target-in-combat: "&c{player} ᴇꜱᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ."
-  moving-in-combat: "&c{player} ᴇꜱᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ, ᴀɴɴᴜʟᴇ."
-
+  usage-tpa: '&cᴜꜱᴀɢᴇ : /ᴛᴘᴀ <ᴊᴏᴜᴇᴜʀ>'
+  usage-tpahere: '&cᴜꜱᴀɢᴇ : /ᴛᴘᴀʜᴇʀᴇ <ᴊᴏᴜᴇᴜʀ>'
+  self: '&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴀᴠᴇᴄ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.'
+  sent: '&aᴅᴇᴍᴀɴᴅᴇ ᴇɴᴠᴏʏᴇᴇ ᴀ &e{player}&a.'
+  sent-here: '&aᴅᴇᴍᴀɴᴅᴇ ᴇɴᴠᴏʏᴇᴇ ᴀ &e{player}&a.'
+  received: '&e{player} &aꜱᴏᴜʜᴀɪᴛᴇ ꜱᴇ ᴛᴇʟᴇᴘᴏʀᴛᴇʀ ᴀ ᴠᴏᴜꜱ.'
+  received-here: '&e{player} &aꜱᴏᴜʜᴀɪᴛᴇ ᴠᴏᴜꜱ ᴛᴇʟᴇᴘᴏʀᴛᴇʀ ᴀ ʟᴜɪ.'
+  accept-button: '&a&l[ᴛᴇʟᴇᴘᴏʀᴛᴇʀ]'
+  no-request: '&cᴀᴜᴄᴜɴᴇ ᴅᴇᴍᴀɴᴅᴇ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.'
+  requester-offline: '&cᴊᴏᴜᴇᴜʀ ʜᴏʀꜱ ʟɪɢɴᴇ.'
+  accepted-requester: '&e{player} &aᴀ ᴀᴄᴄᴇᴘᴛᴇ.'
+  accepted-target: '&aᴛᴇʟᴇᴘᴏʀᴛᴀᴛɪᴏɴ ᴀᴄᴄᴇᴘᴛᴇᴇ.'
+  expired-requester: '&cᴅᴇᴍᴀɴᴅᴇ ᴀ &e{player}&c ᴇxᴘɪʀᴇᴇ.'
+  expired-target: '&cᴅᴇᴍᴀɴᴅᴇ ᴅᴇ &e{player}&c ᴇxᴘɪʀᴇᴇ.'
+  target-in-combat: '&c{player} ᴇꜱᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ.'
+  moving-in-combat: '&c{player} ᴇꜱᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ, ᴀɴɴᴜʟᴇ.'
 duel:
-  usage: "&cᴜꜱᴀɢᴇ : /ᴅᴜᴇʟ <ᴊᴏᴜᴇᴜʀ>"
-  self: "&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴅᴇ ꜱᴇ ᴘʀᴏᴠᴏQᴜᴇʀ ꜱᴏɪ-ᴍᴇᴍᴇ."
-  no-bet: "ᴀᴜᴄᴜɴᴇ"
-  sent: "&aᴅᴇᴍᴀɴᴅᴇ ᴅᴇ ᴅᴜᴇʟ ᴇɴᴠᴏʏᴇᴇ ᴀ &e{player}&a."
-  received: "&e{player}&a ᴠᴏᴜꜱ ᴘʀᴏᴠᴏQᴜᴇ ᴇɴ ᴅᴜᴇʟ !"
-  received-rules: "&7ᴋᴇᴇᴘɪɴᴠᴇɴᴛᴏʀʏ : {keepinventory} &7| ᴍɪꜱᴇ : {bet}"
-  accept-button: "&a&l[ᴀᴄᴄᴇᴘᴛᴇʀ]"
-  deny-button: "&c&l[ʀᴇꜰᴜꜱᴇʀ]"
-  no-request: "&cᴀᴜᴄᴜɴᴇ ᴅᴇᴍᴀɴᴅᴇ ᴅᴇ ᴅᴜᴇʟ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ."
-  requester-offline: "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇꜱᴛ ᴘʟᴜꜱ ᴇɴ ʟɪɢɴᴇ."
-  already-in-duel: "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ᴇꜱᴛ ᴅᴇᴊᴀ ᴇɴ ᴅᴜᴇʟ."
-  in-combat: "&cɪᴍᴘᴏꜱꜱɪʙʟᴇ, ᴜɴ ᴅᴇꜱ ᴅᴇᴜx ᴊᴏᴜᴇᴜʀꜱ ᴇꜱᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ."
-  requester-not-enough-money: "&c{player} ɴ'ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ."
-  self-not-enough-money: "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ."
-  target-not-enough-money: "&c{player} ɴ'ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ."
-  arena-not-configured: "&cʟ'ᴀʀᴇɴᴇ ᴅᴇ ᴅᴜᴇʟ ɴ'ᴇꜱᴛ ᴘᴀꜱ ᴄᴏɴꜰɪɢᴜʀᴇᴇ (config.yml)."
-  accepted-requester: "&e{player} &aᴀ ᴀᴄᴄᴇᴘᴛᴇ ʟᴇ ᴅᴜᴇʟ !"
-  accepted-target: "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴀᴄᴄᴇᴘᴛᴇ ʟᴇ ᴅᴜᴇʟ ᴄᴏɴᴛʀᴇ &e{player}&a."
-  denied-target: "&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇꜰᴜꜱᴇ ʟᴇ ᴅᴜᴇʟ."
-  denied-requester: "&e{player} &cᴀ ʀᴇꜰᴜꜱᴇ ᴠᴏᴛʀᴇ ᴅᴜᴇʟ."
-  expired-requester: "&cᴠᴏᴛʀᴇ ᴅᴇᴍᴀɴᴅᴇ ᴅᴇ ᴅᴜᴇʟ ᴀ &e{player}&c ᴀ ᴇxᴘɪʀᴇ."
-  expired-target: "&cʟᴀ ᴅᴇᴍᴀɴᴅᴇ ᴅᴇ ᴅᴜᴇʟ ᴅᴇ &e{player}&c ᴀ ᴇxᴘɪʀᴇ."
-  countdown: "&e&lʟᴇ ᴅᴜᴇʟ ᴄᴏᴍᴍᴇɴᴄᴇ ᴅᴀɴꜱ &c{seconds}&e..."
-  fight: "&a&lᴄᴏᴍʙᴀᴛᴛᴇᴢ !"
-  won: "&a&lᴠɪᴄᴛᴏɪʀᴇ ! &7ᴠᴏᴜꜱ ᴀᴠᴇᴢ ʙᴀᴛᴛᴜ &e{player}&7."
-  won-forfeit: "&a&lᴠɪᴄᴛᴏɪʀᴇ ᴘᴀʀ ꜰᴏʀꜰᴀɪᴛ ! &7{player} ꜱ'ᴇꜱᴛ ᴅᴇᴄᴏɴɴᴇᴄᴛᴇ."
-  won-pot: "&aᴠᴏᴜꜱ ʀᴇᴍᴘᴏʀᴛᴇᴢ &e{amount}&a ᴅᴇ ʟᴀ ᴍɪꜱᴇ."
-  lost: "&c&lᴅᴇꜰᴀɪᴛᴇ... &7{player} ᴠᴏᴜꜱ ᴀ ʙᴀᴛᴛᴜ."
-
+  usage: '&cᴜꜱᴀɢᴇ : /ᴅᴜᴇʟ <ᴊᴏᴜᴇᴜʀ>'
+  self: '&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴅᴇ ꜱᴇ ᴘʀᴏᴠᴏǫᴜᴇʀ ꜱᴏɪ-ᴍᴇᴍᴇ.'
+  no-bet: ᴀᴜᴄᴜɴᴇ
+  sent: '&aᴅᴇᴍᴀɴᴅᴇ ᴅᴇ ᴅᴜᴇʟ ᴇɴᴠᴏʏᴇᴇ ᴀ &e{player}&a.'
+  received: '&e{player}&a ᴠᴏᴜꜱ ᴘʀᴏᴠᴏǫᴜᴇ ᴇɴ ᴅᴜᴇʟ !'
+  received-rules: '&7ᴋᴇᴇᴘɪɴᴠᴇɴᴛᴏʀʏ : {keepinventory} &7| ᴍɪꜱᴇ : {bet}'
+  accept-button: '&a&l[ᴀᴄᴄᴇᴘᴛᴇʀ]'
+  deny-button: '&c&l[ʀᴇꜰᴜꜱᴇʀ]'
+  no-request: '&cᴀᴜᴄᴜɴᴇ ᴅᴇᴍᴀɴᴅᴇ ᴅᴇ ᴅᴜᴇʟ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.'
+  requester-offline: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇꜱᴛ ᴘʟᴜꜱ ᴇɴ ʟɪɢɴᴇ.'
+  already-in-duel: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ᴇꜱᴛ ᴅᴇᴊᴀ ᴇɴ ᴅᴜᴇʟ.'
+  in-combat: '&cɪᴍᴘᴏꜱꜱɪʙʟᴇ, ᴜɴ ᴅᴇꜱ ᴅᴇᴜx ᴊᴏᴜᴇᴜʀꜱ ᴇꜱᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ.'
+  requester-not-enough-money: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ.'
+  self-not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ.'
+  target-not-enough-money: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ.'
+  arena-not-configured: '&cʟ''ᴀʀᴇɴᴇ ᴅᴇ ᴅᴜᴇʟ ɴ''ᴇꜱᴛ ᴘᴀꜱ ᴄᴏɴꜰɪɢᴜʀᴇᴇ (ᴄᴏɴꜰɪɢ.ʏᴍʟ).'
+  accepted-requester: '&e{player} &aᴀ ᴀᴄᴄᴇᴘᴛᴇ ʟᴇ ᴅᴜᴇʟ !'
+  accepted-target: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴀᴄᴄᴇᴘᴛᴇ ʟᴇ ᴅᴜᴇʟ ᴄᴏɴᴛʀᴇ &e{player}&a.'
+  denied-target: '&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇꜰᴜꜱᴇ ʟᴇ ᴅᴜᴇʟ.'
+  denied-requester: '&e{player} &cᴀ ʀᴇꜰᴜꜱᴇ ᴠᴏᴛʀᴇ ᴅᴜᴇʟ.'
+  expired-requester: '&cᴠᴏᴛʀᴇ ᴅᴇᴍᴀɴᴅᴇ ᴅᴇ ᴅᴜᴇʟ ᴀ &e{player}&c ᴀ ᴇxᴘɪʀᴇ.'
+  expired-target: '&cʟᴀ ᴅᴇᴍᴀɴᴅᴇ ᴅᴇ ᴅᴜᴇʟ ᴅᴇ &e{player}&c ᴀ ᴇxᴘɪʀᴇ.'
+  countdown: '&e&lʟᴇ ᴅᴜᴇʟ ᴄᴏᴍᴍᴇɴᴄᴇ ᴅᴀɴꜱ &c{seconds}&e...'
+  fight: '&a&lᴄᴏᴍʙᴀᴛᴛᴇᴢ !'
+  won: '&a&lᴠɪᴄᴛᴏɪʀᴇ ! &7ᴠᴏᴜꜱ ᴀᴠᴇᴢ ʙᴀᴛᴛᴜ &e{player}&7.'
+  won-forfeit: '&a&lᴠɪᴄᴛᴏɪʀᴇ ᴘᴀʀ ꜰᴏʀꜰᴀɪᴛ ! &7{player} ꜱ''ᴇꜱᴛ ᴅᴇᴄᴏɴɴᴇᴄᴛᴇ.'
+  won-pot: '&aᴠᴏᴜꜱ ʀᴇᴍᴘᴏʀᴛᴇᴢ &e{amount}&a ᴅᴇ ʟᴀ ᴍɪꜱᴇ.'
+  lost: '&c&lᴅᴇꜰᴀɪᴛᴇ... &7{player} ᴠᴏᴜꜱ ᴀ ʙᴀᴛᴛᴜ.'
 home:
-  set-success: "&aʜᴏᴍᴇ ᴅᴇꜰɪɴɪ."
-  no-home: "&cᴀᴜᴄᴜɴ ʜᴏᴍᴇ. ᴜᴛɪʟɪꜱᴇᴢ /ꜱᴇᴛʜᴏᴍᴇ."
-  world-missing: "&cᴍᴏɴᴅᴇ ᴅᴜ ʜᴏᴍᴇ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ."
-  teleported: "&aᴛᴇʟᴇᴘᴏʀᴛᴇ ᴀ ᴠᴏᴛʀᴇ ʜᴏᴍᴇ."
-
+  set-success: '&aʜᴏᴍᴇ ᴅᴇꜰɪɴɪ.'
+  no-home: '&cᴀᴜᴄᴜɴ ʜᴏᴍᴇ. ᴜᴛɪʟɪꜱᴇᴢ /ꜱᴇᴛʜᴏᴍᴇ.'
+  world-missing: '&cᴍᴏɴᴅᴇ ᴅᴜ ʜᴏᴍᴇ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ.'
+  teleported: '&aᴛᴇʟᴇᴘᴏʀᴛᴇ ᴀ ᴠᴏᴛʀᴇ ʜᴏᴍᴇ.'
 claim:
-  success: "&aᴄʜᴜɴᴋ ᴄʟᴀɪᴍ."
-  already-claimed: "&cᴄʜᴜɴᴋ ᴅᴇᴊᴀ ᴄʟᴀɪᴍ."
-  limit-reached: "&cʟɪᴍɪᴛᴇ ᴅᴇ ᴄʟᴀɪᴍꜱ ᴀᴛᴛᴇɪɴᴛᴇ."
-  unclaim-success: "&aᴄʟᴀɪᴍ ꜱᴜᴘᴘʀɪᴍᴇ."
-  unclaim-error: "&cᴇʀʀᴇᴜʀ, ʀᴇᴇꜱꜱᴀʏᴇᴢ."
-  not-claimed: "&cᴄʜᴜɴᴋ ɴᴏɴ ᴄʟᴀɪᴍ."
-  not-owner: "&cᴠᴏᴜꜱ ɴ'ᴇᴛᴇꜱ ᴘᴀꜱ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ."
-  trust-success: "&a{player} ᴘᴇᴜᴛ ᴄᴏɴꜱᴛʀᴜɪʀᴇ ɪᴄɪ."
-  untrust-success: "&a{player} ɴᴇ ᴘᴇᴜᴛ ᴘʟᴜꜱ ᴄᴏɴꜱᴛʀᴜɪʀᴇ ɪᴄɪ."
-  player-not-found: "&cᴊᴏᴜᴇᴜʀ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ."
-  protected: "&cᴄʜᴜɴᴋ ᴘʀᴏᴛᴇɢᴇ ᴘᴀʀ ᴜɴ ᴄʟᴀɪᴍ."
-  see-enabled: "&aᴀꜰꜰɪᴄʜᴀɢᴇ ᴅᴇꜱ ᴄʟᴀɪᴍꜱ ᴀᴄᴛɪᴠᴇ."
-  see-disabled: "&7ᴀꜰꜰɪᴄʜᴀɢᴇ ᴅᴇꜱ ᴄʟᴀɪᴍꜱ ᴅᴇꜱᴀᴄᴛɪᴠᴇ."
-  shop-success: "&aᴄʟᴀɪᴍ ꜱᴜᴘᴘʟᴇᴍᴇɴᴛᴀɪʀᴇ ᴀᴄʜᴇᴛᴇ !"
-  shop-not-enough-money: "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ."
-  shop-limit-reached: "&cʟɪᴍɪᴛᴇ ᴅᴇ ᴄʟᴀɪᴍꜱ ᴀᴄʜᴇᴛᴀʙʟᴇꜱ ᴀᴛᴛᴇɪɴᴛᴇ."
-  sale-started: "&aᴄʟᴀɪᴍ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{price}&a."
-  sale-cancelled: "&aᴄʟᴀɪᴍ ʀᴇᴛɪʀᴇ ᴅᴇ ʟᴀ ᴠᴇɴᴛᴇ."
-  not-for-sale: "&cᴄᴇ ᴄʟᴀɪᴍ ɴ'ᴇꜱᴛ ᴘᴀꜱ ᴇɴ ᴠᴇɴᴛᴇ."
-  invalid-price: "&cᴘʀɪx ɪɴᴠᴀʟɪᴅᴇ."
-  buy-success: "&aᴄʟᴀɪᴍ ᴀᴄʜᴇᴛᴇ."
-  own-claim: "&cᴠᴏᴜꜱ ᴘᴏꜱꜱᴇᴅᴇᴢ ᴅᴇᴊᴀ ᴄᴇ ᴄʟᴀɪᴍ."
-  not-enough-money: "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ."
-  limit-reached-buy: "&cʟɪᴍɪᴛᴇ ᴅᴇ ᴄʟᴀɪᴍꜱ ᴀᴛᴛᴇɪɴᴛᴇ (&e{max}&c)."
+  success: '&aᴄʜᴜɴᴋ ᴄʟᴀɪᴍ.'
+  already-claimed: '&cᴄʜᴜɴᴋ ᴅᴇᴊᴀ ᴄʟᴀɪᴍ.'
+  limit-reached: '&cʟɪᴍɪᴛᴇ ᴅᴇ ᴄʟᴀɪᴍꜱ ᴀᴛᴛᴇɪɴᴛᴇ.'
+  unclaim-success: '&aᴄʟᴀɪᴍ ꜱᴜᴘᴘʀɪᴍᴇ.'
+  unclaim-error: '&cᴇʀʀᴇᴜʀ, ʀᴇᴇꜱꜱᴀʏᴇᴢ.'
+  not-claimed: '&cᴄʜᴜɴᴋ ɴᴏɴ ᴄʟᴀɪᴍ.'
+  not-owner: '&cᴠᴏᴜꜱ ɴ''ᴇᴛᴇꜱ ᴘᴀꜱ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ.'
+  trust-success: '&a{player} ᴘᴇᴜᴛ ᴄᴏɴꜱᴛʀᴜɪʀᴇ ɪᴄɪ.'
+  untrust-success: '&a{player} ɴᴇ ᴘᴇᴜᴛ ᴘʟᴜꜱ ᴄᴏɴꜱᴛʀᴜɪʀᴇ ɪᴄɪ.'
+  player-not-found: '&cᴊᴏᴜᴇᴜʀ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ.'
+  protected: '&cᴄʜᴜɴᴋ ᴘʀᴏᴛᴇɢᴇ ᴘᴀʀ ᴜɴ ᴄʟᴀɪᴍ.'
+  see-enabled: '&aᴀꜰꜰɪᴄʜᴀɢᴇ ᴅᴇꜱ ᴄʟᴀɪᴍꜱ ᴀᴄᴛɪᴠᴇ.'
+  see-disabled: '&7ᴀꜰꜰɪᴄʜᴀɢᴇ ᴅᴇꜱ ᴄʟᴀɪᴍꜱ ᴅᴇꜱᴀᴄᴛɪᴠᴇ.'
+  shop-success: '&aᴄʟᴀɪᴍ ꜱᴜᴘᴘʟᴇᴍᴇɴᴛᴀɪʀᴇ ᴀᴄʜᴇᴛᴇ !'
+  shop-not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  shop-limit-reached: '&cʟɪᴍɪᴛᴇ ᴅᴇ ᴄʟᴀɪᴍꜱ ᴀᴄʜᴇᴛᴀʙʟᴇꜱ ᴀᴛᴛᴇɪɴᴛᴇ.'
+  sale-started: '&aᴄʟᴀɪᴍ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{price}&a.'
+  sale-cancelled: '&aᴄʟᴀɪᴍ ʀᴇᴛɪʀᴇ ᴅᴇ ʟᴀ ᴠᴇɴᴛᴇ.'
+  not-for-sale: '&cᴄᴇ ᴄʟᴀɪᴍ ɴ''ᴇꜱᴛ ᴘᴀꜱ ᴇɴ ᴠᴇɴᴛᴇ.'
+  invalid-price: '&cᴘʀɪx ɪɴᴠᴀʟɪᴅᴇ.'
+  buy-success: '&aᴄʟᴀɪᴍ ᴀᴄʜᴇᴛᴇ.'
+  own-claim: '&cᴠᴏᴜꜱ ᴘᴏꜱꜱᴇᴅᴇᴢ ᴅᴇᴊᴀ ᴄᴇ ᴄʟᴀɪᴍ.'
+  not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  limit-reached-buy: '&cʟɪᴍɪᴛᴇ ᴅᴇ ᴄʟᴀɪᴍꜱ ᴀᴛᴛᴇɪɴᴛᴇ (&e{max}&c).'
+server:
+  balancetop-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  sell-1091a9a: '&cᴛᴜ ɴ''ᴀꜱ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
+  sell-a1b999f: '&aᴘʀɪᴄᴇꜱ.ʏᴍʟ ʀᴇᴄʜᴀʀɢé, ʟᴇꜱ ᴘʀɪx ᴅᴇ ᴠᴇɴᴛᴇ ꜱᴏɴᴛ à ᴊᴏᴜʀ.'
+  sell-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  sell-c3c6159: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴇꜱᴛ ᴅéꜱᴀᴄᴛɪᴠéᴇ. ʀᴇɴᴅᴇᴢ-ᴠᴏᴜꜱ ᴄʜᴇᴢ ʟᴇ ᴘɴᴊ ᴅéᴅɪé ᴇᴛ
+    faites un clic droit dessus pour vendre vos objets.'
+  pay-59b5161: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  pay-cd1502f: '&cᴜꜱᴀɢᴇ : /ᴘᴀʏ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>'
+  pay-3d7a153: '&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.'
+  pay-48408b8: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ''ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.'
+  pay-435dc6b: '&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴠᴏᴜꜱ ᴘᴀʏᴇʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.'
+  money-a4e1d2b: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
+  money-b08cb36: '&cᴜꜱᴀɢᴇ : /ᴍᴏɴᴇʏ <ᴀᴅᴅ|ʀᴇᴍᴏᴠᴇ|ꜱᴇᴛ> <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>'
+  money-f2ae10f: '&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴘᴏꜱɪᴛɪꜰ.'
+  money-48408b8: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ''ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.'
+  money-7bdd64f: '&cᴀᴄᴛɪᴏɴ ɪɴᴄᴏɴɴᴜᴇ. ᴜᴛɪʟɪꜱᴇᴢ ᴀᴅᴅ, ʀᴇᴍᴏᴠᴇ ᴏᴜ ꜱᴇᴛ.'
+  balance-2e8ddc7: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ, ᴏᴜ ᴘʀᴇᴄɪꜱᴇᴢ
+    ᴜɴ ᴘꜱᴇᴜᴅᴏ : /ʙᴀʟᴀɴᴄᴇ <ᴊᴏᴜᴇᴜʀ>'
+  balance-48408b8: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ''ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.'
+  auction-31d6928: '&cᴜꜱᴀɢᴇ : /ᴀʜ &7ᴏᴜ&c /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>'
+  auction-7759fee: '&cᴜꜱᴀɢᴇ : /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>'
+  auction-c974a61: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.'
+  auction-0dce3d8: '&cᴠᴏᴜꜱ ᴅᴇᴠᴇᴢ ᴛᴇɴɪʀ ᴜɴ ᴏʙᴊᴇᴛ ᴇɴ ᴍᴀɪɴ ᴘᴏᴜʀ ʟᴇ ᴍᴇᴛᴛʀᴇ ᴇɴ ᴠᴇɴᴛᴇ.'
+  auction-d2fad82: '&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ, ʟ''ᴏʙᴊᴇᴛ ᴠᴏᴜꜱ ᴀ ᴇᴛᴇ ʀᴇɴᴅᴜ.'
+  auction-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  info-045b8ea: '&cᴜꜱᴀɢᴇ : /ɪɴꜰᴏ ʙᴏᴜɴᴛʏ <ᴊᴏᴜᴇᴜʀ>'
+  info-48408b8: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ''ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.'
+  info-f213575: '&8&ᴍ----------------------------------------'
+  info-f213575x: '&8&ᴍ----------------------------------------'
+  vanish-f9476f5: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ɴ''ᴇꜱᴛ ᴜᴛɪʟɪꜱᴀʙʟᴇ ǫᴜ''ᴇɴ ᴊᴇᴜ.'
+  vanish-1b9ce3e: '&cᴛᴜ ᴅᴏɪꜱ êᴛʀᴇ ᴇɴ ᴍᴏᴅᴇ ꜱᴛᴀꜰꜰ (/ꜱᴛᴀꜰꜰ) ᴘᴏᴜʀ ᴜᴛɪʟɪꜱᴇʀ /ᴠᴀɴɪꜱʜ.'
+  vanish-39e9b4b: '&6ᴠᴀɴɪꜱʜ ᴀᴄᴛɪᴠé : ᴛᴜ ᴇꜱ ᴛᴏᴛᴀʟᴇᴍᴇɴᴛ ɪɴᴠɪꜱɪʙʟᴇ ᴇᴛ ᴀʙꜱᴇɴᴛ ᴅᴜ ᴛᴀʙ.'
+  vanish-c8ea56d: '&aᴠᴀɴɪꜱʜ ᴅéꜱᴀᴄᴛɪᴠé : ᴛᴜ ᴇꜱ ᴅᴇ ɴᴏᴜᴠᴇᴀᴜ ᴠɪꜱɪʙʟᴇ.'
+  staff-f9476f5: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ɴ''ᴇꜱᴛ ᴜᴛɪʟɪꜱᴀʙʟᴇ ǫᴜ''ᴇɴ ᴊᴇᴜ.'
+  staff-af68c90: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴇꜱᴛ ʀéꜱᴇʀᴠéᴇ ᴀᴜ ꜱᴛᴀꜰꜰ (ꜰᴏɴᴅᴀ/ᴀᴅᴍɪɴ/ᴅᴇᴠ/ᴍᴏᴅ).'
+  staff-534bef4: '&6ᴍᴏᴅᴇ ꜱᴛᴀꜰꜰ ᴀᴄᴛɪᴠé : ɪɴᴠᴇɴᴛᴀɪʀᴇ ᴅéᴅɪé, ᴛᴏɴ ᴠʀᴀɪ ʀôʟᴇ ᴇꜱᴛ ᴍᴀɪɴᴛᴇɴᴀɴᴛ
+    visible dans le tab.'
+  staff-cefa9a6: '&aᴍᴏᴅᴇ ꜱᴛᴀꜰꜰ ᴅéꜱᴀᴄᴛɪᴠé : ᴛᴜ ᴀꜱ ʀᴇᴛʀᴏᴜᴠé ᴛᴏɴ ɪɴᴠᴇɴᴛᴀɪʀᴇ ʜᴀʙɪᴛᴜᴇʟ,
+    et tu apparais comme Vip dans le tab.'
+  staff-1091a9a: '&cᴛᴜ ɴ''ᴀꜱ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
+  staff-36f20e5: '&cᴊᴏᴜᴇᴜʀ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ ᴏᴜ ʜᴏʀꜱ ʟɪɢɴᴇ.'
+  staff-997c31f: '&cᴘʀéᴄɪꜱᴇ ᴜɴ ᴊᴏᴜᴇᴜʀ : /ꜱᴛᴀꜰꜰ ɪɴꜰᴏ <ᴊᴏᴜᴇᴜʀ>'
+  tpahere-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  tpaccept-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  tpa-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  sethome-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  home-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  spawn-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  claim-e901053: '&cᴜꜱᴀɢᴇ: /ᴄʟᴀɪᴍ ᴛʀᴜꜱᴛ <ᴊᴏᴜᴇᴜʀ>'
+  claim-5981061: '&cᴜꜱᴀɢᴇ: /ᴄʟᴀɪᴍ ᴜɴᴛʀᴜꜱᴛ <ᴊᴏᴜᴇᴜʀ>'
+  claim-24c7631: '&cᴜꜱᴀɢᴇ: /ᴄʟᴀɪᴍ [ᴜɴᴄʟᴀɪᴍ|ᴛʀᴜꜱᴛ <ᴊᴏᴜᴇᴜʀ>|ᴜɴᴛʀᴜꜱᴛ <ᴊᴏᴜᴇᴜʀ>|ɪɴꜰᴏ|ꜱᴇᴛᴛɪɴɢꜱ|ꜱᴇᴇ|ꜱʜᴏᴘ|ꜱᴇʟʟ
+    <prix>|buy|ah]'
+  claim-d3a8a6c: '&cᴜꜱᴀɢᴇ: /ᴄʟᴀɪᴍ ꜱᴇʟʟ <ᴘʀɪx>|ᴄᴀɴᴄᴇʟ'
+  claim-d3a8a6cx: '&cᴜꜱᴀɢᴇ: /ᴄʟᴀɪᴍ ꜱᴇʟʟ <ᴘʀɪx>|ᴄᴀɴᴄᴇʟ'
+  claim-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  team-59b5161: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  team-8c598e7: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ ᴄʀᴇᴀᴛᴇ <ɴᴏᴍ>'
+  team-d5bf232: '&cᴠᴏᴜꜱ ꜰᴀɪᴛᴇꜱ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ''ᴜɴᴇ ᴇǫᴜɪᴘᴇ. ǫᴜɪᴛᴛᴇᴢ-ʟᴀ ᴀᴠᴇᴄ &ꜰ/ᴛᴇᴀᴍ
+    ʟᴇᴀᴠᴇ&c.'
+  team-5205a32: '&cᴄᴇ ɴᴏᴍ ᴅ''ᴇǫᴜɪᴘᴇ ᴇꜱᴛ ᴅᴇᴊᴀ ᴘʀɪꜱ.'
+  team-d5322a2: '&cɴᴏᴍ ɪɴᴠᴀʟɪᴅᴇ (3 ᴀ 16 ᴄᴀʀᴀᴄᴛᴇʀᴇꜱ, ʟᴇᴛᴛʀᴇꜱ/ᴄʜɪꜰꜰʀᴇꜱ/_ ᴜɴɪǫᴜᴇᴍᴇɴᴛ).'
+  team-5ff57db: '&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ ʟᴏʀꜱ ᴅᴇ ʟᴀ ᴄʀᴇᴀᴛɪᴏɴ ᴅᴇ ʟ''ᴇǫᴜɪᴘᴇ.'
+  team-dd5be7d: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ>'
+  team-1e81a35: '&aᴛᴀᴘᴇᴢ &ꜰ/ᴛᴇᴀᴍ ᴀᴄᴄᴇᴘᴛ&a ᴘᴏᴜʀ ᴀᴄᴄᴇᴘᴛᴇʀ ᴏᴜ &ꜰ/ᴛᴇᴀᴍ ᴅᴇɴʏ&a ᴘᴏᴜʀ ʀᴇꜰᴜꜱᴇʀ
+    (60ꜱ).'
+  team-4df8de9: '&cꜱᴇᴜʟ ʟᴇ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ ᴅᴇ ʟ''ᴇǫᴜɪᴘᴇ ᴘᴇᴜᴛ ɪɴᴠɪᴛᴇʀ ᴅᴇꜱ ᴍᴇᴍʙʀᴇꜱ.'
+  team-360c6a0: '&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ''ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ. ᴄʀᴇᴇᴢ-ᴇɴ ᴜɴᴇ ᴀᴠᴇᴄ &ꜰ/ᴛᴇᴀᴍ
+    ᴄʀᴇᴀᴛᴇ <ɴᴏᴍ>&c.'
+  team-48408b8: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ''ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.'
+  team-dde9be9: '&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ.'
+  team-3ec760c: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴊᴏɪɴᴛ ʟ''ᴇǫᴜɪᴘᴇ !'
+  team-9e1ac4c: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴀᴜᴄᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.'
+  team-fded93a: '&cʟᴇ ᴊᴏᴜᴇᴜʀ ᴠᴏᴜꜱ ᴀʏᴀɴᴛ ɪɴᴠɪᴛᴇ ɴ''ᴇꜱᴛ ᴘʟᴜꜱ ᴇɴ ʟɪɢɴᴇ.'
+  team-80f0750: '&cᴠᴏᴜꜱ ꜰᴀɪᴛᴇꜱ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ''ᴜɴᴇ ᴇǫᴜɪᴘᴇ.'
+  team-062db57: '&cᴄᴇᴛᴛᴇ ᴇǫᴜɪᴘᴇ ɴ''ᴇxɪꜱᴛᴇ ᴘʟᴜꜱ.'
+  team-dde9be9x: '&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ.'
+  team-9e1ac4cx: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴀᴜᴄᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.'
+  team-6256072: '&aɪɴᴠɪᴛᴀᴛɪᴏɴ ʀᴇꜰᴜꜱᴇᴇ.'
+  team-03ca43a: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ǫᴜɪᴛᴛᴇ ᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ.'
+  team-6a3bce5: '&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ''ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ.'
+  team-6a3bce5x: '&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ''ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ.'
+  team-01e7540: '&cꜱᴇᴜʟ ʟᴇ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ ᴅᴇ ʟ''ᴇǫᴜɪᴘᴇ ᴘᴇᴜᴛ ʟᴀ ᴅɪꜱꜱᴏᴜᴅʀᴇ. ᴜᴛɪʟɪꜱᴇᴢ &ꜰ/ᴛᴇᴀᴍ
+    ʟᴇᴀᴠᴇ&c ᴘᴏᴜʀ ʟᴀ ǫᴜɪᴛᴛᴇʀ.'
+  team-6a3bce5xx: '&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ''ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ.'
+  team-d8415be: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ <ᴄʀᴇᴀᴛᴇ|ᴀᴅᴅ|ᴀᴄᴄᴇᴘᴛ|ᴅᴇɴʏ|ʟᴇᴀᴠᴇ|ᴅɪꜱʙᴀɴᴅ|ɪɴꜰᴏ>'
+  duel-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  duelaccept-8660550: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  bounty-59b5161: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+  bounty-5382389: '&cᴘᴇʀᴍɪꜱꜱɪᴏɴ ʀᴇꜰᴜꜱᴇᴇ.'
+  bounty-87ec34e: '&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ &7ᴏᴜ&c /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ> [ʀᴀɪꜱᴏɴ]'
+  bounty-8f503e0: '&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ> [ʀᴀɪꜱᴏɴ]'
+  bounty-3d7a153: '&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.'
+  bounty-b3c9a31: '&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴘʟᴀᴄᴇʀ ᴅᴇ ᴘʀɪᴍᴇ ꜱᴜʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.'
+  bounty-48408b8: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ''ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.'
+  role-5df79fb: '&cᴘʀéᴄɪꜱᴇᴢ ᴜɴ ᴊᴏᴜᴇᴜʀ : /ʀᴀɴᴋ <ᴊᴏᴜᴇᴜʀ>'
+  role-c4be954: '&7ʀôʟᴇꜱ ᴅɪꜱᴘᴏɴɪʙʟᴇꜱ :'
+  role-855ea96: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
+  role-ff26093: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ''ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.'
+  role-855ea96x: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
+  role-e5fcbd3: '&cᴜꜱᴀɢᴇ : /ʀᴀɴᴋ ᴄʟᴇᴀʀ <ᴊᴏᴜᴇᴜʀ>'
+  role-9143733: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇꜱᴛ ᴘᴀꜱ ᴇɴ ʟɪɢɴᴇ.'
+  auction-min-price: '&cʟᴇ ᴘʀɪx ᴍɪɴɪᴍᴜᴍ ᴇꜱᴛ ᴅᴇ &e{amount}&c.'
+  auction-listed: '&aᴏʙᴊᴇᴛ ᴍɪꜱ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{amount}&a !'
+  auction-sold: '&aᴠᴏᴛʀᴇ ᴀɴɴᴏɴᴄᴇ ᴀ ᴇᴛᴇ ᴀᴄʜᴇᴛᴇᴇ ᴘᴀʀ &e{player}&a.'
+  balance-self: '&7ᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ : &a{amount}'
+  balance-other: '&7ꜱᴏʟᴅᴇ ᴅᴇ &e{player}&7 : &a{amount}'
+  money-invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}'
+  money-add-success: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴀᴊᴏᴜᴛᴇ &e{amount}&a ᴀ &e{player}&a.'
+  money-remove-not-enough: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  money-remove-success: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴛɪʀᴇ &e{amount}&a ᴀ &e{player}&a.'
+  money-set-success: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴅᴇꜰɪɴɪ ʟᴇ ꜱᴏʟᴅᴇ ᴅᴇ &e{player}&a ᴀ &e{amount}&a.'
+  pay-invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}'
+  pay-not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e{amount}&c.'
+  pay-sent: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴇɴᴠᴏʏᴇ &e{amount}&a ᴀ &e{player}&a.'
+  pay-received: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e{amount}&a ᴅᴇ ʟᴀ ᴘᴀʀᴛ ᴅᴇ &e{player}&a !'
+  info-title: '&4&lᴛᴀʙʟᴇᴀᴜ ᴅᴇ ʙᴏʀᴅ &7- &e{player}'
+  info-total-bounty: '&7ᴘʀɪᴍᴇ ᴛᴏᴛᴀʟᴇ : &a{amount}'
+  info-server-bounty: '&7ᴅᴏɴᴛ ᴘʀɪᴍᴇ ꜱᴇʀᴠᴇᴜʀ : &a{amount}'
+  info-hearts: '&7ᴄᴏᴇᴜʀꜱ ʀᴇᴛɪʀᴇꜱ : &c{removed} &7/ &e{ᴍᴀx}'
+  info-max-health: '&7ᴠɪᴇ ᴍᴀx ᴀᴄᴛᴜᴇʟʟᴇ : &e{current} &7♥ &8(ꜱᴜʀ {base})'
+  staff-info-title: '&7--- ɪɴꜰᴏꜱ ꜱᴛᴀꜰꜰ ᴅᴇ &e{player}&7 ---'
+  staff-info-role: '&7ᴠʀᴀɪ ʀᴀɴɢ : {role}'
+  staff-info-mode: '&7ᴍᴏᴅᴇ ꜱᴛᴀꜰꜰ : {status}'
+  staff-info-vanish: '&7ᴠᴀɴɪꜱʜ : {status}'
+  bounty-claimed-kill: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&a ᴇɴ ᴛᴜᴀɴᴛ &e{player}&a
+    !'
+  bounty-server-malus: '&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴛᴜᴇ &e{player}&c ꜱᴀɴꜱ ǫᴜ''ɪʟ ɴ''ᴀɪᴛ ᴅᴇ ᴘʀɪᴍᴇ :
+    ʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴠᴏᴜꜱ ɪɴꜰʟɪɢᴇ ᴜɴ ᴍᴀʟᴜꜱ ᴅᴇ &e{malus}&c ᴇᴛ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{bounty}&c
+    ꜱᴜʀ ᴠᴏᴜꜱ !'
+  info-unluck-tier: '&7ᴘᴀʟɪᴇʀ ᴅᴇ ᴍᴀʟᴄʜᴀɴᴄᴇ (ᴜɴʟᴜᴄᴋ) : {tier}{reduction}'
+  combat-actionbar: 'ᴄᴏᴍʙᴀᴛ : {seconds}ꜱ'
+  team-created: '&aᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ &e{team}&a ᴀ ᴇᴛᴇ ᴄʀᴇᴇᴇ !'
+  team-invite-sent: '&aɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴᴠᴏʏᴇᴇ ᴀ &e{player}&a. ᴇɴ ᴀᴛᴛᴇɴᴛᴇ ᴅᴇ ꜱᴀ ʀᴇᴘᴏɴꜱᴇ...'
+  team-invite-received: '&e{player}&a ᴠᴏᴜꜱ ᴀ ɪɴᴠɪᴛᴇ ᴅᴀɴꜱ ꜱᴏɴ ᴇǫᴜɪᴘᴇ !'
+  team-target-already: '&c{player} ꜰᴀɪᴛ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ''ᴜɴᴇ ᴇǫᴜɪᴘᴇ.'
+  team-target-offline: '&c{player} ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇɴ ʟɪɢɴᴇ ᴘᴏᴜʀ ʀᴇᴄᴇᴠᴏɪʀ ᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ.'
+  team-already-invited: '&c{player} ᴀ ᴅᴇᴊᴀ ᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.'
+  team-invite-refused: '&c{player} ᴀ ʀᴇꜰᴜꜱᴇ ᴠᴏᴛʀᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ.'
+  team-disbanded: '&aᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ ᴀ ᴇᴛᴇ ᴅɪꜱꜱᴏᴜᴛᴇ.'
+  team-not-found-by-name: '&cᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ ɴᴏᴍᴍᴇᴇ &e{team}&c ɴ''ᴇxɪꜱᴛᴇ.'
+  team-info-header: '&6&l--- ᴇǫᴜɪᴘᴇ {team} ---'
+  team-info-owner: '&7ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ : &e{owner}'
+  team-info-members: '&7ᴍᴇᴍʙʀᴇꜱ (&e{count}&7) : &e{members}'
+  bounty-invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}'
+  bounty-placed: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&a ꜱᴜʀ &e{player}&a !'
+  bounty-received: '&c{player} ᴀ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&c ꜱᴜʀ ᴠᴏᴜꜱ !{reason}'
+  bounty-not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴘʟᴀᴄᴇʀ &e{amount}&c.'
+  role-current: '&7ᴠᴏᴛʀᴇ ʀôʟᴇ ᴀᴄᴛᴜᴇʟ : {role}&r&7.'
+  role-list-entry: ' {prefix}&7({id})'
+  role-usage-set: '&cᴜꜱᴀɢᴇ : /ʀᴀɴᴋ ꜱᴇᴛ <ᴊᴏᴜᴇᴜʀ> <{roles}>'
+  role-unknown: '&cʀôʟᴇ ɪɴᴄᴏɴɴᴜ. ʀôʟᴇꜱ ᴠᴀʟɪᴅᴇꜱ : {roles}'
+  role-set: '&7{player} ᴀ ᴅéꜱᴏʀᴍᴀɪꜱ ʟᴇ ʀôʟᴇ {role}&r&7.'
+  role-cleared: '&7ᴀᴛᴛʀɪʙᴜᴛɪᴏɴ ᴍᴀɴᴜᴇʟʟᴇ ʀᴇᴛɪʀéᴇ ᴘᴏᴜʀ {player} (ʀᴇᴛᴏᴍʙᴇ ꜱᴜʀ ꜱᴇꜱ ᴘᴇʀᴍɪꜱꜱɪᴏɴꜱ).'
+  role-player: '&7ʀôʟᴇ ᴅᴇ &e{player}&7 : {role}&r&7.'
+  claim-info-owner: '&7ᴄᴇ ᴄʜᴜɴᴋ ᴀᴘᴘᴀʀᴛɪᴇɴᴛ à &e{owner}&7.'
+  claim-info-trusted: '&7ᴊᴏᴜᴇᴜʀꜱ ᴅᴇ ᴄᴏɴꜰɪᴀɴᴄᴇ : &e{count} ᴊᴏᴜᴇᴜʀ(ꜱ).'
+  claim-info-for-sale: '&7ᴄᴇ ᴄʟᴀɪᴍ ᴇꜱᴛ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{price}&7. ᴜᴛɪʟɪꜱᴇᴢ /ᴄʟᴀɪᴍ
+    buy pour l''acheter.'
+  sell-gui-no-sellable-items: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ
+    ʟᴀ ɢᴜɪ.'
+  sell-gui-sold: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&aᴠᴇɴᴛᴇ ᴇꜰꜰᴇᴄᴛᴜᴇᴇ : &e{count} ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ
+    &e{amount}&a.'
+  auction-not-available: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴄᴇᴛᴛᴇ ᴀɴɴᴏɴᴄᴇ ɴ''ᴇꜱᴛ ᴘʟᴜꜱ ᴅɪꜱᴘᴏɴɪʙʟᴇ.'
+  auction-buy-success: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&aᴀᴄʜᴀᴛ ᴇꜰꜰᴇᴄᴛᴜé ᴀᴠᴇᴄ ꜱᴜᴄᴄèꜱ !'
+  auction-buy-not-enough-money: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ
+    pour cet achat.'
+  auction-buy-inventory-full: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴠᴏᴛʀᴇ ɪɴᴠᴇɴᴛᴀɪʀᴇ ᴇꜱᴛ ᴘʟᴇɪɴ.'
+  auction-buy-own-item: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴀᴄʜᴇᴛᴇʀ ᴠᴏᴛʀᴇ ᴘʀᴏᴘʀᴇ
+    annonce.'
+  auction-seller-notified: '&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&aᴠᴏᴛʀᴇ ᴀɴɴᴏɴᴄᴇ ᴀ éᴛé ᴀᴄʜᴇᴛéᴇ ᴘᴀʀ &e{player}&a.'
+  spawn-world-not-found: '&cʟᴇ ᴍᴏɴᴅᴇ ᴅᴜ ꜱᴘᴀᴡɴ ("{world}") ᴇꜱᴛ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ.'
+  spawn-teleported: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ éᴛé ᴛéʟéᴘᴏʀᴛé ᴀᴜ ꜱᴘᴀᴡɴ.'

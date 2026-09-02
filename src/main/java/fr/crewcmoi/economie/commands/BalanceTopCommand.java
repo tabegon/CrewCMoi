@@ -1,4 +1,5 @@
 package fr.crewcmoi.economie.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.other.database.PlayerData;
@@ -35,7 +36,7 @@ public class BalanceTopCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Cette commande doit être exécutée par un joueur.");
+            Messages.send(sender, "server.balancetop-8660550");
             return true;
         }
 

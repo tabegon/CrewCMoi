@@ -3,6 +3,9 @@ package fr.crewcmoi.pvp.listeners;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.managers.CombatManager;
 import fr.crewcmoi.pvp.managers.MalusEffectManager;
+import fr.crewcmoi.pvp.managers.InvisibilityManager;
+import fr.crewcmoi.tab.managers.PlayerTeamManager;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -50,6 +53,22 @@ public class CombatListener implements Listener {
         event.setDamage(malusEffectManager.applyReduction(attacker, event.getDamage()));
 
         combatManager.registerAttack(victim, attacker);
+
+        // Pour un kill effectué sous invisibilité, le préfixe/suffixe doit rester visible
+        // dans le TAB en permanence, mais ne doit pas faire partie du nom affiché dans le
+        // message de mort. On masque donc temporairement uniquement le formatage de la
+        // team juste avant que les dégâts mortels soient appliqués, puis on le restaure au
+        // tick suivant, après la génération du message de mort.
+        InvisibilityManager invisibilityManager = plugin.getInvisibilityManager();
+        PlayerTeamManager playerTeamManager = plugin.getPlayerTeamManager();
+        if (invisibilityManager != null
+                && playerTeamManager != null
+                && invisibilityManager.isAnonymous(attacker)
+                && victim.getHealth() + victim.getAbsorptionAmount() <= event.getFinalDamage()) {
+            playerTeamManager.setTabFormattingHidden(attacker.getUniqueId(), true);
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    playerTeamManager.setTabFormattingHidden(attacker.getUniqueId(), false));
+        }
     }
 
     private Player resolveAttacker(org.bukkit.entity.Entity damager) {

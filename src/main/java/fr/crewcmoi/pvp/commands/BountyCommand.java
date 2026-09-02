@@ -1,4 +1,5 @@
 package fr.crewcmoi.pvp.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.gui.BountyGuiManager;
@@ -40,7 +41,7 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sendMessage(sender, "&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.");
+            Messages.send(sender, "server.bounty-59b5161");
             return true;
         }
 
@@ -56,20 +57,20 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
 
         if (args[0].equalsIgnoreCase("review")) {
             if (!player.isOp() && !player.hasPermission("crew.admin")) {
-                sendMessage(player, "&cᴘᴇʀᴍɪꜱꜱɪᴏɴ ʀᴇꜰᴜꜱᴇᴇ.");
+                Messages.send(player, "server.bounty-5382389");
                 return true;
             }
             bountyReviewGuiManager.open(player, 0);
             return true;
         }
 
-        sendMessage(player, "&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ &7ᴏᴜ&c /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ> [ʀᴀɪꜱᴏɴ]");
+        Messages.send(player, "server.bounty-87ec34e");
         return true;
     }
 
     private void handleAdd(Player player, String[] args) {
         if (args.length < 3) {
-            sendMessage(player, "&cᴜꜱᴀɢᴇ : /ʙᴏᴜɴᴛʏ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ> [ʀᴀɪꜱᴏɴ]");
+            Messages.send(player, "server.bounty-8f503e0");
             return;
         }
 
@@ -78,7 +79,7 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
         try {
             amount = MoneyFormat.parse(args[2]);
         } catch (NumberFormatException e) {
-            sendMessage(player, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : " + args[2]);
+            Messages.send(player, "server.bounty-invalid-amount", java.util.Map.of("amount", args[2]), true);
             return;
         }
 
@@ -94,19 +95,19 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
         bountyManager.addPlayerBounty(player, targetName, amount, finalReason, result -> {
             switch (result) {
                 case SUCCESS -> {
-                    sendMessage(player, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(amount) + currency + "&a ꜱᴜʀ &e" + targetName + "&a !");
+                    Messages.send(player, "server.bounty-placed", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", targetName), true);
                     Player online = Bukkit.getPlayerExact(targetName);
                     if (online != null) {
                         String reasonSuffix = (finalReason != null && !finalReason.isBlank())
                                 ? " &7(&e" + finalReason + "&7)"
                                 : "";
-                        sendMessage(online, "&c" + player.getName() + " ᴀ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(amount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !" + reasonSuffix);
+                        Messages.send(online, "server.bounty-received", java.util.Map.of("player", player.getName(), "amount", MoneyFormat.format(amount) + currency, "reason", reasonSuffix), true);
                     }
                 }
-                case INVALID_AMOUNT -> sendMessage(player, "&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.");
-                case SELF_TARGET -> sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴘʟᴀᴄᴇʀ ᴅᴇ ᴘʀɪᴍᴇ ꜱᴜʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.");
-                case NOT_ENOUGH_MONEY -> sendMessage(player, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴘʟᴀᴄᴇʀ &e" + MoneyFormat.format(amount) + currency + "&c.");
-                case TARGET_NOT_FOUND -> sendMessage(player, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
+                case INVALID_AMOUNT -> Messages.send(player, "server.bounty-3d7a153");
+                case SELF_TARGET -> Messages.send(player, "server.bounty-b3c9a31");
+                case NOT_ENOUGH_MONEY -> Messages.send(player, "server.bounty-not-enough-money", java.util.Map.of("amount", MoneyFormat.format(amount) + currency), true);
+                case TARGET_NOT_FOUND -> Messages.send(player, "server.bounty-48408b8");
             }
         });
     }

@@ -6,6 +6,8 @@ import fr.crewcmoi.pvp.managers.CombatManager;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import fr.crewcmoi.pvp.managers.InvisibilityManager;
 import fr.crewcmoi.pvp.managers.TeamManager;
+import fr.crewcmoi.tab.managers.PlayerTeamManager;
+import fr.crewcmoi.other.utils.Messages;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -36,6 +38,7 @@ public class BountyListener implements Listener {
     private final TeamManager teamManager;
     private final EconomyManager economyManager;
     private final InvisibilityManager invisibilityManager;
+    private final PlayerTeamManager playerTeamManager;
 
     public BountyListener(Main plugin, BountyManager bountyManager, CombatManager combatManager,
                            TeamManager teamManager, EconomyManager economyManager,
@@ -46,6 +49,7 @@ public class BountyListener implements Listener {
         this.teamManager = teamManager;
         this.economyManager = economyManager;
         this.invisibilityManager = invisibilityManager;
+        this.playerTeamManager = plugin.getPlayerTeamManager();
     }
 
     /**
@@ -69,7 +73,18 @@ public class BountyListener implements Listener {
 
         String deathMessage = event.getDeathMessage();
         if (deathMessage != null) {
-            event.setDeathMessage(deathMessage.replace(killer.getName(), InvisibilityManager.ANONYMOUS_NAME));
+            String prefix = playerTeamManager.getPrefix(killer.getUniqueId());
+            String suffix = playerTeamManager.getSuffix(killer.getUniqueId());
+            String fullDisplayName = prefix + killer.getName() + suffix;
+
+            // Le préfixe/suffixe restent toujours actifs pour le TAB. Pour le message
+            // de mort, on retire uniquement la décoration du tueur invisible et on
+            // remplace son identité par « Anonyme ».
+            String anonymized = deathMessage.replace(fullDisplayName, InvisibilityManager.ANONYMOUS_NAME);
+            if (anonymized.equals(deathMessage)) {
+                anonymized = deathMessage.replace(killer.getName(), InvisibilityManager.ANONYMOUS_NAME);
+            }
+            event.setDeathMessage(anonymized);
         }
     }
 
@@ -106,8 +121,7 @@ public class BountyListener implements Listener {
         BountyManager.BountyClaimResult claim = bountyManager.claimBounty(killerUuid, victim.getUniqueId(),
                 contributorUuid -> contributorUuid.equals(killerUuid) || teamManager.isSameTeam(contributorUuid, killerUuid));
         if (claim.amount() > 0) {
-            sendMessage(killer, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘᴇʀᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(claim.amount()) + currency
-                    + "&a ᴇɴ ᴛᴜᴀɴᴛ &e" + victim.getName() + "&a !");
+            Messages.send(killer, "server.bounty-claimed-kill", java.util.Map.of("amount", MoneyFormat.format(claim.amount()) + currency, "player", victim.getName()));
         }
         if (claim.legitimate()) {
             return;
@@ -146,9 +160,7 @@ public class BountyListener implements Listener {
         // refreshBountyDisplay -> MalusEffectManager#updateBountyEffect), pas besoin de les
         // déclencher ici manuellement.
 
-        sendMessage(killer, "&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴛᴜᴇ &e" + victim.getName() + "&c ꜱᴀɴꜱ ǫᴜ'ɪʟ ɴ'ᴀɪᴛ ᴅᴇ ᴘʀɪᴍᴇ : "
-                + "ʟᴇ ꜱᴇʀᴠᴇᴜʀ ᴠᴏᴜꜱ ɪɴꜰʟɪɢᴇ ᴜɴ ᴍᴀʟᴜꜱ ᴅᴇ &e" + MoneyFormat.format(malusAmount) + currency
-                + "&c ᴇᴛ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e" + MoneyFormat.format(bountyAmount) + currency + "&c ꜱᴜʀ ᴠᴏᴜꜱ !");
+        Messages.send(killer, "server.bounty-server-malus", java.util.Map.of("player", victim.getName(), "malus", MoneyFormat.format(malusAmount) + currency, "bounty", MoneyFormat.format(bountyAmount) + currency));
     }
 
     private void sendMessage(Player player, String message) {

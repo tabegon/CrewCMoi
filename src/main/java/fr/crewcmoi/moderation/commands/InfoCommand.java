@@ -1,4 +1,5 @@
 package fr.crewcmoi.moderation.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.database.BountyEntry;
@@ -41,7 +42,7 @@ public class InfoCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 2 || !args[0].equalsIgnoreCase("bounty")) {
-            sendMessage(sender, "&cᴜꜱᴀɢᴇ : /ɪɴꜰᴏ ʙᴏᴜɴᴛʏ <ᴊᴏᴜᴇᴜʀ>");
+            Messages.send(sender, "server.info-045b8ea");
             return true;
         }
 
@@ -56,7 +57,7 @@ public class InfoCommand implements CommandExecutor, TabCompleter {
         } else {
             PlayerData data = plugin.getEconomyManager().getPlayerDataByName(targetName);
             if (data == null) {
-                sendMessage(sender, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
+                Messages.send(sender, "server.info-48408b8");
                 return true;
             }
             targetUuid = data.getUuid();
@@ -77,15 +78,16 @@ public class InfoCommand implements CommandExecutor, TabCompleter {
         double currentMaxHealth = Math.max(2.0, baseMaxHealth - (heartsRemoved * 2.0));
         String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
-        sendMessage(sender, "&8&m----------------------------------------");
-        sendMessage(sender, "&4&lᴛᴀʙʟᴇᴀᴜ ᴅᴇ ʙᴏʀᴅ &7- &e" + resolvedName);
-        sendMessage(sender, "&7ᴘʀɪᴍᴇ ᴛᴏᴛᴀʟᴇ : &a" + MoneyFormat.format(total) + currency);
-        sendMessage(sender, "&7ᴅᴏɴᴛ ᴘʀɪᴍᴇ ꜱᴇʀᴠᴇᴜʀ : &a" + MoneyFormat.format(serverTotal) + currency);
-        sendMessage(sender, "&7ᴘᴀʟɪᴇʀ ᴅᴇ ᴍᴀʟᴄʜᴀɴᴄᴇ (ᴜɴʟᴜᴄᴋ) : " + tierLabel(tier)
-                + (tier > 0 ? " &7(&c-" + percentFormat.format(reductionPercent) + "%&7 ᴅᴇ ᴅᴇɢᴀᴛꜱ ɪɴꜰʟɪɢᴇꜱ)" : ""));
-        sendMessage(sender, "&7ᴄᴏᴇᴜʀꜱ ʀᴇᴛɪʀᴇꜱ : &c" + heartsRemoved + " &7/ &e" + malusEffectManager.getMaxHeartsRemoved());
-        sendMessage(sender, "&7ᴠɪᴇ ᴍᴀx ᴀᴄᴛᴜᴇʟʟᴇ : &e" + (int) (currentMaxHealth / 2) + " &7♥ &8(ꜱᴜʀ " + (int) (baseMaxHealth / 2) + ")");
-        sendMessage(sender, "&8&m----------------------------------------");
+        Messages.send(sender, "server.info-f213575");
+        Messages.send(sender, "server.info-title", java.util.Map.of("player", resolvedName));
+        Messages.send(sender, "server.info-total-bounty", java.util.Map.of("amount", MoneyFormat.format(total) + currency));
+        Messages.send(sender, "server.info-server-bounty", java.util.Map.of("amount", MoneyFormat.format(serverTotal) + currency));
+        Messages.send(sender, "server.info-unluck-tier", java.util.Map.of(
+                "tier", tierLabel(tier),
+                "reduction", tier > 0 ? " &7(&c-" + percentFormat.format(reductionPercent) + "%&7 ᴅᴇ ᴅᴇɢᴀᴛꜱ ɪɴꜰʟɪɢᴇꜱ)" : ""), true);
+        Messages.send(sender, "server.info-hearts", java.util.Map.of("removed", heartsRemoved, "max", malusEffectManager.getMaxHeartsRemoved()));
+        Messages.send(sender, "server.info-max-health", java.util.Map.of("current", (int)(currentMaxHealth/2), "base", (int)(baseMaxHealth/2)));
+        Messages.send(sender, "server.info-f213575x");
         return true;
     }
 

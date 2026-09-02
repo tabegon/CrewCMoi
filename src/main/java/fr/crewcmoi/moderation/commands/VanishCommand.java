@@ -1,4 +1,5 @@
 package fr.crewcmoi.moderation.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.moderation.managers.StaffModeManager;
 import fr.crewcmoi.moderation.managers.VanishManager;
@@ -26,20 +27,20 @@ public class VanishCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "Cette commande n'est utilisable qu'en jeu.");
+            Messages.send(sender, "server.vanish-f9476f5");
             return true;
         }
 
         if (!staffModeManager.isActive(player.getUniqueId())) {
-            player.sendMessage(ChatColor.RED + "Tu dois être en mode staff (/staff) pour utiliser /vanish.");
+            Messages.send(player, "server.vanish-1b9ce3e");
             return true;
         }
 
         boolean nowVanished = vanishManager.toggle(player);
         if (nowVanished) {
-            player.sendMessage(ChatColor.GOLD + "Vanish activé : tu es totalement invisible et absent du tab.");
+            Messages.send(player, "server.vanish-39e9b4b");
         } else {
-            player.sendMessage(ChatColor.GREEN + "Vanish désactivé : tu es de nouveau visible.");
+            Messages.send(player, "server.vanish-c8ea56d");
         }
         return true;
     }

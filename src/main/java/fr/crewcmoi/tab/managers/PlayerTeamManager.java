@@ -121,6 +121,53 @@ public class PlayerTeamManager {
         applyToAllScoreboards(uuid);
     }
 
+
+    public String getPrefix(UUID uuid) {
+        return prefixes.getOrDefault(uuid, "");
+    }
+
+    public String getSuffix(UUID uuid) {
+        return suffixes.getOrDefault(uuid, "");
+    }
+
+    public void setTabFormattingHidden(UUID uuid, boolean hidden) {
+        String entryName = names.get(uuid);
+        if (entryName == null) {
+            return;
+        }
+        for (Scoreboard scoreboard : onlineScoreboards()) {
+            setTabFormattingHidden(scoreboard, uuid, hidden);
+        }
+    }
+
+    private void setTabFormattingHidden(Scoreboard scoreboard, UUID uuid, boolean hidden) {
+        String entryName = names.get(uuid);
+        if (scoreboard == null || entryName == null) {
+            return;
+        }
+
+        int weight = sortWeights.getOrDefault(uuid, 99);
+        String expectedName = teamName(uuid, weight);
+        Map<UUID, Team> teams = teamsByScoreboard.computeIfAbsent(scoreboard, s -> new HashMap<>());
+        Team team = teams.get(uuid);
+
+        if (team == null || team.getScoreboard() == null || !team.getName().equals(expectedName)) {
+            applyTo(scoreboard, uuid);
+            team = teams.get(uuid);
+        }
+
+        if (team == null) {
+            return;
+        }
+
+        if (!team.hasEntry(entryName)) {
+            team.addEntry(entryName);
+        }
+
+        team.setPrefix(hidden ? "" : cut(prefixes.getOrDefault(uuid, ""), 64));
+        team.setSuffix(hidden ? "" : cut(suffixes.getOrDefault(uuid, ""), 64));
+    }
+
     /** Retire le suffixe d'un joueur (son nom doit déjà être connu, voir setPrefix/setSuffix). */
     public void clearSuffix(UUID uuid) {
         suffixes.remove(uuid);
@@ -130,11 +177,11 @@ public class PlayerTeamManager {
     }
 
     /**
-     * Masque ou réaffiche, pour tout le monde, à la fois le pseudo au-dessus de
-     * la tête du joueur ET son préfixe/suffixe dans le tab (rôle, prime) —
-     * utilisé pendant l'invisibilité pour qu'il reste vraiment anonyme partout,
-     * pas seulement dans le monde. Le rôle/la prime réels ne sont pas oubliés :
-     * ils réapparaissent tels quels dès que hidden repasse à false.
+     * Masque ou réaffiche le pseudo au-dessus de la tête du joueur pendant
+     * l'invisibilité. Le préfixe et le suffixe restent normalement visibles dans le TAB.
+     * Pour un besoin ponctuel, notamment un message de mort anonyme,
+     * setTabFormattingHidden(UUID, boolean) permet de masquer temporairement
+     * uniquement le préfixe/suffixe.
      */
     public void setNameTagHidden(Player player, boolean hidden) {
         UUID uuid = player.getUniqueId();
@@ -213,8 +260,10 @@ public class PlayerTeamManager {
             team.addEntry(entryName);
         }
 
-        team.setPrefix(hiddenNameTags.getOrDefault(uuid, false) ? "" : cut(prefixes.getOrDefault(uuid, ""), 64));
-        team.setSuffix(hiddenNameTags.getOrDefault(uuid, false) ? "" : cut(suffixes.getOrDefault(uuid, ""), 64));
+        // L'invisibilité ne doit cacher que le nametag au-dessus de la tête.
+        // Le préfixe/suffixe doivent rester visibles dans le TAB.
+        team.setPrefix(cut(prefixes.getOrDefault(uuid, ""), 64));
+        team.setSuffix(cut(suffixes.getOrDefault(uuid, ""), 64));
         team.setOption(Team.Option.NAME_TAG_VISIBILITY,
                 hiddenNameTags.getOrDefault(uuid, false) ? Team.OptionStatus.NEVER : Team.OptionStatus.ALWAYS);
     }

@@ -1,4 +1,5 @@
 package fr.crewcmoi.economie.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.gui.AuctionGuiManager;
@@ -33,7 +34,7 @@ public class AuctionCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "Cette commande doit être exécutée par un joueur.");
+            Messages.send(sender, "server.auction-8660550");
             return true;
         }
 
@@ -47,13 +48,13 @@ public class AuctionCommand implements CommandExecutor {
             return true;
         }
 
-        sendMessage(player, "&cᴜꜱᴀɢᴇ : /ᴀʜ &7ᴏᴜ&c /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>");
+        Messages.send(player, "server.auction-31d6928");
         return true;
     }
 
     private void handleSell(Player player, String[] args) {
         if (args.length < 2) {
-            sendMessage(player, "&cᴜꜱᴀɢᴇ : /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>");
+            Messages.send(player, "server.auction-7759fee");
             return;
         }
 
@@ -61,19 +62,19 @@ public class AuctionCommand implements CommandExecutor {
         try {
             price = MoneyFormat.parse(args[1]);
         } catch (NumberFormatException e) {
-            sendMessage(player, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.");
+            Messages.send(player, "server.auction-c974a61");
             return;
         }
 
         double minPrice = plugin.getConfig().getDouble("economy.auction-min-price", 0.01);
         if (price < minPrice) {
-            sendMessage(player, "&cʟᴇ ᴘʀɪx ᴍɪɴɪᴍᴜᴍ ᴇꜱᴛ ᴅᴇ &e" + MoneyFormat.format(minPrice) + "&c.");
+            Messages.send(player, "server.auction-min-price", java.util.Map.of("amount", MoneyFormat.format(minPrice)));
             return;
         }
 
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (hand == null || hand.getType() == Material.AIR) {
-            sendMessage(player, "&cᴠᴏᴜꜱ ᴅᴇᴠᴇᴢ ᴛᴇɴɪʀ ᴜɴ ᴏʙᴊᴇᴛ ᴇɴ ᴍᴀɪɴ ᴘᴏᴜʀ ʟᴇ ᴍᴇᴛᴛʀᴇ ᴇɴ ᴠᴇɴᴛᴇ.");
+            Messages.send(player, "server.auction-0dce3d8");
             return;
         }
 
@@ -83,16 +84,16 @@ public class AuctionCommand implements CommandExecutor {
         auctionManager.listItem(player, toSell, price, success -> {
             if (Boolean.TRUE.equals(success)) {
                 String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
-                sendMessage(player, "&aᴏʙᴊᴇᴛ ᴍɪꜱ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e" + MoneyFormat.format(price) + currency + "&a !");
+                Messages.send(player, "server.auction-listed", java.util.Map.of("amount", MoneyFormat.format(price) + currency));
             } else {
                 // Échec : on rend l'objet au joueur.
                 player.getInventory().addItem(toSell);
-                sendMessage(player, "&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ, ʟ'ᴏʙᴊᴇᴛ ᴠᴏᴜꜱ ᴀ ᴇᴛᴇ ʀᴇɴᴅᴜ.");
+                Messages.send(player, "server.auction-d2fad82");
             }
         });
     }
 
     private void sendMessage(Player player, String message) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r" + message));
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 }

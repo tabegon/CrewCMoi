@@ -1,4 +1,5 @@
 package fr.crewcmoi.economie.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.other.database.PlayerData;
@@ -32,12 +33,12 @@ public class PayCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sendMessage(sender, "&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.");
+            Messages.send(sender, "server.pay-59b5161");
             return true;
         }
 
         if (args.length < 2) {
-            sendMessage(sender, "&cᴜꜱᴀɢᴇ : /ᴘᴀʏ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>");
+            Messages.send(sender, "server.pay-cd1502f");
             return true;
         }
 
@@ -47,46 +48,46 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         try {
             amount = MoneyFormat.parse(args[1]);
         } catch (NumberFormatException e) {
-            sendMessage(sender, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : " + args[1]);
+            Messages.send(sender, "server.pay-invalid-amount", java.util.Map.of("amount", args[1]));
             return true;
         }
 
         if (!Double.isFinite(amount) || amount <= 0) {
-            sendMessage(sender, "&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.");
+            Messages.send(sender, "server.pay-3d7a153");
             return true;
         }
 
         PlayerData targetData = economyManager.getPlayerDataByName(targetName);
         if (targetData == null) {
-            sendMessage(sender, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
+            Messages.send(sender, "server.pay-48408b8");
             return true;
         }
 
         if (targetData.getUuid().equals(player.getUniqueId())) {
-            sendMessage(sender, "&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴠᴏᴜꜱ ᴘᴀʏᴇʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.");
+            Messages.send(sender, "server.pay-435dc6b");
             return true;
         }
 
         String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         if (!economyManager.has(player.getUniqueId(), amount)) {
-            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e" + MoneyFormat.format(amount) + currency + "&c.");
+            Messages.send(sender, "server.pay-not-enough-money", java.util.Map.of("amount", MoneyFormat.format(amount) + currency));
             return true;
         }
 
         boolean withdrawn = economyManager.withdraw(player.getUniqueId(), amount);
         if (!withdrawn) {
-            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ'ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e" + MoneyFormat.format(amount) + currency + "&c.");
+            Messages.send(sender, "server.pay-not-enough-money", java.util.Map.of("amount", MoneyFormat.format(amount) + currency));
             return true;
         }
 
         economyManager.deposit(targetData.getUuid(), amount);
 
-        sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴇɴᴠᴏʏᴇ &e" + MoneyFormat.format(amount) + currency + "&a ᴀ &e" + targetData.getName() + "&a.");
+        Messages.send(sender, "server.pay-sent", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", targetData.getName()));
 
         Player online = Bukkit.getPlayer(targetData.getUuid());
         if (online != null && online.isOnline()) {
-            sendMessage(online, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e" + MoneyFormat.format(amount) + currency + "&a ᴅᴇ ʟᴀ ᴘᴀʀᴛ ᴅᴇ &e" + player.getName() + "&a !");
+            Messages.send(online, "server.pay-received", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", player.getName()));
         }
 
         return true;

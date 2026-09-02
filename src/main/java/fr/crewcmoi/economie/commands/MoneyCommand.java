@@ -1,4 +1,5 @@
 package fr.crewcmoi.economie.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.other.database.PlayerData;
@@ -33,12 +34,12 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("crew.admin")) {
-            sendMessage(sender, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ'ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.");
+            Messages.send(sender, "server.money-a4e1d2b");
             return true;
         }
 
         if (args.length < 3) {
-            sendMessage(sender, "&cᴜꜱᴀɢᴇ : /ᴍᴏɴᴇʏ <ᴀᴅᴅ|ʀᴇᴍᴏᴠᴇ|ꜱᴇᴛ> <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>");
+            Messages.send(sender, "server.money-b08cb36");
             return true;
         }
 
@@ -49,18 +50,18 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         try {
             amount = MoneyFormat.parse(args[2]);
         } catch (NumberFormatException e) {
-            sendMessage(sender, "&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : " + args[2]);
+            Messages.send(sender, "server.money-invalid-amount", java.util.Map.of("amount", args[2]));
             return true;
         }
 
         if (amount < 0) {
-            sendMessage(sender, "&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴘᴏꜱɪᴛɪꜰ.");
+            Messages.send(sender, "server.money-f2ae10f");
             return true;
         }
 
         PlayerData data = economyManager.getPlayerDataByName(targetName);
         if (data == null) {
-            sendMessage(sender, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
+            Messages.send(sender, "server.money-48408b8");
             return true;
         }
 
@@ -69,28 +70,28 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "add":
                 economyManager.deposit(data.getUuid(), amount);
-                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴀᴊᴏᴜᴛᴇ &e" + MoneyFormat.format(amount) + currency + "&a ᴀ &e" + data.getName() + "&a.");
+                Messages.send(sender, "server.money-add-success", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", data.getName()));
                 notifyTarget(data, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e" + MoneyFormat.format(amount) + currency + "&a !");
                 break;
 
             case "remove":
                 boolean success = economyManager.withdraw(data.getUuid(), amount);
                 if (!success) {
-                    sendMessage(sender, "&c" + data.getName() + " n'a pas assez d'argent pour retirer ce montant.");
+                    Messages.send(sender, "server.money-remove-not-enough", java.util.Map.of("player", data.getName()));
                     return true;
                 }
-                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴛɪʀᴇ &e" + MoneyFormat.format(amount) + currency + "&a ᴀ &e" + data.getName() + "&a.");
+                Messages.send(sender, "server.money-remove-success", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", data.getName()));
                 notifyTarget(data, "&cᴏɴ ᴠᴏᴜꜱ ᴀ ʀᴇᴛɪʀᴇ &e" + MoneyFormat.format(amount) + currency + "&c.");
                 break;
 
             case "set":
                 economyManager.setBalance(data.getUuid(), amount);
-                sendMessage(sender, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴅᴇꜰɪɴɪ ʟᴇ ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&a ᴀ &e" + MoneyFormat.format(amount) + currency + "&a.");
+                Messages.send(sender, "server.money-set-success", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", data.getName()));
                 notifyTarget(data, "&eᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ ᴀ ᴇᴛᴇ ᴅᴇꜰɪɴɪ ᴀ " + MoneyFormat.format(amount) + currency + ".");
                 break;
 
             default:
-                sendMessage(sender, "&cᴀᴄᴛɪᴏɴ ɪɴᴄᴏɴɴᴜᴇ. ᴜᴛɪʟɪꜱᴇᴢ ᴀᴅᴅ, ʀᴇᴍᴏᴠᴇ ᴏᴜ ꜱᴇᴛ.");
+                Messages.send(sender, "server.money-7bdd64f");
                 break;
         }
 

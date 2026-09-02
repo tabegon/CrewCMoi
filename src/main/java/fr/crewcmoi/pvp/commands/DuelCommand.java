@@ -1,4 +1,5 @@
 package fr.crewcmoi.pvp.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.gui.DuelConfigGuiManager;
@@ -33,7 +34,7 @@ public class DuelCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Cette commande doit être exécutée par un joueur.");
+            Messages.send(sender, "server.duel-8660550");
             return true;
         }
 

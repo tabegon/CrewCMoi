@@ -1,4 +1,5 @@
 package fr.crewcmoi.pvp.managers;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import net.kyori.adventure.text.Component;
@@ -69,7 +70,7 @@ public class CombatManager {
                 if (remaining <= 0) {
                     continue;
                 }
-                player.sendActionBar(Component.text("Combat : " + remaining + "s", NamedTextColor.RED));
+                player.sendActionBar(Component.text(Messages.get("server.combat-actionbar", java.util.Map.of("seconds", remaining)), NamedTextColor.RED));
             }
         }, 0L, 20L);
     }
@@ -109,7 +110,7 @@ public class CombatManager {
             engagementAggressor.remove(uuid);
             Player p = Bukkit.getPlayer(uuid);
             if (p != null && p.isOnline()) {
-                sendMessage(p, "combat-log.combat-ended");
+                Messages.send(p, "server.combat-9f47a6e");
             }
         }, combatDurationSeconds * 20L);
 
@@ -128,10 +129,10 @@ public class CombatManager {
 
         if (!victimWasInCombat) {
             firstAttacker.put(victimId, attackerId);
-            sendMessage(victim, "combat-log.tagged");
+            Messages.send(victim, "server.combat-a024002");
         }
         if (!attackerWasInCombat) {
-            sendMessage(attacker, "combat-log.tagged");
+            Messages.send(attacker, "server.combat-a024002x");
         }
 
         // Détermine l'agresseur de cet affrontement : le premier des deux à avoir frappé.

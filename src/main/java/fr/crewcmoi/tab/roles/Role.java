@@ -13,12 +13,11 @@ package fr.crewcmoi.tab.roles;
  */
 public enum Role {
 
-    FONDA("fonda", "&6- Fonda &f", 0),
-    ADMIN("admin", "&4- Admin &f", 1),
-    DEV("dev", "&d- Dev &f", 2),
-    MOD("mod", "&9- Mod &f", 3),
-    VIP("vip", "&a- Vip &f", 4),
-    PLAYER("player", "&7- Player &f", 5);
+    FONDA("fonda", "§f\uE509 ", 0),
+    DEV("dev", "§f\uE508 ", 1),
+    MOD("mod", "§f\uE507 ", 2),
+    VIP("vip", "§f\uE510 ", 3),
+    PLAYER("player", "§f\uE518 ", 4);
 
     private final String id;
     private final String defaultPrefix;
@@ -67,7 +66,7 @@ public enum Role {
      * Fonda, Admin, Dev et Mod. Vip et Player ne sont pas concernés.
      */
     public boolean isStaffRole() {
-        return this == FONDA || this == ADMIN || this == DEV || this == MOD;
+        return this == FONDA || this == DEV || this == MOD;
     }
 
     /**

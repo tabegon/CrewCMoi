@@ -1,4 +1,5 @@
 package fr.crewcmoi.teleport.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import org.bukkit.Bukkit;
@@ -26,7 +27,7 @@ public class SpawnCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Cette commande doit être exécutée par un joueur.");
+            Messages.send(sender, "server.spawn-8660550");
             return true;
         }
 
@@ -37,8 +38,7 @@ public class SpawnCommand implements CommandExecutor {
         World world = Bukkit.getWorld(worldName);
 
         if (world == null) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") + "&cLe monde du spawn (\"" + worldName + "\") est introuvable."));
+            Messages.send(player, "server.spawn-world-not-found", java.util.Map.of("world", worldName), true);
             return true;
         }
 
@@ -51,8 +51,7 @@ public class SpawnCommand implements CommandExecutor {
         Location spawnLocation = new Location(world, x, y, z, yaw, pitch);
         player.teleport(spawnLocation);
 
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                plugin.getMessages().getString("prefix", "") + "&aVous avez été téléporté au spawn."));
+        Messages.send(player, "server.spawn-teleported", java.util.Map.of(), true);
 
         return true;
     }

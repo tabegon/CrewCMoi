@@ -1,4 +1,5 @@
 package fr.crewcmoi.moderation.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.moderation.managers.StaffModeManager;
 import fr.crewcmoi.moderation.managers.VanishManager;
@@ -47,15 +48,15 @@ public class StaffCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "Cette commande n'est utilisable qu'en jeu.");
+            Messages.send(sender, "server.staff-f9476f5");
             return true;
         }
 
         StaffModeManager.ToggleResult result = staffModeManager.toggle(player);
         switch (result) {
-            case NOT_ALLOWED -> player.sendMessage(ChatColor.RED + "Cette commande est réservée au staff (Fonda/Admin/Dev/Mod).");
-            case NOW_STAFF -> player.sendMessage(ChatColor.GOLD + "Mode staff activé : inventaire dédié, ton vrai rôle est maintenant visible dans le tab.");
-            case NOW_NORMAL -> player.sendMessage(ChatColor.GREEN + "Mode staff désactivé : tu as retrouvé ton inventaire habituel, et tu apparais comme Vip dans le tab.");
+            case NOT_ALLOWED -> Messages.send(player, "server.staff-af68c90");
+            case NOW_STAFF -> Messages.send(player, "server.staff-534bef4");
+            case NOW_NORMAL -> Messages.send(player, "server.staff-cefa9a6");
         }
         return true;
     }
@@ -68,7 +69,7 @@ public class StaffCommand implements CommandExecutor, TabCompleter {
     private void handleInfo(CommandSender sender, String[] args) {
         boolean allowed = sender.isOp() || (sender instanceof Player p && roleManager.getRealRole(p).isStaffRole());
         if (!allowed) {
-            sender.sendMessage(ChatColor.RED + "Tu n'as pas la permission d'utiliser cette commande.");
+            Messages.send(sender, "server.staff-1091a9a");
             return;
         }
 
@@ -76,13 +77,13 @@ public class StaffCommand implements CommandExecutor, TabCompleter {
         if (args.length >= 2) {
             target = Bukkit.getPlayerExact(args[1]);
             if (target == null) {
-                sender.sendMessage(ChatColor.RED + "Joueur introuvable ou hors ligne.");
+                Messages.send(sender, "server.staff-36f20e5");
                 return;
             }
         } else if (sender instanceof Player p) {
             target = p;
         } else {
-            sender.sendMessage(ChatColor.RED + "Précise un joueur : /staff info <joueur>");
+            Messages.send(sender, "server.staff-997c31f");
             return;
         }
 
@@ -90,10 +91,10 @@ public class StaffCommand implements CommandExecutor, TabCompleter {
         boolean staffActive = staffModeManager.isActive(target.getUniqueId());
         boolean vanished = vanishManager.isVanished(target.getUniqueId());
 
-        sender.sendMessage(ChatColor.GRAY + "--- Infos staff de " + ChatColor.YELLOW + target.getName() + ChatColor.GRAY + " ---");
-        sender.sendMessage(ChatColor.GRAY + "Vrai rang : " + roleManager.getPrefix(realRole).trim());
-        sender.sendMessage(ChatColor.GRAY + "Mode staff : " + (staffActive ? ChatColor.GREEN + "activé" : ChatColor.RED + "désactivé"));
-        sender.sendMessage(ChatColor.GRAY + "Vanish : " + (vanished ? ChatColor.GREEN + "activé" : ChatColor.RED + "désactivé"));
+        Messages.send(sender, "server.staff-info-title", java.util.Map.of("player", target.getName()));
+        Messages.send(sender, "server.staff-info-role", java.util.Map.of("role", roleManager.getPrefix(realRole).trim()));
+        Messages.send(sender, "server.staff-info-mode", java.util.Map.of("status", staffActive ? "&aactivé" : "&cdésactivé"));
+        Messages.send(sender, "server.staff-info-vanish", java.util.Map.of("status", vanished ? "&aactivé" : "&cdésactivé"));
     }
 
     @Override

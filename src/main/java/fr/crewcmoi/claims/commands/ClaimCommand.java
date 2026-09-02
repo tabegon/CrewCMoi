@@ -1,4 +1,5 @@
 package fr.crewcmoi.claims.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.claims.database.ClaimData;
@@ -62,7 +63,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Cette commande doit être exécutée par un joueur.");
+            Messages.send(sender, "server.claim-8660550");
             return true;
         }
 
@@ -79,14 +80,14 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 break;
             case "trust":
                 if (args.length < 2) {
-                    sendMessage(player, "&cUsage: /claim trust <joueur>");
+                    Messages.send(player, "server.claim-e901053");
                     return true;
                 }
                 handleTrust(player, args[1], true);
                 break;
             case "untrust":
                 if (args.length < 2) {
-                    sendMessage(player, "&cUsage: /claim untrust <joueur>");
+                    Messages.send(player, "server.claim-5981061");
                     return true;
                 }
                 handleTrust(player, args[1], false);
@@ -113,7 +114,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 claimAuctionGuiManager.open(player, 0);
                 break;
             default:
-                sendMessage(player, "&cUsage: /claim [unclaim|trust <joueur>|untrust <joueur>|info|settings|see|shop|sell <prix>|buy|ah]");
+                Messages.send(player, "server.claim-24c7631");
                 break;
         }
 
@@ -194,15 +195,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             sendMessage(player, "claim.not-claimed", "&cCe chunk n'est pas claim.");
             return;
         }
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&7Ce chunk appartient à &e" + claim.getOwnerName() + "&7."));
+        Messages.send(player, "server.claim-info-owner", java.util.Map.of("owner", claim.getOwnerName()), false);
         if (!claim.getTrusted().isEmpty()) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7Joueurs de confiance : &e" +
-                    claim.getTrusted().size() + " joueur(s)."));
+            Messages.send(player, "server.claim-info-trusted", java.util.Map.of("count", claim.getTrusted().size()), false);
         }
         if (claim.isForSale()) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7Ce claim est en vente pour &e" +
-                    MoneyFormat.format(claim.getSalePrice()) + "&7. Utilisez /claim buy pour l'acheter."));
+            Messages.send(player, "server.claim-info-for-sale", java.util.Map.of("price", MoneyFormat.format(claim.getSalePrice())), false);
         }
     }
 
@@ -231,7 +229,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 
     private void handleSell(Player player, String[] args) {
         if (args.length < 2) {
-            sendMessage(player, "&cUsage: /claim sell <prix>|cancel");
+            Messages.send(player, "server.claim-d3a8a6c");
             return;
         }
 
@@ -260,7 +258,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         try {
             price = MoneyFormat.parse(args[1]);
         } catch (NumberFormatException e) {
-            sendMessage(player, "&cUsage: /claim sell <prix>|cancel");
+            Messages.send(player, "server.claim-d3a8a6cx");
             return;
         }
 

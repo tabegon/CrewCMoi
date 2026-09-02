@@ -1,16 +1,4 @@
-# =========================================
-#      Prix de vente - Commande /sell
-# =========================================
-# Liste étendue couvrant la majorité des objets vendables du jeu.
-# Les prix sont volontairement bas : /sell sert d'appoint, pas de source
-# de revenu principale. Ajustez librement selon l'économie de votre serveur.
-#
-# Format : NOM_DU_MATERIAU: prix_unitaire
-# (nom = énumération Bukkit Material, ex: COBBLESTONE, DIAMOND)
-
 prices:
-
-  # Blocs communs / terre / pierre
   DIRT: 0.01
   GRASS_BLOCK: 0.01
   COARSE_DIRT: 0.01
@@ -60,7 +48,6 @@ prices:
   SNOW_BLOCK: 0.02
   SNOWBALL: 0.01
 
-  # Bois (toutes essences)
   OAK_LOG: 0.05
   STRIPPED_OAK_LOG: 0.05
   OAK_WOOD: 0.05
@@ -252,7 +239,6 @@ prices:
   STICK: 0.02
   CRAFTING_TABLE: 0.1
 
-  # Minerais bruts, lingots et gemmes
   COAL: 0.3
   CHARCOAL: 0.2
   RAW_IRON: 1.0
@@ -275,7 +261,6 @@ prices:
   PRISMARINE_SHARD: 0.3
   PRISMARINE_CRYSTALS: 0.4
 
-  # Nourriture
   WHEAT: 0.1
   WHEAT_SEEDS: 0.02
   BREAD: 0.2
@@ -332,7 +317,6 @@ prices:
   DRIED_KELP_BLOCK: 0.3
   HAY_BLOCK: 0.2
 
-  # Drops de mobs et objets divers
   BONE: 0.1
   BONE_MEAL: 0.05
   STRING: 0.1
@@ -373,7 +357,6 @@ prices:
   SPECTRAL_ARROW: 0.1
   TIPPED_ARROW: 0.15
 
-  # Laine, teintures et blocs colorés
   WHITE_WOOL: 0.1
   WHITE_DYE: 0.05
   WHITE_CONCRETE: 0.1
@@ -571,7 +554,6 @@ prices:
   GLASS_PANE: 0.02
   GLASS_BOTTLE: 0.02
 
-  # Outils, armes et armures
   WOODEN_SWORD: 0.5
   WOODEN_PICKAXE: 0.5
   WOODEN_AXE: 0.5
@@ -641,7 +623,6 @@ prices:
   WATER_BUCKET: 0.2
   LAVA_BUCKET: 0.3
 
-  # Roches et blocs divers
   BRICK: 0.1
   BRICKS: 0.15
   NETHER_BRICK: 0.1
@@ -663,7 +644,6 @@ prices:
   LILY_PAD: 0.05
   SEAGRASS: 0.02
 
-  # Fleurs et plantes
   DANDELION: 0.05
   POPPY: 0.05
   BLUE_ORCHID: 0.05
@@ -695,7 +675,6 @@ prices:
   AZALEA: 0.1
   FLOWERING_AZALEA: 0.15
 
-  # Minerais (blocs) - pierre et deepslate
   COAL_ORE: 0.35
   DEEPSLATE_COAL_ORE: 0.4
   IRON_ORE: 1.2
@@ -716,7 +695,6 @@ prices:
   NETHER_QUARTZ_ORE: 0.5
   ANCIENT_DEBRIS: 18.0
 
-  # Blocs de stockage (minerais/ressources)
   COAL_BLOCK: 2.7
   IRON_BLOCK: 27.0
   COPPER_BLOCK: 9.0
@@ -736,7 +714,6 @@ prices:
   CUT_COPPER: 9.5
   WAXED_COPPER_BLOCK: 9.0
 
-  # Seaux d'entités
   COD_BUCKET: 0.4
   SALMON_BUCKET: 0.4
   PUFFERFISH_BUCKET: 0.5
@@ -744,7 +721,6 @@ prices:
   AXOLOTL_BUCKET: 1.0
   POWDER_SNOW_BUCKET: 0.2
 
-  # Décorations / objets divers
   BOOKSHELF: 0.3
   CHISELED_BOOKSHELF: 0.5
   ITEM_FRAME: 0.2
@@ -813,7 +789,6 @@ prices:
   FIREWORK_STAR: 0.2
   KELP_PLANT: 0.02
 
-  # Shulker boxes (couleurs)
   SHULKER_BOX: 4.0
   WHITE_SHULKER_BOX: 4.0
   ORANGE_SHULKER_BOX: 4.0

@@ -36,13 +36,15 @@ public final class DuelMessages {
         Component acceptButton = LegacyComponentSerializer.legacyAmpersand().deserialize(acceptRaw)
                 .decoration(TextDecoration.BOLD, true)
                 .clickEvent(ClickEvent.runCommand("/duelaccept"))
-                .hoverEvent(HoverEvent.showText(Component.text("Cliquez pour accepter", NamedTextColor.GREEN)));
+                .hoverEvent(HoverEvent.showText(LegacyComponentSerializer.legacyAmpersand().deserialize(
+                        plugin.getMessages().getString("duel.accept-hover", "Cliquez pour accepter"))));
 
         String denyRaw = plugin.getMessages().getString("duel.deny-button", "&c&l[Refuser]");
         Component denyButton = LegacyComponentSerializer.legacyAmpersand().deserialize(denyRaw)
                 .decoration(TextDecoration.BOLD, true)
                 .clickEvent(ClickEvent.runCommand("/duelaccept deny"))
-                .hoverEvent(HoverEvent.showText(Component.text("Cliquez pour refuser", NamedTextColor.RED)));
+                .hoverEvent(HoverEvent.showText(LegacyComponentSerializer.legacyAmpersand().deserialize(
+                        plugin.getMessages().getString("duel.deny-hover", "Cliquez pour refuser"))));
 
         target.sendMessage(acceptButton.append(Component.text("   ")).append(denyButton));
     }

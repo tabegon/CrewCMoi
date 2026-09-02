@@ -301,6 +301,12 @@ public class Main extends JavaPlugin {
 
     public void reloadMessages() {
         messages = YamlConfiguration.loadConfiguration(messagesFile);
+        try (InputStreamReader defConfigStream = new InputStreamReader(getResource("messages.yml"), StandardCharsets.UTF_8)) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+            messages.setDefaults(defConfig);
+        } catch (IOException e) {
+            getLogger().warning("Impossible de recharger les messages par défaut : " + e.getMessage());
+        }
     }
 
     public FileConfiguration getMessages() {
@@ -385,6 +391,10 @@ public class Main extends JavaPlugin {
 
     public InvisibilityManager getInvisibilityManager() {
         return invisibilityManager;
+    }
+
+    public PlayerTeamManager getPlayerTeamManager() {
+        return playerTeamManager;
     }
 
     public RoleManager getRoleManager() {

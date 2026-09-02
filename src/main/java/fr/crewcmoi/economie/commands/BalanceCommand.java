@@ -1,4 +1,5 @@
 package fr.crewcmoi.economie.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.other.database.PlayerData;
@@ -33,13 +34,13 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 0) {
             if (!(sender instanceof Player)) {
-                sendMessage(sender, "&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ, ᴏᴜ ᴘʀᴇᴄɪꜱᴇᴢ ᴜɴ ᴘꜱᴇᴜᴅᴏ : /ʙᴀʟᴀɴᴄᴇ <ᴊᴏᴜᴇᴜʀ>");
+                Messages.send(sender, "server.balance-2e8ddc7");
                 return true;
             }
 
             Player player = (Player) sender;
             double balance = economyManager.getBalance(player.getUniqueId());
-            sendMessage(sender, "&7ᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ : &a" + balance + "&f" + currency);
+            Messages.send(sender, "server.balance-self", java.util.Map.of("amount", balance + currency));
             return true;
         }
 
@@ -49,11 +50,11 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
         PlayerData data = economyManager.getPlayerDataByName(targetName);
 
         if (data == null) {
-            sendMessage(sender, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
+            Messages.send(sender, "server.balance-48408b8");
             return true;
         }
 
-        sendMessage(sender, "&7ꜱᴏʟᴅᴇ ᴅᴇ &e" + data.getName() + "&7 : &a" + data.getBalance() + "&f" + currency);
+        Messages.send(sender, "server.balance-other", java.util.Map.of("player", data.getName(), "amount", data.getBalance() + currency));
         return true;
     }
 

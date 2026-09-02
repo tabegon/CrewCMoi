@@ -1,5 +1,7 @@
 package fr.crewcmoi.economie.managers;
 
+import fr.crewcmoi.other.utils.Messages;
+
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.auction.AuctionItem;
 import fr.crewcmoi.other.managers.DatabaseManager;
@@ -116,8 +118,7 @@ public class AuctionManager {
 
                 Player onlineSeller = Bukkit.getPlayer(auction.getSellerUuid());
                 if (onlineSeller != null) {
-                    onlineSeller.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
-                            "&8[&6Economy&8] &r&aVotre annonce a été achetée par &e" + buyer.getName() + "&a."));
+                    Messages.send(onlineSeller, "server.auction-seller-notified", java.util.Map.of("player", buyer.getName()), false);
                 }
 
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {

@@ -1,19 +1,11 @@
-# =========================================
-#         Configuration EconomyPlugin
-# =========================================
-
 database:
-  # Type de base de données : actuellement seul "sqlite" est implémenté dans cette base.
-  # Prévu pour être extensible (ex: mysql) via l'interface DatabaseManager.
   type: sqlite
 
 economy:
-  # Solde de départ des nouveaux joueurs
   starting-balance: 100.0
   currency-symbol: "§f "
   allow-negative-balance: false
   auction-min-price: 1
-  # Pourcentage de taxe prélevé sur chaque vente réalisée à l'hôtel des ventes (0 = aucune taxe)
   auction-tax-percent: 0
 
 combat-log:
@@ -25,7 +17,6 @@ bounty:
   server-bounty-max-per-day: 1000
 
 team:
-  # Taille maximale d'une équipe (propriétaire inclus). 0 = illimité.
   max-members: 8
 
 spawn:
@@ -40,17 +31,10 @@ tpa:
   expiry-seconds: 60
 
 duel:
-  # Délai (en secondes) au bout duquel une demande de duel non traitée expire.
   expiry-seconds: 60
-  # Compte à rebours (en secondes) affiché aux deux joueurs une fois téléportés
-  # dans l'arène, avant que les dégâts ne soient réellement pris en compte.
   countdown-seconds: 5
-  # Montant ajouté/retiré à chaque clic sur l'item "Argent en jeu" de la GUI /duel.
   bet-step: 100
-  # Mise maximum autorisée. 0 = illimité.
   max-bet: 0
-  # Emplacements des deux côtés de l'arène de duel. À configurer avec les
-  # coordonnées réelles de ton serveur avant d'utiliser /duel.
   arena:
     pos1:
       world: test

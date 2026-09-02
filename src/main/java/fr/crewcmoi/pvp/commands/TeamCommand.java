@@ -1,4 +1,5 @@
 package fr.crewcmoi.pvp.commands;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.database.TeamData;
@@ -36,7 +37,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sendMessage(sender, "&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.");
+            Messages.send(sender, "server.team-59b5161");
             return true;
         }
 
@@ -61,24 +62,24 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
 
     private void handleCreate(Player player, String[] args) {
         if (args.length < 2) {
-            sendMessage(player, "&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ ᴄʀᴇᴀᴛᴇ <ɴᴏᴍ>");
+            Messages.send(player, "server.team-8c598e7");
             return;
         }
 
         teamManager.createTeam(player, args[1], result -> {
             switch (result) {
-                case SUCCESS -> sendMessage(player, "&aᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ &e" + args[1] + "&a ᴀ ᴇᴛᴇ ᴄʀᴇᴇᴇ !");
-                case ALREADY_IN_TEAM -> sendMessage(player, "&cᴠᴏᴜꜱ ꜰᴀɪᴛᴇꜱ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ'ᴜɴᴇ ᴇǫᴜɪᴘᴇ. ǫᴜɪᴛᴛᴇᴢ-ʟᴀ ᴀᴠᴇᴄ &f/ᴛᴇᴀᴍ ʟᴇᴀᴠᴇ&c.");
-                case NAME_TAKEN -> sendMessage(player, "&cᴄᴇ ɴᴏᴍ ᴅ'ᴇǫᴜɪᴘᴇ ᴇꜱᴛ ᴅᴇᴊᴀ ᴘʀɪꜱ.");
-                case INVALID_NAME -> sendMessage(player, "&cɴᴏᴍ ɪɴᴠᴀʟɪᴅᴇ (3 ᴀ 16 ᴄᴀʀᴀᴄᴛᴇʀᴇꜱ, ʟᴇᴛᴛʀᴇꜱ/ᴄʜɪꜰꜰʀᴇꜱ/_ ᴜɴɪǫᴜᴇᴍᴇɴᴛ).");
-                case ERROR -> sendMessage(player, "&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ ʟᴏʀꜱ ᴅᴇ ʟᴀ ᴄʀᴇᴀᴛɪᴏɴ ᴅᴇ ʟ'ᴇǫᴜɪᴘᴇ.");
+                case SUCCESS -> Messages.send(player, "server.team-created", java.util.Map.of("team", args[1]), true);
+                case ALREADY_IN_TEAM -> Messages.send(player, "server.team-d5bf232");
+                case NAME_TAKEN -> Messages.send(player, "server.team-5205a32");
+                case INVALID_NAME -> Messages.send(player, "server.team-d5322a2");
+                case ERROR -> Messages.send(player, "server.team-5ff57db");
             }
         });
     }
 
     private void handleAdd(Player player, String[] args) {
         if (args.length < 2) {
-            sendMessage(player, "&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ ᴀᴅᴅ <ᴊᴏᴜᴇᴜʀ>");
+            Messages.send(player, "server.team-dd5be7d");
             return;
         }
 
@@ -86,20 +87,20 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         teamManager.inviteMember(player, targetName, result -> {
             switch (result) {
                 case SUCCESS -> {
-                    sendMessage(player, "&aɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴᴠᴏʏᴇᴇ ᴀ &e" + targetName + "&a. ᴇɴ ᴀᴛᴛᴇɴᴛᴇ ᴅᴇ ꜱᴀ ʀᴇᴘᴏɴꜱᴇ...");
+                    Messages.send(player, "server.team-invite-sent", java.util.Map.of("player", targetName), true);
                     Player online = Bukkit.getPlayerExact(targetName);
                     if (online != null) {
-                        sendMessage(online, "&e" + player.getName() + "&a ᴠᴏᴜꜱ ᴀ ɪɴᴠɪᴛᴇ ᴅᴀɴꜱ ꜱᴏɴ ᴇǫᴜɪᴘᴇ !");
-                        sendMessage(online, "&aᴛᴀᴘᴇᴢ &f/ᴛᴇᴀᴍ ᴀᴄᴄᴇᴘᴛ&a ᴘᴏᴜʀ ᴀᴄᴄᴇᴘᴛᴇʀ ᴏᴜ &f/ᴛᴇᴀᴍ ᴅᴇɴʏ&a ᴘᴏᴜʀ ʀᴇꜰᴜꜱᴇʀ (60ꜱ).");
+                        Messages.send(online, "server.team-invite-received", java.util.Map.of("player", player.getName()), true);
+                        Messages.send(online, "server.team-1e81a35");
                     }
                 }
-                case NOT_OWNER -> sendMessage(player, "&cꜱᴇᴜʟ ʟᴇ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ ᴅᴇ ʟ'ᴇǫᴜɪᴘᴇ ᴘᴇᴜᴛ ɪɴᴠɪᴛᴇʀ ᴅᴇꜱ ᴍᴇᴍʙʀᴇꜱ.");
-                case NO_TEAM -> sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ'ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ. ᴄʀᴇᴇᴢ-ᴇɴ ᴜɴᴇ ᴀᴠᴇᴄ &f/ᴛᴇᴀᴍ ᴄʀᴇᴀᴛᴇ <ɴᴏᴍ>&c.");
-                case TARGET_ALREADY_IN_TEAM -> sendMessage(player, "&c" + targetName + " ꜰᴀɪᴛ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ'ᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
-                case TARGET_NOT_FOUND -> sendMessage(player, "&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ'ᴇxɪꜱᴛᴇ ᴘᴀꜱ ᴏᴜ ɴ'ᴀ ᴊᴀᴍᴀɪꜱ ʀᴇᴊᴏɪɴᴛ ʟᴇ ꜱᴇʀᴠᴇᴜʀ.");
-                case TARGET_NOT_ONLINE -> sendMessage(player, "&c" + targetName + " ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇɴ ʟɪɢɴᴇ ᴘᴏᴜʀ ʀᴇᴄᴇᴠᴏɪʀ ᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ.");
-                case ALREADY_INVITED -> sendMessage(player, "&c" + targetName + " ᴀ ᴅᴇᴊᴀ ᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.");
-                case ERROR -> sendMessage(player, "&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ.");
+                case NOT_OWNER -> Messages.send(player, "server.team-4df8de9");
+                case NO_TEAM -> Messages.send(player, "server.team-360c6a0");
+                case TARGET_ALREADY_IN_TEAM -> Messages.send(player, "server.team-target-already", java.util.Map.of("player", targetName), true);
+                case TARGET_NOT_FOUND -> Messages.send(player, "server.team-48408b8");
+                case TARGET_NOT_ONLINE -> Messages.send(player, "server.team-target-offline", java.util.Map.of("player", targetName), true);
+                case ALREADY_INVITED -> Messages.send(player, "server.team-already-invited", java.util.Map.of("player", targetName), true);
+                case ERROR -> Messages.send(player, "server.team-dde9be9");
             }
         });
     }
@@ -107,12 +108,12 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     private void handleAccept(Player player) {
         teamManager.acceptInvite(player, result -> {
             switch (result) {
-                case SUCCESS -> sendMessage(player, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴊᴏɪɴᴛ ʟ'ᴇǫᴜɪᴘᴇ !");
-                case NO_PENDING_INVITE -> sendMessage(player, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴀᴜᴄᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.");
-                case INVITER_OFFLINE -> sendMessage(player, "&cʟᴇ ᴊᴏᴜᴇᴜʀ ᴠᴏᴜꜱ ᴀʏᴀɴᴛ ɪɴᴠɪᴛᴇ ɴ'ᴇꜱᴛ ᴘʟᴜꜱ ᴇɴ ʟɪɢɴᴇ.");
-                case TARGET_ALREADY_IN_TEAM -> sendMessage(player, "&cᴠᴏᴜꜱ ꜰᴀɪᴛᴇꜱ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ'ᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
-                case TEAM_GONE -> sendMessage(player, "&cᴄᴇᴛᴛᴇ ᴇǫᴜɪᴘᴇ ɴ'ᴇxɪꜱᴛᴇ ᴘʟᴜꜱ.");
-                case ERROR -> sendMessage(player, "&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ.");
+                case SUCCESS -> Messages.send(player, "server.team-3ec760c");
+                case NO_PENDING_INVITE -> Messages.send(player, "server.team-9e1ac4c");
+                case INVITER_OFFLINE -> Messages.send(player, "server.team-fded93a");
+                case TARGET_ALREADY_IN_TEAM -> Messages.send(player, "server.team-80f0750");
+                case TEAM_GONE -> Messages.send(player, "server.team-062db57");
+                case ERROR -> Messages.send(player, "server.team-dde9be9x");
             }
         });
     }
@@ -120,22 +121,22 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     private void handleDeny(Player player) {
         java.util.UUID ownerUuid = teamManager.denyInvite(player);
         if (ownerUuid == null) {
-            sendMessage(player, "&cᴠᴏᴜꜱ ɴ'ᴀᴠᴇᴢ ᴀᴜᴄᴜɴᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴ ᴀᴛᴛᴇɴᴛᴇ.");
+            Messages.send(player, "server.team-9e1ac4cx");
             return;
         }
-        sendMessage(player, "&aɪɴᴠɪᴛᴀᴛɪᴏɴ ʀᴇꜰᴜꜱᴇᴇ.");
+        Messages.send(player, "server.team-6256072");
         Player owner = Bukkit.getPlayer(ownerUuid);
         if (owner != null) {
-            sendMessage(owner, "&c" + player.getName() + " ᴀ ʀᴇꜰᴜꜱᴇ ᴠᴏᴛʀᴇ ɪɴᴠɪᴛᴀᴛɪᴏɴ.");
+            Messages.send(owner, "server.team-invite-refused", java.util.Map.of("player", player.getName()), true);
         }
     }
 
     private void handleLeave(Player player) {
         teamManager.leaveTeam(player, success -> {
             if (Boolean.TRUE.equals(success)) {
-                sendMessage(player, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ǫᴜɪᴛᴛᴇ ᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ.");
+                Messages.send(player, "server.team-03ca43a");
             } else {
-                sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ'ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
+                Messages.send(player, "server.team-6a3bce5");
             }
         });
     }
@@ -143,14 +144,14 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     private void handleDisband(Player player) {
         teamManager.getTeamAsync(player.getUniqueId(), team -> {
             if (team == null) {
-                sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ'ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
+                Messages.send(player, "server.team-6a3bce5x");
                 return;
             }
             if (!team.isOwner(player.getUniqueId())) {
-                sendMessage(player, "&cꜱᴇᴜʟ ʟᴇ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ ᴅᴇ ʟ'ᴇǫᴜɪᴘᴇ ᴘᴇᴜᴛ ʟᴀ ᴅɪꜱꜱᴏᴜᴅʀᴇ. ᴜᴛɪʟɪꜱᴇᴢ &f/ᴛᴇᴀᴍ ʟᴇᴀᴠᴇ&c ᴘᴏᴜʀ ʟᴀ ǫᴜɪᴛᴛᴇʀ.");
+                Messages.send(player, "server.team-01e7540");
                 return;
             }
-            teamManager.leaveTeam(player, success -> sendMessage(player, "&aᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ ᴀ ᴇᴛᴇ ᴅɪꜱꜱᴏᴜᴛᴇ."));
+            teamManager.leaveTeam(player, success -> Messages.send(player, "server.team-disbanded", java.util.Map.of(), true));
         });
     }
 
@@ -170,9 +171,9 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     private void displayTeamInfo(Player player, TeamData team, String queriedName) {
         if (team == null) {
             if (queriedName != null) {
-                sendMessage(player, "&cᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ ɴᴏᴍᴍᴇᴇ &e" + queriedName + "&c ɴ'ᴇxɪꜱᴛᴇ.");
+                Messages.send(player, "server.team-not-found-by-name", java.util.Map.of("team", queriedName), true);
             } else {
-                sendMessage(player, "&cᴠᴏᴜꜱ ɴᴇ ꜰᴀɪᴛᴇꜱ ᴘᴀʀᴛɪᴇ ᴅ'ᴀᴜᴄᴜɴᴇ ᴇǫᴜɪᴘᴇ.");
+                Messages.send(player, "server.team-6a3bce5xx");
             }
             return;
         }
@@ -180,14 +181,14 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         Player ownerOnline = Bukkit.getPlayer(team.getOwnerUuid());
         String ownerName = ownerOnline != null ? ownerOnline.getName() : team.getMembers().getOrDefault(team.getOwnerUuid(), "?");
 
-        sendMessage(player, "&6&l--- ᴇǫᴜɪᴘᴇ " + team.getName() + " ---");
-        sendMessage(player, "&7ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ : &e" + ownerName);
+        Messages.send(player, "server.team-info-header", java.util.Map.of("team", team.getName()), true);
+        Messages.send(player, "server.team-info-owner", java.util.Map.of("owner", ownerName), true);
         String members = team.getMembers().values().stream().collect(Collectors.joining("&7, &e"));
-        sendMessage(player, "&7ᴍᴇᴍʙʀᴇꜱ (&e" + team.size() + "&7) : &e" + members);
+        Messages.send(player, "server.team-info-members", java.util.Map.of("count", team.size(), "members", members), true);
     }
 
     private void sendUsage(Player player) {
-        sendMessage(player, "&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ <ᴄʀᴇᴀᴛᴇ|ᴀᴅᴅ|ᴀᴄᴄᴇᴘᴛ|ᴅᴇɴʏ|ʟᴇᴀᴠᴇ|ᴅɪꜱʙᴀɴᴅ|ɪɴꜰᴏ>");
+        Messages.send(player, "server.team-d8415be");
     }
 
     @Override

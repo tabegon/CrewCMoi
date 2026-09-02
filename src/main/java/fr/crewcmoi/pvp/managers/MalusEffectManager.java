@@ -1,4 +1,5 @@
 package fr.crewcmoi.pvp.managers;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import org.bukkit.attribute.Attribute;
@@ -131,7 +132,7 @@ public class MalusEffectManager {
 
         if (newLevel == 0) {
             reductionLevel.remove(player.getUniqueId());
-            sendMessage(player, "bounty.bad-luck-ended");
+            Messages.send(player, "server.maluseffect-ba603fc");
         } else {
             reductionLevel.put(player.getUniqueId(), newLevel);
             sendMessage(player, newLevel == 2 ? "bounty.bad-luck-tier2" : "bounty.bad-luck-tier1");
@@ -166,9 +167,9 @@ public class MalusEffectManager {
         }
 
         if (targetMax < previousMax) {
-            sendMessage(player, "bounty.bad-luck-heart-removed");
+            Messages.send(player, "server.maluseffect-9aea272");
         } else {
-            sendMessage(player, "bounty.bad-luck-heart-restored");
+            Messages.send(player, "server.maluseffect-21960f7");
         }
     }
 
