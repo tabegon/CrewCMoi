@@ -129,7 +129,7 @@ public class SellGuiManager {
 
         if (snapshot.isEmpty()) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));
+                    "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));
             return;
         }
 
@@ -222,11 +222,11 @@ public class SellGuiManager {
         if (itemsSold > 0) {
             economyManager.deposit(player.getUniqueId(), total);
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&aᴠᴇɴᴛᴇ ᴇꜰꜰᴇᴄᴛᴜᴇᴇ : &e" + itemsSold + " ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ &e"
+                    "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&aᴠᴇɴᴛᴇ ᴇꜰꜰᴇᴄᴛᴜᴇᴇ : &e" + itemsSold + " ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ &e"
                             + MoneyFormat.format(total) + currency + "&a."));
         } else {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&8[&6ᴇᴄᴏɴᴏᴍʏ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));
+                    "&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴛʀᴏᴜᴠᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ."));
         }
 
         for (int slot : SellHolder.ITEM_SLOTS) {

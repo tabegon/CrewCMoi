@@ -101,3 +101,13 @@ roles:
   player:
     prefix: "§f "
     permission: "crew.role.player"
+
+web:
+  # Active/désactive le dashboard web admin (lecture seule) embarqué dans le plugin.
+  enabled: true
+  # Port d'écoute du dashboard (http://<ip-du-serveur>:<port>).
+  port: 48961
+  # Adresse d'écoute : "0.0.0.0" = accessible depuis tout le réseau local (recommandé
+  # uniquement si ton serveur n'est pas exposé directement sur internet), "127.0.0.1"
+  # = accessible uniquement depuis la machine qui héberge le serveur.
+  bind-address: "0.0.0.0"

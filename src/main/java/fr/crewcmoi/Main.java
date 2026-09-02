@@ -63,6 +63,7 @@ import fr.crewcmoi.tab.listeners.TabListListener;
 import fr.crewcmoi.tab.managers.PlayerTeamManager;
 import fr.crewcmoi.tab.managers.TabListManager;
 import fr.crewcmoi.tab.roles.RoleManager;
+import fr.crewcmoi.web.WebDashboardServer;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,6 +107,7 @@ public class Main extends JavaPlugin {
     private VanishManager vanishManager;
     private FileConfiguration messages;
     private File messagesFile;
+    private WebDashboardServer webDashboardServer;
 
     @Override
     public void onEnable() {
@@ -222,7 +224,7 @@ public class Main extends JavaPlugin {
         registerCommand("balance", new BalanceCommand(this, economyManager));
         registerCommand("money", new MoneyCommand(this, economyManager));
         registerCommand("baltop", new BalanceTopCommand(this, economyManager));
-        registerCommand("sell", new SellCommand(sellGuiManager));
+        registerCommand("sell", new SellCommand(sellGuiManager, pricesManager));
         registerCommand("pay", new PayCommand(this, economyManager));
         registerCommand("ah", new AuctionCommand(this, auctionManager, auctionGuiManager));
         registerCommand("team", new TeamCommand(this, teamManager));
@@ -243,11 +245,20 @@ public class Main extends JavaPlugin {
         registerCommand("staff", new StaffCommand(staffModeManager, roleManager, vanishManager));
         registerCommand("vanish", new VanishCommand(staffModeManager, vanishManager));
 
+        // Dashboard web admin en lecture seule (voir fr.crewcmoi.web) : classement des
+        // richesses, prix, claims, primes et réglages config.yml, consultables depuis un
+        // navigateur en local/réseau local (voir web.* dans config.yml).
+        this.webDashboardServer = new WebDashboardServer(this, economyManager, pricesManager, claimManager, bountyManager);
+        this.webDashboardServer.start();
+
         getLogger().info("EconomyPlugin activé avec succès !");
     }
 
     @Override
     public void onDisable() {
+        if (webDashboardServer != null) {
+            webDashboardServer.stop();
+        }
         if (combatManager != null) {
             combatManager.stopActionBar();
         }

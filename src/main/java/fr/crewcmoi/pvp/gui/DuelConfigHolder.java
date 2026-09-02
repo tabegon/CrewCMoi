@@ -12,11 +12,11 @@ import java.util.UUID;
 public class DuelConfigHolder implements InventoryHolder {
 
     public static final int SIZE = 27;
-    public static final int KEEPINVENTORY_SLOT = 11;
-    public static final int BET_SLOT = 13;
-    public static final int CONFIRM_SLOT = 15;
-    public static final int CANCEL_SLOT = 21;
-    public static final int INFO_SLOT = 4;
+    public static final int KEEPINVENTORY_SLOT = 2;
+    public static final int BET_SLOT = 6;
+    public static final int CONFIRM_SLOT = 24;
+    public static final int CANCEL_SLOT = 20;
+    public static final int INFO_SLOT = 13;
 
     private final UUID targetUuid;
     private final String targetName;

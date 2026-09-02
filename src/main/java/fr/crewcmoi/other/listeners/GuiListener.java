@@ -5,6 +5,7 @@ import fr.crewcmoi.claims.database.ClaimFlag;
 import fr.crewcmoi.claims.database.ClaimPermission;
 import fr.crewcmoi.economie.gui.AuctionGuiManager;
 import fr.crewcmoi.economie.gui.AuctionHolder;
+import fr.crewcmoi.economie.gui.BaltopHolder;
 import fr.crewcmoi.pvp.gui.BountyGuiManager;
 import fr.crewcmoi.pvp.gui.BountyHolder;
 import fr.crewcmoi.pvp.gui.BountyReviewGuiManager;
@@ -26,6 +27,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
@@ -85,6 +87,15 @@ public class GuiListener implements Listener {
             handleBountyReviewClick(event, bountyReviewHolder);
         } else if (holder instanceof ClaimAuctionHolder claimAuctionHolder) {
             handleClaimAuctionClick(event, claimAuctionHolder);
+        } else if (holder instanceof BaltopHolder baltopHolder) {
+            handleBaltopClick(event, baltopHolder);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (event.getInventory().getHolder() instanceof BaltopHolder) {
+            event.setCancelled(true);
         }
     }
 
@@ -364,5 +375,11 @@ public class GuiListener implements Listener {
         }
 
         claimAuctionGuiManager.render(holder);
+    }
+
+    private void handleBaltopClick(InventoryClickEvent event, BaltopHolder holder) {
+        // GUI en lecture seule : on empêche toute prise/dépôt/déplacement d'item,
+        // y compris via shift-clic ou déplacement vers le hotbar/l'inventaire du joueur.
+        event.setCancelled(true);
     }
 }

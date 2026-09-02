@@ -206,6 +206,14 @@ public class ClaimManager {
     }
 
     /**
+     * Copie de tous les claims actuellement en cache (lecture seule), utilisée par le
+     * dashboard web (voir fr.crewcmoi.web) pour lister l'ensemble des claims du serveur.
+     */
+    public List<ClaimData> getAllClaims() {
+        return new java.util.ArrayList<>(claims.values());
+    }
+
+    /**
      * Comme getClaim, mais se resynchronise depuis la base si le cache dit "non claim" :
      * si la base contient bel et bien un claim à cet endroit (cache désynchronisé suite à
      * un échec silencieux d'une écriture précédente, un /reload, etc.), le cache est

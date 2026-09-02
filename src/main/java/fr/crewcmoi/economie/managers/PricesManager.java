@@ -61,4 +61,12 @@ public class PricesManager {
     public boolean isSellable(Material material) {
         return prices.containsKey(material) && prices.get(material) > 0.0;
     }
+
+    /**
+     * Copie en lecture seule de tous les prix chargés, utilisée par le dashboard
+     * web (voir fr.crewcmoi.web) pour afficher la liste complète des prix de vente.
+     */
+    public Map<Material, Double> getAllPrices() {
+        return java.util.Collections.unmodifiableMap(new HashMap<>(prices));
+    }
 }

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrewCMoi — Dashboard</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+    <h1>CrewCMoi <span class="badge">Dashboard admin</span></h1>
+    <div id="status-bar" class="status-bar">Connexion au serveur...</div>
+</header>
+
+<main>
+    <section class="grid">
+        <div class="card" id="card-status">
+            <h2>État du serveur</h2>
+            <div class="stat-row"><span>Joueurs en ligne</span><strong id="stat-online">-</strong></div>
+            <div class="stat-row"><span>Max joueurs</span><strong id="stat-max">-</strong></div>
+            <div class="stat-row"><span>Version serveur</span><strong id="stat-version">-</strong></div>
+            <div class="stat-row"><span>Version plugin</span><strong id="stat-plugin-version">-</strong></div>
+            <div class="stat-row"><span>TPS</span><strong id="stat-tps">-</strong></div>
+            <div class="stat-row"><span>Pseudos connectés</span></div>
+            <div id="stat-online-names" class="chips"></div>
+        </div>
+
+        <div class="card">
+            <h2>Réglages admin (config.yml)</h2>
+            <div id="config-tree" class="config-tree">Chargement...</div>
+        </div>
+    </section>
+
+    <section class="grid">
+        <div class="card">
+            <h2>Classement des richesses</h2>
+            <table id="table-baltop">
+                <thead><tr><th>#</th><th>Joueur</th><th>Solde</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Primes actives</h2>
+            <table id="table-bounties">
+                <thead><tr><th>Cible</th><th>Montant total</th><th>Contributeurs</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="grid grid-single">
+        <div class="card">
+            <h2>Prix de vente (prices.yml)</h2>
+            <input type="text" id="prices-search" placeholder="Filtrer un matériau...">
+            <table id="table-prices">
+                <thead><tr><th>Matériau</th><th>Prix unitaire</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="grid grid-single">
+        <div class="card">
+            <h2>Claims</h2>
+            <input type="text" id="claims-search" placeholder="Filtrer par propriétaire ou monde...">
+            <table id="table-claims">
+                <thead>
+                    <tr>
+                        <th>Propriétaire</th><th>Monde</th><th>Chunk</th>
+                        <th>Confiance</th><th>En vente</th><th>Règles</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer>
+    Dashboard en lecture seule, généré par le plugin CrewCMoi — usage local uniquement.
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

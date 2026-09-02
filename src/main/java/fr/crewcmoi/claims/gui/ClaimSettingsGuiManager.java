@@ -5,6 +5,7 @@ import fr.crewcmoi.claims.database.ClaimData;
 import fr.crewcmoi.claims.database.ClaimFlag;
 import fr.crewcmoi.claims.database.ClaimPermission;
 import fr.crewcmoi.claims.managers.ClaimManager;
+import fr.crewcmoi.other.utils.GuiItems;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -24,6 +25,7 @@ import java.util.List;
 public class ClaimSettingsGuiManager {
 
     private static final int SIZE = 27;
+    private static final int MOB_GRIEFING_SLOT = 22;
 
     private final Main plugin;
     private final ClaimManager claimManager;
@@ -53,18 +55,20 @@ public class ClaimSettingsGuiManager {
             return;
         }
 
-        ClaimFlag[] flags = ClaimFlag.values();
+        // MOB_GRIEFING est affiché à part, centré au slot 23 (2e slot de la 3e ligne
+        // en partant du centre) ; les autres règles se partagent la 2e ligne (10-16).
         int slot = 10;
-        for (ClaimFlag flag : flags) {
-            // Place les règles sur la 2e et 3e ligne du coffre (slots 10-16), en sautant
-            // les bordures pour un rendu plus propre.
-            if (slot % 9 == 8) {
-                slot += 3;
+        for (ClaimFlag flag : ClaimFlag.values()) {
+            if (flag == ClaimFlag.MOB_GRIEFING) {
+                continue;
             }
             gui.setItem(slot, buildItem(flag, claim.getPermission(flag)));
             holder.mapSlot(slot, flag);
             slot++;
         }
+
+        gui.setItem(MOB_GRIEFING_SLOT, buildItem(ClaimFlag.MOB_GRIEFING, claim.getPermission(ClaimFlag.MOB_GRIEFING)));
+        holder.mapSlot(MOB_GRIEFING_SLOT, ClaimFlag.MOB_GRIEFING);
 
         ItemStack info = new ItemStack(Material.BOOK);
         ItemMeta infoMeta = info.getItemMeta();
@@ -77,12 +81,21 @@ public class ClaimSettingsGuiManager {
         infoMeta.setLore(infoLore);
         info.setItemMeta(infoMeta);
         gui.setItem(4, info);
+
+        // Remplit tous les emplacements encore vides (bordures, trous entre les règles...)
+        // avec l'item de remplissage neutre, pour ne plus laisser de slots visuellement vides.
+        ItemStack filler = GuiItems.nothing(" ");
+        for (int i = 0; i < SIZE; i++) {
+            if (gui.getItem(i) == null) {
+                gui.setItem(i, filler);
+            }
+        }
     }
 
     private ItemStack buildItem(ClaimFlag flag, ClaimPermission permission) {
-        ItemStack item = new ItemStack(materialFor(permission));
+        ItemStack item = new ItemStack(materialFor(flag));
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&b&l" + flag.getDisplayName()));
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', colorFor(permission) + "&l" + flag.getDisplayName()));
 
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.translateAlternateColorCodes('&', "&7" + flag.getDescription()));
@@ -96,11 +109,22 @@ public class ClaimSettingsGuiManager {
         return item;
     }
 
-    private Material materialFor(ClaimPermission permission) {
-        return switch (permission) {
-            case OWNER_ONLY -> Material.RED_WOOL;
-            case TRUSTED -> Material.YELLOW_WOOL;
-            case EVERYONE -> Material.LIME_WOOL;
+    /**
+     * Icône représentant le type de règle (et non plus la permission actuelle,
+     * qui laine indiquait auparavant via sa couleur). La permission actuelle est
+     * désormais indiquée par la couleur du nom de l'item et la ligne de lore
+     * "Autorisé pour : ...".
+     */
+    private Material materialFor(ClaimFlag flag) {
+        return switch (flag) {
+            case BUILD -> Material.BRICKS;
+            case BREAK -> Material.IRON_PICKAXE;
+            case CONTAINERS -> Material.CHEST;
+            case INTERACT -> Material.LEVER;
+            case BUCKETS -> Material.WATER_BUCKET;
+            case FIRE -> Material.FLINT_AND_STEEL;
+            case EXPLOSIONS -> Material.TNT;
+            case MOB_GRIEFING -> Material.ZOMBIE_HEAD;
         };
     }
 
