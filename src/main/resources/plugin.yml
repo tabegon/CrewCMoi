@@ -71,6 +71,9 @@ commands:
   duelaccept:
     description: Accepte (ou refuse avec "deny") la demande de duel reçue.
     usage: /duelaccept [deny]
+  duelarena:
+    description: "Admin : configure l'arène de duel (coins, sauvegarde, restauration manuelle)."
+    usage: /duelarena <corner1|corner2|save|reset>
   rank:
     description: Affiche ou gère les rôles (Player/Vip/Mod/Dev/Admin/Fonda) affichés dans le tab.
     usage: /rank [joueur|list|set <joueur> <rôle>|clear <joueur>]
@@ -99,4 +102,7 @@ permissions:
     default: op
   crew.claim.bypasslimit:
     description: Permet de dépasser la limite du nombre de claims par joueur.
+    default: op
+  crew.duel.arena.bypass:
+    description: Permet de casser des blocs dans l'arène de duel malgré la protection (pour la décorer).
     default: op

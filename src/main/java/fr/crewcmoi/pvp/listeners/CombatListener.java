@@ -84,6 +84,13 @@ public class CombatListener implements Listener {
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
+
+        // Un joueur op qui se téléporte (ou est téléporté) via la commande vanilla /tp
+        // (ou /teleport) peut toujours le faire, même s'il est actuellement en combat.
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.COMMAND && player.isOp()) {
+            return;
+        }
+
         if (combatManager.isInCombat(player)) {
             event.setCancelled(true);
             sendActionBlocked(player);

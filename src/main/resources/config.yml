@@ -11,6 +11,12 @@ economy:
 combat-log:
   duration-seconds: 30
 
+player-head-drop:
+  # Fait dropper la tête de la victime (avec son prix de vente en lore) à chaque kill JcJ
+  # normal (hors duel).
+  enabled: true
+  price: 250.0
+
 bounty:
   server-bounty-amount: 50.0
   server-malus-amount: 50.0

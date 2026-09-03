@@ -5,6 +5,7 @@ import fr.crewcmoi.Main;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -86,9 +87,21 @@ public class CombatManager {
     }
 
     /**
-     * Met (ou remet) un joueur en combat pour la durée configurée.
+     * Un joueur en mode créatif ne peut jamais être considéré en combat (ni y être placé) :
+     * ni restrictions de téléportation/élytre, ni action bar, ni mort en cas de déconnexion.
+     */
+    private boolean isExemptFromCombat(Player player) {
+        return player.getGameMode() == GameMode.CREATIVE;
+    }
+
+    /**
+     * Met (ou remet) un joueur en combat pour la durée configurée. Ne fait rien si le
+     * joueur est en mode créatif (voir {@link #isExemptFromCombat(Player)}).
      */
     public void tagCombat(Player player) {
+        if (isExemptFromCombat(player)) {
+            return;
+        }
         UUID uuid = player.getUniqueId();
         combatExpiry.put(uuid, System.currentTimeMillis() + (combatDurationSeconds * 1000L));
 
@@ -108,10 +121,7 @@ public class CombatManager {
             combatExpiry.remove(uuid);
             firstAttacker.remove(uuid);
             engagementAggressor.remove(uuid);
-            Player p = Bukkit.getPlayer(uuid);
-            if (p != null && p.isOnline()) {
-                Messages.send(p, "server.combat-9f47a6e");
-            }
+            // Message de fin de combat volontairement supprimé.
         }, combatDurationSeconds * 20L);
 
         combatTasks.put(uuid, task);
@@ -129,11 +139,9 @@ public class CombatManager {
 
         if (!victimWasInCombat) {
             firstAttacker.put(victimId, attackerId);
-            Messages.send(victim, "server.combat-a024002");
+            // Message de début de combat volontairement supprimé.
         }
-        if (!attackerWasInCombat) {
-            Messages.send(attacker, "server.combat-a024002x");
-        }
+        // Message de début de combat (attaquant) volontairement supprimé.
 
         // Détermine l'agresseur de cet affrontement : le premier des deux à avoir frappé.
         if (!victimWasInCombat && !attackerWasInCombat) {

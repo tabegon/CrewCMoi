@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -154,5 +155,24 @@ public class AuctionManager {
                 });
             });
         });
+    }
+    public List<AuctionItem> getItems() {
+        return getCachedAuctions();
+    }
+    private Map<String, Object> lastSaleData = null;
+
+    // Méthode pour enregistrer une vente
+    public void recordSale(String itemName, int amount, double price, String buyerName, String sellerName) {
+        Map<String, Object> sale = new java.util.HashMap<>();
+        sale.put("item", itemName);
+        sale.put("amount", amount);
+        sale.put("price", price);
+        sale.put("buyer", buyerName);
+        sale.put("seller", sellerName);
+        this.lastSaleData = sale;
+    }
+
+    public Map<String, Object> getLastSaleData() {
+        return lastSaleData;
     }
 }

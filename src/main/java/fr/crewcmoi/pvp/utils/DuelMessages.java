@@ -19,7 +19,7 @@ public final class DuelMessages {
     }
 
     public static void sendRequestReceived(Main plugin, Player target, Player requester,
-                                            boolean keepInventory, String betText) {
+                                            boolean keepInventory, String betText, boolean dropHead) {
         String rawMessage = plugin.getMessages().getString("prefix", "") +
                 plugin.getMessages().getString("duel.received", "&e{player}&a vous provoque en duel !")
                         .replace("{player}", requester.getName());
@@ -27,9 +27,10 @@ public final class DuelMessages {
 
         String rulesRaw = plugin.getMessages().getString("prefix", "") +
                 plugin.getMessages().getString("duel.received-rules",
-                                "&7Keepinventory : {keepinventory} &7| Mise : {bet}")
+                                "&7Keepinventory : {keepinventory} &7| Mise : {bet} &7| Tête : {drophead}")
                         .replace("{keepinventory}", keepInventory ? "&aoui" : "&cnon")
-                        .replace("{bet}", "&e" + betText);
+                        .replace("{bet}", "&e" + betText)
+                        .replace("{drophead}", dropHead ? "&aoui" : "&cnon");
         target.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(rulesRaw));
 
         String acceptRaw = plugin.getMessages().getString("duel.accept-button", "&a&l[Accepter]");

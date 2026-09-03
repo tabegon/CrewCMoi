@@ -32,12 +32,14 @@ public class DuelManager {
         private final UUID requesterUuid;
         private final boolean keepInventory;
         private final double bet;
+        private final boolean dropHead;
         private final BukkitTask expiryTask;
 
-        public DuelRequest(UUID requesterUuid, boolean keepInventory, double bet, BukkitTask expiryTask) {
+        public DuelRequest(UUID requesterUuid, boolean keepInventory, double bet, boolean dropHead, BukkitTask expiryTask) {
             this.requesterUuid = requesterUuid;
             this.keepInventory = keepInventory;
             this.bet = bet;
+            this.dropHead = dropHead;
             this.expiryTask = expiryTask;
         }
 
@@ -52,11 +54,16 @@ public class DuelManager {
         public double getBet() {
             return bet;
         }
+
+        public boolean isDropHead() {
+            return dropHead;
+        }
     }
 
     private final Main plugin;
     private final EconomyManager economyManager;
     private final CombatManager combatManager;
+    private DuelArenaManager duelArenaManager;
     private final int expirySeconds;
     private final int countdownSeconds;
 
@@ -79,6 +86,14 @@ public class DuelManager {
         return activeDuels.containsKey(uuid);
     }
 
+    /**
+     * Branché depuis Main après construction (évite une dépendance circulaire au
+     * constructeur) : permet de restaurer l'arène à la fin de chaque duel.
+     */
+    public void setDuelArenaManager(DuelArenaManager duelArenaManager) {
+        this.duelArenaManager = duelArenaManager;
+    }
+
     public boolean hasPendingRequest(UUID targetUuid) {
         return pendingRequests.containsKey(targetUuid);
     }
@@ -91,7 +106,7 @@ public class DuelManager {
      * Enregistre une nouvelle demande de duel (envoyée après confirmation des règles
      * dans la GUI /duel). Écrase toute demande précédente en attente pour ce même receveur.
      */
-    public void createRequest(Player requester, Player target, boolean keepInventory, double bet) {
+    public void createRequest(Player requester, Player target, boolean keepInventory, double bet, boolean dropHead) {
         UUID targetUuid = target.getUniqueId();
         cancelRequest(targetUuid);
 
@@ -110,11 +125,11 @@ public class DuelManager {
             }
         }, expirySeconds * 20L);
 
-        pendingRequests.put(targetUuid, new DuelRequest(requester.getUniqueId(), keepInventory, bet, expiryTask));
+        pendingRequests.put(targetUuid, new DuelRequest(requester.getUniqueId(), keepInventory, bet, dropHead, expiryTask));
 
         String betText = bet > 0 ? MoneyFormat.format(bet) : plugin.getMessages().getString("duel.no-bet", "aucune");
         sendMessage(requester, "duel.sent", "{player}", target.getName());
-        DuelMessages.sendRequestReceived(plugin, target, requester, keepInventory, betText);
+        DuelMessages.sendRequestReceived(plugin, target, requester, keepInventory, betText, dropHead);
     }
 
     public void cancelRequest(UUID targetUuid) {
@@ -207,7 +222,7 @@ public class DuelManager {
         }
 
         DuelSession session = new DuelSession(requester.getUniqueId(), target.getUniqueId(),
-                request.isKeepInventory(), bet);
+                request.isKeepInventory(), bet, request.isDropHead());
         session.setOriginLocation1(requester.getLocation().clone());
         session.setOriginLocation2(target.getLocation().clone());
 
@@ -298,14 +313,29 @@ public class DuelManager {
             if (pot > 0) {
                 economyManager.deposit(winner.getUniqueId(), pot);
             }
-            Location origin = session.getOriginLocation(winner.getUniqueId());
-            if (origin != null) {
-                winner.teleport(origin);
-            }
             String key = forfeit ? "duel.won-forfeit" : "duel.won";
             sendMessage(winner, key, "{player}", loser.getName());
             if (pot > 0) {
                 sendMessage(winner, "duel.won-pot", "{amount}", MoneyFormat.format(pot));
+            }
+
+            Location origin = session.getOriginLocation(winner.getUniqueId());
+            if (origin != null) {
+                if (session.isKeepInventory() || forfeit) {
+                    // Rien à looter au sol (keepinventory actif, ou l'adversaire a
+                    // juste déconnecté sans mourir) : le gagnant est renvoyé tout de suite.
+                    winner.teleport(origin);
+                } else {
+                    // Pas de keepinventory : le perdant a lâché ses affaires. On laisse
+                    // 30 secondes au gagnant pour looter avant de le renvoyer d'office.
+                    sendMessage(winner, "duel.won-loot-time", null, null);
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        if (winner.isOnline()) {
+                            winner.teleport(origin);
+                            sendMessage(winner, "duel.won-loot-teleport", null, null);
+                        }
+                    }, 30L * 20L);
+                }
             }
         }
 
@@ -330,6 +360,10 @@ public class DuelManager {
         combatManager.clearCombat(loser);
         if (winner != null) {
             combatManager.clearCombat(winner);
+        }
+
+        if (duelArenaManager != null) {
+            duelArenaManager.resetArena();
         }
     }
 

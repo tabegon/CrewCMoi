@@ -49,6 +49,7 @@ public class DuelConfigGuiManager {
         gui.setItem(DuelConfigHolder.INFO_SLOT, buildInfoItem(holder));
         gui.setItem(DuelConfigHolder.KEEPINVENTORY_SLOT, buildKeepInventoryItem(holder));
         gui.setItem(DuelConfigHolder.BET_SLOT, buildBetItem(holder));
+        gui.setItem(DuelConfigHolder.DROPHEAD_SLOT, buildDropHeadItem(holder));
         gui.setItem(DuelConfigHolder.CONFIRM_SLOT, GuiItems.checkmarkButton("&a&lᴇɴᴠᴏʏᴇʀ ʟᴀ ᴅᴇᴍᴀɴᴅᴇ"));
         gui.setItem(DuelConfigHolder.CANCEL_SLOT, GuiItems.cancelButton("&c&lᴀɴɴᴜʟᴇʀ"));
     }
@@ -91,7 +92,21 @@ public class DuelConfigGuiManager {
         lore.add("");
         lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic gauche &7: +" + MoneyFormat.format(duelManager.getBetStep())));
         lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic droit &7: -" + MoneyFormat.format(duelManager.getBetStep())));
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic molette &7: remettre à 0"));
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic molette &7: entrer un montant exact"));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack buildDropHeadItem(DuelConfigHolder holder) {
+        ItemStack item = new ItemStack(holder.isDropHead() ? Material.PLAYER_HEAD : Material.GRAY_DYE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&d&lTête du perdant"));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&7Le perdant drop sa tête (vendable) : "
+                + (holder.isDropHead() ? "&a&loui" : "&c&lnon")));
+        lore.add("");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic gauche pour changer"));
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;

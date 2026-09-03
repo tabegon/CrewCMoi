@@ -7,6 +7,8 @@ import fr.crewcmoi.Main;
 import fr.crewcmoi.claims.database.ClaimData;
 import fr.crewcmoi.claims.database.ClaimFlag;
 import fr.crewcmoi.claims.managers.ClaimManager;
+import fr.crewcmoi.economie.auction.AuctionItem;
+import fr.crewcmoi.economie.managers.AuctionManager;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import fr.crewcmoi.economie.managers.PricesManager;
 import fr.crewcmoi.other.database.PlayerData;
@@ -15,8 +17,14 @@ import fr.crewcmoi.pvp.managers.BountyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Statistic;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,22 +32,13 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Petit serveur web embarqué (aucune dépendance externe, {@code com.sun.net.httpserver}
- * fait partie du JDK) qui expose un dashboard admin en lecture seule : réglages
- * courants (config.yml), classement des richesses, prix de vente, claims et primes.
- *
- * Prévu pour un usage local / réseau local uniquement (voir web.bind-address dans
- * config.yml) : aucune donnée n'est modifiable depuis le site, uniquement consultée.
+ * Serveur web embarqué qui expose un dashboard admin en lecture seule :
+ * réglages, joueurs, économie, /ah (hôtel des ventes), claims, claims à vendre et primes.
  */
 public class WebDashboardServer {
 
@@ -48,18 +47,22 @@ public class WebDashboardServer {
     private final PricesManager pricesManager;
     private final ClaimManager claimManager;
     private final BountyManager bountyManager;
+    private final AuctionManager auctionManager;
+    private final PlayerActivityTracker activityTracker = new PlayerActivityTracker();
 
     private HttpServer server;
     private ExecutorService executor;
     private File siteFolder;
 
     public WebDashboardServer(Main plugin, EconomyManager economyManager, PricesManager pricesManager,
-                               ClaimManager claimManager, BountyManager bountyManager) {
+                              ClaimManager claimManager, BountyManager bountyManager,
+                              AuctionManager auctionManager) {
         this.plugin = plugin;
         this.economyManager = economyManager;
         this.pricesManager = pricesManager;
         this.claimManager = claimManager;
         this.bountyManager = bountyManager;
+        this.auctionManager = auctionManager;
     }
 
     public void start() {
@@ -72,6 +75,8 @@ public class WebDashboardServer {
         String bindAddress = plugin.getConfig().getString("web.bind-address", "0.0.0.0");
 
         extractSiteFiles();
+        Bukkit.getPluginManager().registerEvents(activityTracker, plugin);
+        activityTracker.initializeOnlinePlayers();
 
         try {
             server = HttpServer.create(new InetSocketAddress(bindAddress, port), 0);
@@ -90,11 +95,17 @@ public class WebDashboardServer {
 
         server.createContext("/", this::handleStatic);
         server.createContext("/api/status", wrap(this::handleStatus));
+        server.createContext("/api/players", wrap(this::handlePlayers));
         server.createContext("/api/config", wrap(this::handleConfig));
         server.createContext("/api/economy/top", wrap(this::handleEconomyTop));
         server.createContext("/api/economy/prices", wrap(this::handleEconomyPrices));
         server.createContext("/api/claims", wrap(this::handleClaims));
         server.createContext("/api/bounties", wrap(this::handleBounties));
+
+        // Nouveaux Endpoints /ah et /claim ah
+        server.createContext("/api/ah", wrap(this::handleAuctionHouse));
+        server.createContext("/api/claim-ah", wrap(this::handleClaimAuctionHouse));
+
 
         server.start();
         plugin.getLogger().info("Dashboard web démarré sur http://" + bindAddress + ":" + port
@@ -118,9 +129,7 @@ public class WebDashboardServer {
     }
 
     // ---------------------------------------------------------------------
-    // Fichiers statiques du dashboard (extraits une fois depuis les
-    // ressources du plugin vers <dataFolder>/site, modifiables ensuite sans
-    // recompiler le plugin).
+    // Fichiers statiques
     // ---------------------------------------------------------------------
 
     private void extractSiteFiles() {
@@ -156,8 +165,6 @@ public class WebDashboardServer {
             if (path.equals("/") || path.isEmpty()) {
                 path = "/index.html";
             }
-            // Whitelist stricte : seuls ces fichiers connus peuvent être servis, pour
-            // éviter tout accès à un fichier arbitraire du disque (path traversal).
             String fileName = path.substring(1);
             if (!fileName.equals("index.html") && !fileName.equals("style.css") && !fileName.equals("app.js")) {
                 sendText(exchange, 404, "text/plain", "Not found");
@@ -189,17 +196,13 @@ public class WebDashboardServer {
     }
 
     // ---------------------------------------------------------------------
-    // Endpoints JSON en lecture seule.
+    // Endpoints API
     // ---------------------------------------------------------------------
 
     private interface ApiHandler {
         Object handle(URI uri) throws Exception;
     }
 
-    /**
-     * Enrobe un handler d'API : sérialise le retour en JSON, gère les erreurs
-     * proprement (500) et pose les en-têtes CORS/JSON communs.
-     */
     private HttpHandler wrap(ApiHandler handler) {
         return exchange -> {
             try {
@@ -217,7 +220,6 @@ public class WebDashboardServer {
     }
 
     private Object handleStatus(URI uri) throws Exception {
-        // Bukkit.getOnlinePlayers() doit être appelé depuis le thread principal du serveur.
         return runSync(() -> {
             Map<String, Object> data = new LinkedHashMap<>();
             List<String> onlineNames = new ArrayList<>();
@@ -235,10 +237,118 @@ public class WebDashboardServer {
                     data.put("tps1m", Math.round(tps[0] * 100.0) / 100.0);
                 }
             } catch (Throwable ignored) {
-                // getTPS() est une extension Paper : on l'ignore silencieusement si absente.
             }
             return data;
         });
+    }
+
+    private Object handlePlayers(URI uri) throws Exception {
+        return runSync(() -> {
+            List<Object> result = new ArrayList<>();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            sdf.setTimeZone(TimeZone.getDefault());
+
+            for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
+                if (op.getName() == null) {
+                    continue;
+                }
+
+                UUID uuid = op.getUniqueId();
+                Player onlinePlayer = Bukkit.getPlayer(uuid);
+                boolean online = onlinePlayer != null && onlinePlayer.isOnline();
+
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("name", op.getName());
+                row.put("uuid", uuid.toString());
+                row.put("online", online);
+
+                double balance = 0.0D;
+                try {
+                    balance = economyManager.getBalance(uuid);
+                } catch (Exception ignored) {
+                }
+                row.put("money", balance);
+                row.put("balance", balance);
+
+                long playTicks = 0L;
+                try {
+                    playTicks = op.getStatistic(Statistic.PLAY_ONE_MINUTE);
+                } catch (IllegalArgumentException ignored) {
+                }
+                row.put("playTime", formatPlayTime(playTicks / 20L));
+
+                long lastLoginMs = op.getLastLogin();
+                row.put("lastLogin", lastLoginMs > 0L ? sdf.format(new Date(lastLoginMs)) : "Inconnu");
+                row.put("lastLoginTimestamp", lastLoginMs > 0L ? lastLoginMs : null);
+
+                row.put("lastMessages", activityTracker.getLastMessages(uuid));
+                row.put("lastCommands", activityTracker.getLastCommands(uuid));
+                row.put("connectionTime", online ? activityTracker.getFormattedSessionDuration(uuid) : "Hors ligne");
+                row.put("connectionTimeSeconds", online ? activityTracker.getSessionDurationMillis(uuid) / 1000L : 0L);
+
+                org.bukkit.Location loc = null;
+
+                if (online) {
+                    Player p = onlinePlayer;
+                    row.put("world", p.getWorld() != null ? p.getWorld().getName() : null);
+                    row.put("health", p.getHealth());
+                    row.put("level", p.getLevel());
+                    row.put("op", p.isOp());
+
+                    loc = p.getLocation();
+
+                    List<Object> inventory = new ArrayList<>();
+                    for (var item : p.getInventory().getStorageContents()) {
+                        if (item == null || item.getType().isAir()) {
+                            inventory.add(null);
+                        } else {
+                            Map<String, Object> itemData = new LinkedHashMap<>();
+                            itemData.put("type", item.getType().name());
+                            itemData.put("amount", item.getAmount());
+                            inventory.add(itemData);
+                        }
+                    }
+                    row.put("inventory", inventory);
+                    row.put("inv", inventory);
+                } else {
+                    loc = op.getLocation();
+
+                    row.put("world", loc != null && loc.getWorld() != null ? loc.getWorld().getName() : null);
+                    row.put("health", null);
+                    row.put("level", null);
+                    row.put("op", op.isOp());
+                    row.put("inventory", new ArrayList<>());
+                    row.put("inv", new ArrayList<>());
+                }
+
+                if (loc != null && loc.getWorld() != null) {
+                    Map<String, Object> coords = new LinkedHashMap<>();
+                    coords.put("world", loc.getWorld().getName());
+                    coords.put("x", loc.getBlockX());
+                    coords.put("y", loc.getBlockY());
+                    coords.put("z", loc.getBlockZ());
+
+                    row.put("lastCoords", coords);
+                    row.put("coordinates", coords);
+                } else {
+                    row.put("lastCoords", null);
+                    row.put("coordinates", null);
+                }
+
+                result.add(row);
+            }
+            return result;
+        });
+    }
+
+    private String formatPlayTime(long totalSeconds) {
+        long hours = totalSeconds / 3600L;
+        long minutes = (totalSeconds % 3600L) / 60L;
+
+        if (hours > 0) {
+            return hours + "h " + minutes + "m";
+        }
+        return minutes + "m";
     }
 
     private Object handleConfig(URI uri) {
@@ -315,7 +425,67 @@ public class WebDashboardServer {
     }
 
     // ---------------------------------------------------------------------
-    // Utilitaires.
+    // Handlers Ventes (/ah et claims en vente)
+    // ---------------------------------------------------------------------
+
+    /**
+     * Endpoint /api/ah : Retourne les items enregistrés dans l'AuctionManager (/ah)
+     */
+
+    private Object handleAuctionHouse(URI uri) throws Exception {
+        return runSync(() -> {
+            Map<String, Object> responseData = new LinkedHashMap<>();
+            List<Object> listings = new ArrayList<>();
+
+            if (auctionManager != null) {
+                for (AuctionItem item : auctionManager.getItems()) {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("id", item.getId());
+                    row.put("sellerName", item.getSellerName());
+                    row.put("price", item.getPrice());
+
+                    ItemStack stack = item.getItem();
+                    if (stack != null && !stack.getType().isAir()) {
+                        Map<String, Object> itemData = new LinkedHashMap<>();
+                        itemData.put("type", stack.getType().name());
+                        itemData.put("amount", stack.getAmount());
+                        row.put("item", itemData);
+                    }
+                    listings.add(row);
+                }
+            }
+
+            responseData.put("listings", listings);
+
+            // On récupère directement la Map si elle existe
+            responseData.put("lastSale", auctionManager != null ? auctionManager.getLastSaleData() : null);
+
+            return responseData;
+        });
+    }
+
+    /**
+     * Endpoint /api/claim-ah : Filtre tous les claims actuellement mis en vente
+     */
+    private Object handleClaimAuctionHouse(URI uri) {
+        List<Object> result = new ArrayList<>();
+        for (ClaimData claim : claimManager.getAllClaims()) {
+            if (claim.isForSale()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("world", claim.getWorld());
+                row.put("chunkX", claim.getChunkX());
+                row.put("chunkZ", claim.getChunkZ());
+                row.put("owner", claim.getOwnerName());
+                row.put("ownerUuid", claim.getOwnerUuid());
+                row.put("price", claim.getSalePrice());
+                result.add(row);
+            }
+        }
+        return result;
+    }
+
+    // ---------------------------------------------------------------------
+    // Utilitaires
     // ---------------------------------------------------------------------
 
     private int parseIntParam(URI uri, String name, int defaultValue) {
@@ -336,11 +506,6 @@ public class WebDashboardServer {
         return defaultValue;
     }
 
-    /**
-     * Exécute une tâche sur le thread principal du serveur et attend son résultat
-     * (nécessaire pour certains appels Bukkit qui ne sont pas thread-safe), avec un
-     * timeout pour ne jamais bloquer indéfiniment un thread HTTP.
-     */
     private <T> T runSync(java.util.concurrent.Callable<T> task) throws Exception {
         if (Bukkit.isPrimaryThread()) {
             return task.call();

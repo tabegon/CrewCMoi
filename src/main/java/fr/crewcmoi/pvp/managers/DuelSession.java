@@ -14,6 +14,7 @@ public class DuelSession {
     private final UUID player2;
     private final boolean keepInventory;
     private final double bet;
+    private final boolean dropHead;
 
     // Position avant téléportation dans l'arène, pour ramener les joueurs après le duel.
     private org.bukkit.Location originLocation1;
@@ -22,11 +23,12 @@ public class DuelSession {
     // Le duel n'inflige/ne prend en compte les dégâts qu'une fois le compte à rebours terminé.
     private boolean started = false;
 
-    public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet) {
+    public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet, boolean dropHead) {
         this.player1 = player1;
         this.player2 = player2;
         this.keepInventory = keepInventory;
         this.bet = bet;
+        this.dropHead = dropHead;
     }
 
     public UUID getPlayer1() {
@@ -56,6 +58,10 @@ public class DuelSession {
 
     public double getBet() {
         return bet;
+    }
+
+    public boolean isDropHead() {
+        return dropHead;
     }
 
     public boolean isStarted() {

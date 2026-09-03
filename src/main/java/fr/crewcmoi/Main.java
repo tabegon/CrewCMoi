@@ -38,17 +38,22 @@ import fr.crewcmoi.pvp.managers.TeamManager;
 import fr.crewcmoi.teleport.managers.TeleportManager;
 import fr.crewcmoi.pvp.commands.BountyCommand;
 import fr.crewcmoi.pvp.commands.DuelAcceptCommand;
+import fr.crewcmoi.pvp.commands.DuelArenaCommand;
 import fr.crewcmoi.pvp.commands.DuelCommand;
 import fr.crewcmoi.pvp.gui.BountyGuiManager;
 import fr.crewcmoi.pvp.gui.BountyReviewGuiManager;
 import fr.crewcmoi.pvp.gui.DuelConfigGuiManager;
 import fr.crewcmoi.pvp.listeners.BountyListener;
 import fr.crewcmoi.pvp.listeners.CombatListener;
+import fr.crewcmoi.pvp.listeners.DuelArenaListener;
 import fr.crewcmoi.pvp.listeners.DuelListener;
+import fr.crewcmoi.pvp.listeners.PlayerHeadDropListener;
 import fr.crewcmoi.pvp.listeners.InvisibilityListener;
+import fr.crewcmoi.pvp.listeners.PvpRulesListener;
 import fr.crewcmoi.pvp.managers.BountyManager;
 import fr.crewcmoi.pvp.managers.BountyScoreboardManager;
 import fr.crewcmoi.pvp.managers.CombatManager;
+import fr.crewcmoi.pvp.managers.DuelArenaManager;
 import fr.crewcmoi.pvp.managers.DuelManager;
 import fr.crewcmoi.pvp.managers.InvisibilityManager;
 import fr.crewcmoi.pvp.managers.MalusEffectManager;
@@ -99,6 +104,7 @@ public class Main extends JavaPlugin {
     private ClaimAuctionGuiManager claimAuctionGuiManager;
     private DuelManager duelManager;
     private DuelConfigGuiManager duelConfigGuiManager;
+    private DuelArenaManager duelArenaManager;
     private InvisibilityManager invisibilityManager;
     private RoleManager roleManager;
     private TabListManager tabListManager;
@@ -148,6 +154,8 @@ public class Main extends JavaPlugin {
         this.claimAuctionGuiManager = new ClaimAuctionGuiManager(this, claimManager);
         this.duelManager = new DuelManager(this, economyManager, combatManager);
         this.duelConfigGuiManager = new DuelConfigGuiManager(this, duelManager);
+        this.duelArenaManager = new DuelArenaManager(this);
+        this.duelManager.setDuelArenaManager(this.duelArenaManager);
         this.roleManager = new RoleManager(this);
         this.tabListManager = new TabListManager(this, roleManager, playerTeamManager);
         this.vanishManager = new VanishManager(this);
@@ -159,8 +167,13 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager, invisibilityManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
+        // Règles PvP additionnelles : cristaux/ancres ne blessent que leur déclencheur,
+        // et les ender pearls restent utilisables en combat (rafraîchit juste le tag).
+        getServer().getPluginManager().registerEvents(new PvpRulesListener(combatManager), this);
         getServer().getPluginManager().registerEvents(new ClaimListener(this, claimManager), this);
         getServer().getPluginManager().registerEvents(new DuelListener(this, duelManager, duelConfigGuiManager), this);
+        getServer().getPluginManager().registerEvents(new PlayerHeadDropListener(this, duelManager), this);
+        getServer().getPluginManager().registerEvents(new DuelArenaListener(duelArenaManager), this);
         // Rend le pseudo d'un joueur invisible (potion) invisible pour tout le monde
         // (nametag masqué) et anonymise son nom en cas de kill (voir BountyListener).
         getServer().getPluginManager().registerEvents(new InvisibilityListener(invisibilityManager), this);
@@ -241,6 +254,7 @@ public class Main extends JavaPlugin {
         registerCommand("claims", claimCommand);
         registerCommand("duel", new DuelCommand(this, duelManager, duelConfigGuiManager, combatManager));
         registerCommand("duelaccept", new DuelAcceptCommand(this, duelManager));
+        registerCommand("duelarena", new DuelArenaCommand(duelArenaManager));
         registerCommand("rank", new RoleCommand(this, roleManager, tabListManager));
         registerCommand("staff", new StaffCommand(staffModeManager, roleManager, vanishManager));
         registerCommand("vanish", new VanishCommand(staffModeManager, vanishManager));
@@ -248,7 +262,7 @@ public class Main extends JavaPlugin {
         // Dashboard web admin en lecture seule (voir fr.crewcmoi.web) : classement des
         // richesses, prix, claims, primes et réglages config.yml, consultables depuis un
         // navigateur en local/réseau local (voir web.* dans config.yml).
-        this.webDashboardServer = new WebDashboardServer(this, economyManager, pricesManager, claimManager, bountyManager);
+        this.webDashboardServer = new WebDashboardServer(this, economyManager, pricesManager, claimManager, bountyManager, auctionManager);
         this.webDashboardServer.start();
 
         getLogger().info("EconomyPlugin activé avec succès !");
@@ -383,6 +397,10 @@ public class Main extends JavaPlugin {
 
     public DuelManager getDuelManager() {
         return duelManager;
+    }
+
+    public DuelArenaManager getDuelArenaManager() {
+        return duelArenaManager;
     }
 
     public DuelConfigGuiManager getDuelConfigGuiManager() {

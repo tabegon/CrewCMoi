@@ -15,6 +15,7 @@ public class AuctionItem {
     private final ItemStack item;
     private final double price;
     private final long createdAt;
+    private long creationTimestamp;
 
     public AuctionItem(int id, UUID sellerUuid, String sellerName, ItemStack item, double price, long createdAt) {
         this.id = id;
@@ -47,5 +48,9 @@ public class AuctionItem {
 
     public long getCreatedAt() {
         return createdAt;
+    }
+
+    public long getCreationTimestamp() {
+        return this.creationTimestamp;
     }
 }

@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import fr.crewcmoi.other.utils.MoneyFormat;
 import fr.crewcmoi.other.utils.GuiItems;
+import fr.crewcmoi.pvp.utils.HeadSellPrice;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,19 @@ public class SellGuiManager {
         this.plugin = plugin;
         this.pricesManager = pricesManager;
         this.economyManager = economyManager;
+    }
+
+    /**
+     * Prix de vente unitaire d'un item : celui tagué dessus (ex : tête de joueur droppée
+     * à la mort, voir HeadSellPrice/PlayerHeadDropListener) en priorité, sinon celui de
+     * prices.yml pour son matériau.
+     */
+    private double getSellPrice(ItemStack stack) {
+        double taggedPrice = HeadSellPrice.getPrice(plugin, stack);
+        if (taggedPrice > 0) {
+            return taggedPrice;
+        }
+        return pricesManager.getPrice(stack.getType());
     }
 
     public void open(Player player) {
@@ -72,7 +86,7 @@ public class SellGuiManager {
             if (stack == null || stack.getType() == Material.AIR) {
                 continue;
             }
-            double unitPrice = pricesManager.getPrice(stack.getType());
+            double unitPrice = getSellPrice(stack);
             if (unitPrice <= 0) {
                 hasUnsellable = true;
                 continue;
@@ -122,7 +136,7 @@ public class SellGuiManager {
                 continue;
             }
             snapshot.add(stack.clone());
-            double unitPrice = pricesManager.getPrice(stack.getType());
+            double unitPrice = getSellPrice(stack);
             if (unitPrice > 0) {
                 total += unitPrice * stack.getAmount();
                 itemCount += stack.getAmount();
@@ -209,7 +223,7 @@ public class SellGuiManager {
         String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
 
         for (ItemStack stack : pending) {
-            double unitPrice = pricesManager.getPrice(stack.getType());
+            double unitPrice = getSellPrice(stack);
             if (unitPrice <= 0) {
                 // Ne devrait pas arriver (déjà filtré au moment du snapshot), mais on
                 // rend l'objet au joueur par sécurité s'il n'est pas vendable.

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrewCMoi — Server Dashboard</title>
+    <link href="https://fonts.cdnfonts.com/css/minecraft-4" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="login-screen" class="login-overlay">
+        <div class="login-card">
+            <h1 class="mc-font banner-title">CrewCMoi</h1>
+            <p class="login-subtitle">Connexion au panneau d'administration</p>
+            <form id="login-form">
+                <div class="input-group">
+                    <input type="text" id="login-user" placeholder="Nom d'utilisateur" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="login-pass" placeholder="Mot de passe" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Se connecter</button>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="app" class="hidden">
+        <header class="main-header">
+            <div class="header-content">
+                <h1 class="mc-font banner-title">CrewCMoi</h1>
+                <div class="header-right">
+                    <div id="status-bar" class="status-bar">Connexion...</div>
+                    <button id="btn-logout" class="btn btn-danger btn-sm">Déconnexion</button>
+                </div>
+            </div>
+
+
+            <nav class="nav-tabs">
+                <button class="tab-btn active" data-tab="tab-status"> Serveur</button>
+                <button class="tab-btn" data-tab="tab-bank"> Banque</button>
+                <button class="tab-btn" data-tab="tab-players"> Joueurs</button>
+                <button class="tab-btn" data-tab="tab-bounties"> Primes</button>
+                <button class="tab-btn" data-tab="tab-claims"> Claims</button>
+                <button class="tab-btn" data-tab="shop"> Shop</button>
+            </nav>
+        </header>
+
+        <main class="content-container">
+
+            <section id="tab-status" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Statut du Serveur</span>
+                        <div class="stat-value" id="stat-state"><span class="badge offline">Hors ligne</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Joueurs en ligne</span>
+                        <div class="stat-value"><span id="stat-online">0</span> / <span id="stat-max">0</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Performance (TPS)</span>
+                        <div class="stat-value" id="stat-tps">20.0</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Version Serveur</span>
+                        <div class="stat-value" id="stat-version">-</div>
+                    </div>
+                    <div class="stat-card span-2">
+                        <span class="stat-label">Masse Monétaire Totale (Économie)</span>
+                        <div class="stat-value highlight-gold" id="stat-total-money">0 $</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>Joueurs connectés</h3>
+                    <div id="stat-online-names" class="chips-container">
+                        <span class="chip">Chargement...</span>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="tab-bank" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Classement de Richesse (Baltop)</h3>
+                        <input type="text" id="bank-search" class="search-input" placeholder="Chercher un joueur...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="table-baltop">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Joueur</th>
+                                    <th>Solde</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="tab-players" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Gestion des Joueurs</h3>
+                        <input type="text" id="players-search" class="search-input" placeholder="Rechercher un pseudo...">
+                    </div>
+                    
+                    <h4>En Ligne</h4>
+                    <div id="players-online-grid" class="player-cards-grid"></div>
+
+                    <h4 class="mt-4">Hors Ligne</h4>
+                    <div id="players-offline-grid" class="player-cards-grid"></div>
+                </div>
+            </section>
+
+
+            <section id="tab-bounties" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Primes Actives</h3>
+                        <input type="text" id="bounty-search" class="search-input" placeholder="Chercher une cible...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="table-bounties">
+                            <thead>
+                                <tr>
+                                    <th>Cible</th>
+                                    <th>Montant Total</th>
+                                    <th>Contributeurs</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="tab-claims" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Claims du Serveur</h3>
+                        <input type="text" id="claims-search" class="search-input" placeholder="Chercher par ID ou proprio...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="table-claims">
+                            <thead>
+                                <tr>
+                                    <th>ID Claim</th>
+                                    <th>Propriétaire</th>
+                                    <th>Monde</th>
+                                    <th>Coordonnées (Chunk)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+
+    <div id="player-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <div class="modal-header">
+                <img id="modal-avatar" src="" alt="Avatar" class="player-avatar-lg">
+                <div>
+                    <h2 id="modal-player-name">Pseudo</h2>
+                    <span id="modal-player-status" class="badge">Statut</span>
+                </div>
+            </div>
+            <div class="modal-body grid-2">
+                <div class="info-block">
+                    <h4>Informations Générales</h4>
+<p><strong>Dernière connexion :</strong> <span id="modal-last-seen">-</span></p>
+<p><strong>Temps de jeu :</strong> <span id="modal-playtime">-</span></p>
+<p><strong>Monde :</strong> <span id="modal-world">-</span></p>
+<p><strong>Dernières coordonnées :</strong> <span id="modal-coords">-</span></p>
+<p><strong>Compte en banque :</strong> <span id="modal-balance">-</span></p>
+                </div>
+                <div class="info-block">
+                    <h4>Inventaire</h4>
+                    <div id="modal-inventory" class="inventory-grid"></div>
+                </div>
+                <div class="info-block span-2">
+                    <h4>3 Dernières Commandes Chat</h4>
+                    <ul id="modal-commands" class="log-list"></ul>
+                </div>
+                <div class="info-block span-2">
+                    <h4>5 Derniers Messages Chat</h4>
+                    <ul id="modal-messages" class="log-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div id="shop" class="tab-content">
+    <div class="grid-2" style="margin-bottom: 1.5rem;">
+        <div class="panel">
+            <h3>Dernière Vente Effectuée</h3>
+            <div id="last-sale-container" style="margin-top: 1rem; font-size: 0.95rem; color: var(--text-muted);">
+                Chargement...
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Objets en Vente en Direct</h3>
+            <input type="text" id="shop-search" class="search-input" placeholder="Rechercher un objet ou joueur...">
+        </div>
+        <div class="table-wrapper">
+            <table id="table-shop">
+                <thead>
+                    <tr>
+                        <th>Objet</th>
+                        <th>Quantité</th>
+                        <th>Prix Total</th>
+                        <th>Vendeur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
