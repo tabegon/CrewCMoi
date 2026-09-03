@@ -91,6 +91,12 @@ public class CombatListener implements Listener {
             return;
         }
 
+        // Les ender pearls restent utilisables en combat (voir aussi PvpRulesListener,
+        // qui rafraîchit le tag de combat quand une pearl est lancée).
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
+            return;
+        }
+
         if (combatManager.isInCombat(player)) {
             event.setCancelled(true);
             sendActionBlocked(player);
