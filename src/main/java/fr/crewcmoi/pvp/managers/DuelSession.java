@@ -15,6 +15,15 @@ public class DuelSession {
     private final boolean keepInventory;
     private final double bet;
     private final boolean dropHead;
+    private final String kitId;
+
+    // Inventaire original sauvegardé lorsque le duel utilise un kit.
+    private org.bukkit.inventory.ItemStack[] player1Contents;
+    private org.bukkit.inventory.ItemStack[] player1Armor;
+    private org.bukkit.inventory.ItemStack[] player1Extra;
+    private org.bukkit.inventory.ItemStack[] player2Contents;
+    private org.bukkit.inventory.ItemStack[] player2Armor;
+    private org.bukkit.inventory.ItemStack[] player2Extra;
 
     // Position avant téléportation dans l'arène, pour ramener les joueurs après le duel.
     private org.bukkit.Location originLocation1;
@@ -24,11 +33,16 @@ public class DuelSession {
     private boolean started = false;
 
     public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet, boolean dropHead) {
+        this(player1, player2, keepInventory, bet, dropHead, null);
+    }
+
+    public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet, boolean dropHead, String kitId) {
         this.player1 = player1;
         this.player2 = player2;
         this.keepInventory = keepInventory;
         this.bet = bet;
         this.dropHead = dropHead;
+        this.kitId = kitId;
     }
 
     public UUID getPlayer1() {
@@ -60,6 +74,14 @@ public class DuelSession {
         return bet;
     }
 
+    public String getKitId() {
+        return kitId;
+    }
+
+    public boolean hasKit() {
+        return kitId != null;
+    }
+
     public boolean isDropHead() {
         return dropHead;
     }
@@ -70,6 +92,42 @@ public class DuelSession {
 
     public void setStarted(boolean started) {
         this.started = started;
+    }
+
+    public void saveInventory(UUID player, org.bukkit.entity.Player p) {
+        org.bukkit.inventory.PlayerInventory inv = p.getInventory();
+        if (player.equals(player1)) {
+            player1Contents = cloneItems(inv.getStorageContents());
+            player1Armor = cloneItems(inv.getArmorContents());
+            player1Extra = cloneItems(inv.getExtraContents());
+        } else if (player.equals(player2)) {
+            player2Contents = cloneItems(inv.getStorageContents());
+            player2Armor = cloneItems(inv.getArmorContents());
+            player2Extra = cloneItems(inv.getExtraContents());
+        }
+    }
+
+    public void restoreInventory(UUID player, org.bukkit.entity.Player p) {
+        org.bukkit.inventory.PlayerInventory inv = p.getInventory();
+        if (player.equals(player1)) {
+            inv.setStorageContents(cloneItems(player1Contents));
+            inv.setArmorContents(cloneItems(player1Armor));
+            inv.setExtraContents(cloneItems(player1Extra));
+        } else if (player.equals(player2)) {
+            inv.setStorageContents(cloneItems(player2Contents));
+            inv.setArmorContents(cloneItems(player2Armor));
+            inv.setExtraContents(cloneItems(player2Extra));
+        }
+        p.updateInventory();
+    }
+
+    private org.bukkit.inventory.ItemStack[] cloneItems(org.bukkit.inventory.ItemStack[] items) {
+        if (items == null) return null;
+        org.bukkit.inventory.ItemStack[] result = new org.bukkit.inventory.ItemStack[items.length];
+        for (int i = 0; i < items.length; i++) {
+            result[i] = items[i] == null ? null : items[i].clone();
+        }
+        return result;
     }
 
     public org.bukkit.Location getOriginLocation1() {

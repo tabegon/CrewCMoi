@@ -136,6 +136,17 @@ public class BountyListener implements Listener {
             return;
         }
 
+        // Un kill réalisé dans un duel /duel est un combat organisé et ne doit jamais
+        // déclencher la prime + malus automatique attribuée par le serveur.
+        // On effectue ce contrôle ici, avant toute création de server bounty, car le
+        // BountyListener et le DuelListener reçoivent tous les deux PlayerDeathEvent :
+        // le DuelSession existe encore à ce moment-là et sera nettoyé juste après par
+        // DuelListener#onPlayerDeath.
+        fr.crewcmoi.pvp.managers.DuelSession duelSession = plugin.getDuelManager().getSession(killer.getUniqueId());
+        if (duelSession != null && duelSession.involves(victim.getUniqueId())) {
+            return;
+        }
+
         if (teamManager.hasTeam(victim.getUniqueId())) {
             // La victime fait partie d'une équipe : pas de malus attribué à l'agresseur.
             return;

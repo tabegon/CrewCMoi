@@ -69,6 +69,13 @@ public class DuelListener implements Listener {
         if (slot == DuelConfigHolder.KEEPINVENTORY_SLOT) {
             holder.setKeepInventory(!holder.isKeepInventory());
             duelConfigGuiManager.render(holder);
+        } else if (slot == DuelConfigHolder.KIT_SLOT) {
+            if (holder.getKitId() == null) {
+                holder.setKitId("basic");
+            } else {
+                holder.setKitId(null);
+            }
+            duelConfigGuiManager.render(holder);
         } else if (slot == DuelConfigHolder.DROPHEAD_SLOT) {
             holder.setDropHead(!holder.isDropHead());
             duelConfigGuiManager.render(holder);
@@ -116,7 +123,7 @@ public class DuelListener implements Listener {
                 return;
             }
 
-            duelManager.createRequest(player, target, holder.isKeepInventory(), holder.getBet(), holder.isDropHead());
+            duelManager.createRequest(player, target, holder.isKeepInventory(), holder.getBet(), holder.isDropHead(), holder.getKitId());
         }
     }
 
@@ -184,7 +191,7 @@ public class DuelListener implements Listener {
             return;
         }
 
-        if (session.isKeepInventory()) {
+        if (session.isKeepInventory() || session.hasKit()) {
             event.getDrops().clear();
             event.setKeepInventory(true);
             event.setKeepLevel(true);

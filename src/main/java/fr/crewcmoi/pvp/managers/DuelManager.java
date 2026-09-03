@@ -33,13 +33,15 @@ public class DuelManager {
         private final boolean keepInventory;
         private final double bet;
         private final boolean dropHead;
+        private final String kitId;
         private final BukkitTask expiryTask;
 
-        public DuelRequest(UUID requesterUuid, boolean keepInventory, double bet, boolean dropHead, BukkitTask expiryTask) {
+        public DuelRequest(UUID requesterUuid, boolean keepInventory, double bet, boolean dropHead, String kitId, BukkitTask expiryTask) {
             this.requesterUuid = requesterUuid;
             this.keepInventory = keepInventory;
             this.bet = bet;
             this.dropHead = dropHead;
+            this.kitId = kitId;
             this.expiryTask = expiryTask;
         }
 
@@ -57,6 +59,10 @@ public class DuelManager {
 
         public boolean isDropHead() {
             return dropHead;
+        }
+
+        public String getKitId() {
+            return kitId;
         }
     }
 
@@ -106,7 +112,7 @@ public class DuelManager {
      * Enregistre une nouvelle demande de duel (envoyée après confirmation des règles
      * dans la GUI /duel). Écrase toute demande précédente en attente pour ce même receveur.
      */
-    public void createRequest(Player requester, Player target, boolean keepInventory, double bet, boolean dropHead) {
+    public void createRequest(Player requester, Player target, boolean keepInventory, double bet, boolean dropHead, String kitId) {
         UUID targetUuid = target.getUniqueId();
         cancelRequest(targetUuid);
 
@@ -125,11 +131,11 @@ public class DuelManager {
             }
         }, expirySeconds * 20L);
 
-        pendingRequests.put(targetUuid, new DuelRequest(requester.getUniqueId(), keepInventory, bet, dropHead, expiryTask));
+        pendingRequests.put(targetUuid, new DuelRequest(requester.getUniqueId(), keepInventory, bet, dropHead, kitId, expiryTask));
 
         String betText = bet > 0 ? MoneyFormat.format(bet) : plugin.getMessages().getString("duel.no-bet", "aucune");
         sendMessage(requester, "duel.sent", "{player}", target.getName());
-        DuelMessages.sendRequestReceived(plugin, target, requester, keepInventory, betText, dropHead);
+        DuelMessages.sendRequestReceived(plugin, target, requester, keepInventory, betText, dropHead, kitId == null ? null : plugin.getDuelKitManager().getDisplayName(kitId), kitId == null ? 0.0 : plugin.getDuelKitManager().getPrice(kitId));
     }
 
     public void cancelRequest(UUID targetUuid) {
@@ -193,6 +199,29 @@ public class DuelManager {
         }
 
         double bet = request.getBet();
+        String kitId = request.getKitId();
+        double kitPrice = kitId != null ? plugin.getConfig().getDouble("duel.kits.basic.price", 1000.0) : 0.0;
+
+        if (kitId != null && (kitId.isBlank() || !plugin.getDuelKitManager().isValidKit(kitId))) {
+            sendMessage(target, "duel.invalid-kit", null, null);
+            sendMessage(requester, "duel.invalid-kit", null, null);
+            return;
+        }
+
+        double totalCost = bet + kitPrice;
+        if (totalCost > 0) {
+            if (!economyManager.has(requester.getUniqueId(), totalCost)) {
+                sendMessage(requester, "duel.self-not-enough-money", null, null);
+                sendMessage(target, "duel.requester-not-enough-money", "{player}", requester.getName());
+                return;
+            }
+            if (!economyManager.has(target.getUniqueId(), totalCost)) {
+                sendMessage(target, "duel.self-not-enough-money", null, null);
+                sendMessage(requester, "duel.target-not-enough-money", "{player}", target.getName());
+                return;
+            }
+        }
+
         if (bet > 0) {
             if (!economyManager.has(requester.getUniqueId(), bet)) {
                 sendMessage(target, "duel.requester-not-enough-money", "{player}", requester.getName());
@@ -213,7 +242,7 @@ public class DuelManager {
         if (arena1 == null || arena2 == null) {
             sendMessage(target, "duel.arena-not-configured", null, null);
             sendMessage(requester, "duel.arena-not-configured", null, null);
-            // Rembourse la mise si elle a été prélevée.
+            // Rembourse intégralement ce qui aurait déjà été prélevé.
             if (bet > 0) {
                 economyManager.deposit(requester.getUniqueId(), bet);
                 economyManager.deposit(target.getUniqueId(), bet);
@@ -221,10 +250,22 @@ public class DuelManager {
             return;
         }
 
+        if (kitPrice > 0) {
+            economyManager.withdraw(requester.getUniqueId(), kitPrice);
+            economyManager.withdraw(target.getUniqueId(), kitPrice);
+        }
+
         DuelSession session = new DuelSession(requester.getUniqueId(), target.getUniqueId(),
-                request.isKeepInventory(), bet, request.isDropHead());
+                kitId == null && request.isKeepInventory(), bet, request.isDropHead(), kitId);
         session.setOriginLocation1(requester.getLocation().clone());
         session.setOriginLocation2(target.getLocation().clone());
+
+        if (session.hasKit()) {
+            session.saveInventory(requester.getUniqueId(), requester);
+            session.saveInventory(target.getUniqueId(), target);
+            plugin.getDuelKitManager().applyKit(requester, kitId);
+            plugin.getDuelKitManager().applyKit(target, kitId);
+        }
 
         activeDuels.put(requester.getUniqueId(), session);
         activeDuels.put(target.getUniqueId(), session);
@@ -339,6 +380,18 @@ public class DuelManager {
             }
         }
 
+        if (session.hasKit()) {
+            if (winner != null && winner.isOnline()) {
+                session.restoreInventory(winner.getUniqueId(), winner);
+            }
+            if (loser != null && loser.isOnline()) {
+                // Pour une mort avec kit, keepInventory est activé uniquement en interne
+                // afin de protéger le joueur : le réglage du duel reste bien "non".
+                // On remet immédiatement son inventaire original.
+                session.restoreInventory(loser.getUniqueId(), loser);
+            }
+        }
+
         // Le perdant est traité séparément : s'il vient de mourir, le respawn le
         // repositionnera de toute façon ; s'il quitte le serveur, rien à faire de plus.
         if (loser != null && loser.isOnline() && !forfeit) {
@@ -383,6 +436,10 @@ public class DuelManager {
         float yaw = (float) plugin.getConfig().getDouble(path + ".yaw", 0.0);
         float pitch = (float) plugin.getConfig().getDouble(path + ".pitch", 0.0);
         return new Location(world, x, y, z, yaw, pitch);
+    }
+
+    public DuelKitManager getDuelKitManager() {
+        return plugin.getDuelKitManager();
     }
 
     public double getBetStep() {

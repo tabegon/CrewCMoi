@@ -49,6 +49,7 @@ public class DuelConfigGuiManager {
         gui.setItem(DuelConfigHolder.INFO_SLOT, buildInfoItem(holder));
         gui.setItem(DuelConfigHolder.KEEPINVENTORY_SLOT, buildKeepInventoryItem(holder));
         gui.setItem(DuelConfigHolder.BET_SLOT, buildBetItem(holder));
+        gui.setItem(DuelConfigHolder.KIT_SLOT, buildKitItem(holder));
         gui.setItem(DuelConfigHolder.DROPHEAD_SLOT, buildDropHeadItem(holder));
         gui.setItem(DuelConfigHolder.CONFIRM_SLOT, GuiItems.checkmarkButton("&a&lᴇɴᴠᴏʏᴇʀ ʟᴀ ᴅᴇᴍᴀɴᴅᴇ"));
         gui.setItem(DuelConfigHolder.CANCEL_SLOT, GuiItems.cancelButton("&c&lᴀɴɴᴜʟᴇʀ"));
@@ -93,6 +94,38 @@ public class DuelConfigGuiManager {
         lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic gauche &7: +" + MoneyFormat.format(duelManager.getBetStep())));
         lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic droit &7: -" + MoneyFormat.format(duelManager.getBetStep())));
         lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic molette &7: entrer un montant exact"));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack buildKitItem(DuelConfigHolder holder) {
+        boolean selected = holder.getKitId() != null;
+        ItemStack item = new ItemStack(selected ? Material.NETHERITE_CHESTPLATE : Material.CHEST);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', selected
+                ? "&6&lKit : &eKit Classique"
+                : "&6&lKit de duel"));
+        List<String> lore = new ArrayList<>();
+        if (selected) {
+            double price = duelManager.getDuelKitManager().getPrice(holder.getKitId());
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Prix par joueur : &e" + MoneyFormat.format(price)));
+            lore.add("");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&aLe kit est sélectionné."));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&cKeepinventory est automatiquement désactivé."));
+            lore.add("");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic gauche pour retirer le kit"));
+        } else {
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Kit Classique"));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Prix : &e" + MoneyFormat.format(duelManager.getDuelKitManager().getPrice("basic"))));
+            lore.add("");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Armure Protection IV, Mending, Unbreaking III"));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Épée Sharpness V + Fire Aspect II"));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Mace Density V + Wind Burst III"));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Hache Sharpness V + bouclier enchanté"));
+            lore.add("");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic gauche pour sélectionner"));
+        }
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;

@@ -4,7 +4,7 @@ author: MonsieurTh30
 version: 1.0.0
 api-version: '1.21'
 main: fr.crewcmoi.Main
-softdepend: [ItemsAdder, Vault, PlaceholderAPI, Citizens]
+softdepend: [ItemsAdder, MythicMobs, Vault, PlaceholderAPI, Citizens]
 loadbefore: [RPGhuds]
 
 commands:
@@ -83,6 +83,9 @@ commands:
   vanish:
     description: Bascule le vanish (invisibilité totale, armure comprise, et disparition du tab). Nécessite le mode staff.
     usage: /vanish
+  pets:
+    description: Ouvre la collection de pets.
+    usage: /pets
 
 permissions:
   crew.rank.set:

@@ -14,6 +14,7 @@ public class DuelConfigHolder implements InventoryHolder {
     public static final int SIZE = 27;
     public static final int KEEPINVENTORY_SLOT = 2;
     public static final int BET_SLOT = 6;
+    public static final int KIT_SLOT = 4;
     public static final int DROPHEAD_SLOT = 8;
     public static final int CONFIRM_SLOT = 24;
     public static final int CANCEL_SLOT = 20;
@@ -26,6 +27,7 @@ public class DuelConfigHolder implements InventoryHolder {
     private boolean keepInventory = false;
     private double bet = 0.0;
     private boolean dropHead = false;
+    private String kitId = null;
 
     public DuelConfigHolder(UUID targetUuid, String targetName) {
         this.targetUuid = targetUuid;
@@ -63,6 +65,17 @@ public class DuelConfigHolder implements InventoryHolder {
 
     public void setBet(double bet) {
         this.bet = bet;
+    }
+
+    public String getKitId() {
+        return kitId;
+    }
+
+    public void setKitId(String kitId) {
+        this.kitId = kitId;
+        if (kitId != null) {
+            this.keepInventory = false;
+        }
     }
 
     public boolean isDropHead() {

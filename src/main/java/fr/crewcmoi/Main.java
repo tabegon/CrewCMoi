@@ -69,6 +69,10 @@ import fr.crewcmoi.tab.managers.PlayerTeamManager;
 import fr.crewcmoi.tab.managers.TabListManager;
 import fr.crewcmoi.tab.roles.RoleManager;
 import fr.crewcmoi.web.WebDashboardServer;
+import fr.crewcmoi.pets.PetManager;
+import fr.crewcmoi.pets.PetGuiManager;
+import fr.crewcmoi.pets.PetListener;
+import fr.crewcmoi.pets.PetsCommand;
 
 import java.io.File;
 import java.io.IOException;
@@ -103,6 +107,7 @@ public class Main extends JavaPlugin {
     private ClaimVisualizer claimVisualizer;
     private ClaimAuctionGuiManager claimAuctionGuiManager;
     private DuelManager duelManager;
+    private fr.crewcmoi.pvp.managers.DuelKitManager duelKitManager;
     private DuelConfigGuiManager duelConfigGuiManager;
     private DuelArenaManager duelArenaManager;
     private InvisibilityManager invisibilityManager;
@@ -114,6 +119,8 @@ public class Main extends JavaPlugin {
     private FileConfiguration messages;
     private File messagesFile;
     private WebDashboardServer webDashboardServer;
+    private PetManager petManager;
+    private PetGuiManager petGuiManager;
 
     @Override
     public void onEnable() {
@@ -152,6 +159,7 @@ public class Main extends JavaPlugin {
         this.claimShopGuiManager = new ClaimShopGuiManager(this, claimManager);
         this.claimVisualizer = new ClaimVisualizer(this, claimManager);
         this.claimAuctionGuiManager = new ClaimAuctionGuiManager(this, claimManager);
+        this.duelKitManager = new fr.crewcmoi.pvp.managers.DuelKitManager(this);
         this.duelManager = new DuelManager(this, economyManager, combatManager);
         this.duelConfigGuiManager = new DuelConfigGuiManager(this, duelManager);
         this.duelArenaManager = new DuelArenaManager(this);
@@ -161,6 +169,8 @@ public class Main extends JavaPlugin {
         this.vanishManager = new VanishManager(this);
         this.staffModeManager = new StaffModeManager(this, roleManager, tabListManager, vanishManager);
         this.invisibilityManager = new InvisibilityManager(this, playerTeamManager);
+        this.petManager = new PetManager(this);
+        this.petGuiManager = new PetGuiManager(this, petManager);
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer), this);
@@ -177,6 +187,11 @@ public class Main extends JavaPlugin {
         // Rend le pseudo d'un joueur invisible (potion) invisible pour tout le monde
         // (nametag masqué) et anonymise son nom en cas de kill (voir BountyListener).
         getServer().getPluginManager().registerEvents(new InvisibilityListener(invisibilityManager), this);
+        if (getServer().getPluginManager().isPluginEnabled("ItemsAdder") && getServer().getPluginManager().isPluginEnabled("MythicMobs")) {
+            getServer().getPluginManager().registerEvents(new PetListener(this, petManager, petGuiManager), this);
+        } else {
+            getLogger().warning("Pets désactivés : ItemsAdder et MythicMobs sont nécessaires.");
+        }
         // Applique le préfixe de rôle (Fonda/Admin/Dev/Mod/Vip/Player) et le tri dans
         // le tab dès la connexion d'un joueur (voir fr.crewcmoi.tab).
         getServer().getPluginManager().registerEvents(new TabListListener(tabListManager), this);
@@ -258,6 +273,7 @@ public class Main extends JavaPlugin {
         registerCommand("rank", new RoleCommand(this, roleManager, tabListManager));
         registerCommand("staff", new StaffCommand(staffModeManager, roleManager, vanishManager));
         registerCommand("vanish", new VanishCommand(staffModeManager, vanishManager));
+        registerCommand("pets", new PetsCommand(petGuiManager));
 
         // Dashboard web admin en lecture seule (voir fr.crewcmoi.web) : classement des
         // richesses, prix, claims, primes et réglages config.yml, consultables depuis un
@@ -270,6 +286,9 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (petManager != null) {
+            petManager.shutdown();
+        }
         if (webDashboardServer != null) {
             webDashboardServer.stop();
         }
@@ -345,6 +364,10 @@ public class Main extends JavaPlugin {
 
     public AuctionManager getAuctionManager() {
         return auctionManager;
+    }
+
+    public fr.crewcmoi.pvp.managers.DuelKitManager getDuelKitManager() {
+        return duelKitManager;
     }
 
     public CombatManager getCombatManager() {

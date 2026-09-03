@@ -12,8 +12,6 @@ combat-log:
   duration-seconds: 30
 
 player-head-drop:
-  # Fait dropper la tête de la victime (avec son prix de vente en lore) à chaque kill JcJ
-  # normal (hors duel).
   enabled: true
   price: 250.0
 
@@ -41,6 +39,10 @@ duel:
   countdown-seconds: 5
   bet-step: 100
   max-bet: 0
+  kits:
+    basic:
+      name: "Kit Classique"
+      price: 5000.0
   arena:
     pos1:
       world: test
@@ -101,3 +103,23 @@ web:
   # uniquement si ton serveur n'est pas exposé directement sur internet), "127.0.0.1"
   # = accessible uniquement depuis la machine qui héberge le serveur.
   bind-address: "0.0.0.0"
+
+# ─────────────────────────────────────────────
+# PETS
+# Chaque pet possède un item ItemsAdder et un MythicMob.
+# Pour débloquer un pet, le joueur fait clic droit avec l'item configuré.
+# Le pet MythicMobs est invoqué lorsqu'il est activé dans /pets.
+pets:
+  list:
+    zombie:
+      itemsadder-id: "crewcmoi:zombie_pet"
+      mythic-mob: "ZombiePet"
+      slot: 20
+    ghost:
+      itemsadder-id: "crewcmoi:ghost_pet"
+      mythic-mob: "GhostPet"
+      slot: 22
+    dragon:
+      itemsadder-id: "crewcmoi:dragon_pet"
+      mythic-mob: "DragonPet"
+      slot: 24
