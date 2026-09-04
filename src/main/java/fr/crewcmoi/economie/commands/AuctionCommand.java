@@ -72,6 +72,12 @@ public class AuctionCommand implements CommandExecutor {
             return;
         }
 
+        int maxSlots = auctionManager.getMaxSlots();
+        if (auctionManager.countActiveAuctions(player.getUniqueId()) >= maxSlots) {
+            Messages.send(player, "server.auction-max-slots-reached", java.util.Map.of("max", String.valueOf(maxSlots)));
+            return;
+        }
+
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (hand == null || hand.getType() == Material.AIR) {
             Messages.send(player, "server.auction-0dce3d8");

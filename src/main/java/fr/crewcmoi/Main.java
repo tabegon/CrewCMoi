@@ -173,7 +173,7 @@ public class Main extends JavaPlugin {
         this.petGuiManager = new PetGuiManager(this, petManager);
 
         // Enregistrement des listeners
-        getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer), this);
+        getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer, auctionManager), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager, invisibilityManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);

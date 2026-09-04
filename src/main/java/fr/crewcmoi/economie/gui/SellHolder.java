@@ -13,18 +13,18 @@ import java.util.List;
  */
 public class SellHolder implements InventoryHolder {
 
-    // Taille totale de la GUI (3 lignes de 9)
-    public static final int SIZE = 27;
+    // Taille totale de la GUI (6 lignes de 9 = un double coffre)
+    public static final int SIZE = 54;
 
-    // Slots réservés aux items à vendre (les 2 premières lignes)
+    // Slots réservés aux items à vendre (les 4 premières lignes)
     public static final int[] ITEM_SLOTS = buildItemSlots();
 
     // Slot du bouton "vendre" (état normal) / "confirmer" (état de confirmation)
-    public static final int SELL_SLOT = 22;
-    public static final int CONFIRM_SLOT = 15;
+    public static final int SELL_SLOT = 40;
+    public static final int CONFIRM_SLOT = 33;
 
     // Slot du bouton "annuler" affiché uniquement pendant l'étape de confirmation
-    public static final int CANCEL_CONFIRM_SLOT = 11;
+    public static final int CANCEL_CONFIRM_SLOT = 29;
 
     private Inventory inventory;
 
@@ -35,15 +35,15 @@ public class SellHolder implements InventoryHolder {
     private List<ItemStack> pendingItems;
 
     private static int[] buildItemSlots() {
-        int[] slots = new int[18];
-        for (int i = 0; i < 18; i++) {
+        int[] slots = new int[36];
+        for (int i = 0; i < 36; i++) {
             slots[i] = i;
         }
         return slots;
     }
 
     public static boolean isItemSlot(int slot) {
-        return slot >= 0 && slot < 18;
+        return slot >= 0 && slot < 36;
     }
 
     @Override

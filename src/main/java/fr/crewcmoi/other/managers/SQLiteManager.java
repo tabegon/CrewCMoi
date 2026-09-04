@@ -95,6 +95,19 @@ public class SQLiteManager implements DatabaseManager {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création de la table auctions.", e);
         }
 
+        String pendingReturnsSql = "CREATE TABLE IF NOT EXISTS auction_pending_returns (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "owner_uuid TEXT NOT NULL," +
+                "item TEXT NOT NULL," +
+                "created_at INTEGER NOT NULL" +
+                ");";
+
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(pendingReturnsSql);
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création de la table auction_pending_returns.", e);
+        }
+
         String teamsSql = "CREATE TABLE IF NOT EXISTS teams (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "name TEXT NOT NULL UNIQUE COLLATE NOCASE," +
@@ -361,6 +374,47 @@ public class SQLiteManager implements DatabaseManager {
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la suppression de l'annonce " + id, e);
         }
+    }
+
+    @Override
+    public void addPendingReturn(UUID owner, ItemStack item) {
+        String sql = "INSERT INTO auction_pending_returns (owner_uuid, item, created_at) VALUES (?, ?, ?);";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, owner.toString());
+            ps.setString(2, ItemSerialization.toBase64(item));
+            ps.setLong(3, System.currentTimeMillis());
+            ps.executeUpdate();
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de l'enregistrement d'un objet en attente de restitution.", e);
+        }
+    }
+
+    @Override
+    public List<ItemStack> takePendingReturns(UUID owner) {
+        List<ItemStack> items = new ArrayList<>();
+        String selectSql = "SELECT item FROM auction_pending_returns WHERE owner_uuid = ?;";
+        String deleteSql = "DELETE FROM auction_pending_returns WHERE owner_uuid = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(selectSql)) {
+            ps.setString(1, owner.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    try {
+                        items.add(ItemSerialization.fromBase64(rs.getString("item")));
+                    } catch (Exception e) {
+                        plugin.getLogger().log(Level.WARNING, "Objet en attente de restitution corrompu ignoré.", e);
+                    }
+                }
+            }
+            if (!items.isEmpty()) {
+                try (PreparedStatement del = connection.prepareStatement(deleteSql)) {
+                    del.setString(1, owner.toString());
+                    del.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération des objets en attente de restitution.", e);
+        }
+        return items;
     }
 
     private AuctionItem readAuction(ResultSet rs) {

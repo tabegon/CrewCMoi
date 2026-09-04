@@ -7,6 +7,8 @@ economy:
   allow-negative-balance: false
   auction-min-price: 1
   auction-tax-percent: 0
+  auction-max-slots: 27
+  auction-expire-days: 3
 
 combat-log:
   duration-seconds: 30

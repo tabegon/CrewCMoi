@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -25,6 +27,9 @@ public class AuctionManager {
         SUCCESS, NOT_FOUND, OWN_ITEM, NOT_ENOUGH_MONEY, INVENTORY_FULL
     }
 
+    /** Intervalle (en ticks) entre deux vérifications des annonces expirées : 5 minutes. */
+    private static final long EXPIRATION_CHECK_PERIOD_TICKS = 20L * 60L * 5L;
+
     private final Main plugin;
     private final DatabaseManager databaseManager;
     private final EconomyManager economyManager;
@@ -35,6 +40,36 @@ public class AuctionManager {
         this.plugin = plugin;
         this.databaseManager = databaseManager;
         this.economyManager = economyManager;
+        startExpirationTask();
+    }
+
+    /**
+     * Nombre maximum d'annonces actives simultanées par joueur (config: economy.auction-max-slots).
+     */
+    public int getMaxSlots() {
+        return Math.max(1, plugin.getConfig().getInt("economy.auction-max-slots", 27));
+    }
+
+    /**
+     * Durée (en jours) avant expiration automatique d'une annonce (config: economy.auction-expire-days).
+     */
+    public int getExpireDays() {
+        return Math.max(1, plugin.getConfig().getInt("economy.auction-expire-days", 3));
+    }
+
+    /**
+     * Nombre d'annonces actuellement en vente par ce joueur (basé sur le cache local).
+     */
+    public int countActiveAuctions(UUID sellerUuid) {
+        synchronized (cache) {
+            int count = 0;
+            for (AuctionItem auction : cache) {
+                if (auction.getSellerUuid().equals(sellerUuid)) {
+                    count++;
+                }
+            }
+            return count;
+        }
     }
 
     /**
@@ -174,5 +209,84 @@ public class AuctionManager {
 
     public Map<String, Object> getLastSaleData() {
         return lastSaleData;
+    }
+
+    /**
+     * Démarre la tâche périodique qui retire et restitue les annonces expirées
+     * (au bout de economy.auction-expire-days jours).
+     */
+    private void startExpirationTask() {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::processExpiredAuctions,
+                EXPIRATION_CHECK_PERIOD_TICKS, EXPIRATION_CHECK_PERIOD_TICKS);
+    }
+
+    /**
+     * Exécuté de manière asynchrone : cherche les annonces expirées, les supprime en base,
+     * puis restitue les objets (sur le thread principal).
+     */
+    private void processExpiredAuctions() {
+        long expireMillis = TimeUnit.DAYS.toMillis(getExpireDays());
+        long now = System.currentTimeMillis();
+
+        List<AuctionItem> fresh = databaseManager.getActiveAuctions();
+        List<AuctionItem> expired = new ArrayList<>();
+        for (AuctionItem auction : fresh) {
+            if (now - auction.getCreatedAt() >= expireMillis) {
+                expired.add(auction);
+            }
+        }
+
+        if (expired.isEmpty()) {
+            return;
+        }
+
+        for (AuctionItem auction : expired) {
+            databaseManager.removeAuction(auction.getId());
+        }
+
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            for (AuctionItem auction : expired) {
+                returnExpiredItem(auction);
+            }
+            refreshCache(null);
+        });
+    }
+
+    /**
+     * Restitue l'objet d'une annonce expirée à son vendeur : directement dans l'inventaire
+     * s'il est en ligne (le surplus est lâché au sol), sinon en attente jusqu'à sa prochaine connexion.
+     */
+    private void returnExpiredItem(AuctionItem auction) {
+        Player online = Bukkit.getPlayer(auction.getSellerUuid());
+        if (online != null && online.isOnline()) {
+            for (ItemStack leftover : online.getInventory().addItem(auction.getItem().clone()).values()) {
+                online.getWorld().dropItem(online.getLocation(), leftover);
+            }
+            Messages.send(online, "server.auction-expired-returned", Map.of("days", String.valueOf(getExpireDays())), false);
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
+                    databaseManager.addPendingReturn(auction.getSellerUuid(), auction.getItem()));
+        }
+    }
+
+    /**
+     * À appeler à la connexion d'un joueur : lui rend les objets de ses annonces expirées
+     * pendant qu'il était hors-ligne (s'il y en a).
+     */
+    public void deliverPendingReturns(Player player) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            List<ItemStack> items = databaseManager.takePendingReturns(player.getUniqueId());
+            if (items.isEmpty()) {
+                return;
+            }
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                for (ItemStack item : items) {
+                    for (ItemStack leftover : player.getInventory().addItem(item).values()) {
+                        player.getWorld().dropItem(player.getLocation(), leftover);
+                    }
+                }
+                Messages.send(player, "server.auction-expired-returned-offline", Map.of("count", String.valueOf(items.size())), false);
+            });
+        });
     }
 }

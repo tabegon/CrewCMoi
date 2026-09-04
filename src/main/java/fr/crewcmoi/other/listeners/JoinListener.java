@@ -3,6 +3,7 @@ package fr.crewcmoi.other.listeners;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.managers.BountyManager;
 import fr.crewcmoi.claims.managers.ClaimVisualizer;
+import fr.crewcmoi.economie.managers.AuctionManager;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import fr.crewcmoi.pvp.managers.MalusEffectManager;
 import fr.crewcmoi.pvp.managers.TeamManager;
@@ -20,16 +21,18 @@ public class JoinListener implements Listener {
     private final BountyManager bountyManager;
     private final MalusEffectManager malusEffectManager;
     private final ClaimVisualizer claimVisualizer;
+    private final AuctionManager auctionManager;
 
     public JoinListener(Main plugin, EconomyManager economyManager, TeamManager teamManager,
                          BountyManager bountyManager, MalusEffectManager malusEffectManager,
-                         ClaimVisualizer claimVisualizer) {
+                         ClaimVisualizer claimVisualizer, AuctionManager auctionManager) {
         this.plugin = plugin;
         this.economyManager = economyManager;
         this.teamManager = teamManager;
         this.bountyManager = bountyManager;
         this.malusEffectManager = malusEffectManager;
         this.claimVisualizer = claimVisualizer;
+        this.auctionManager = auctionManager;
     }
 
     @EventHandler
@@ -38,6 +41,7 @@ public class JoinListener implements Listener {
         economyManager.loadPlayer(player.getUniqueId(), player.getName());
         teamManager.loadPlayer(player.getUniqueId());
         bountyManager.refreshBountyDisplayOnJoin(player.getUniqueId(), player.getName());
+        auctionManager.deliverPendingReturns(player);
     }
 
     @EventHandler

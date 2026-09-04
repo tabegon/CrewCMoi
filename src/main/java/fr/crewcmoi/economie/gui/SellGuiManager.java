@@ -65,7 +65,7 @@ public class SellGuiManager {
 
     private void renderNormalState(Inventory gui) {
         ItemStack filler = createFiller();
-        for (int i = 18; i < SellHolder.SIZE; i++) {
+        for (int i = SellHolder.ITEM_SLOTS.length; i < SellHolder.SIZE; i++) {
             gui.setItem(i, filler);
         }
         gui.setItem(SellHolder.SELL_SLOT, createConfirmButton(gui));
@@ -158,7 +158,7 @@ public class SellGuiManager {
         for (int slot : SellHolder.ITEM_SLOTS) {
             gui.setItem(slot, filler);
         }
-        for (int i = 18; i < SellHolder.SIZE; i++) {
+        for (int i = SellHolder.ITEM_SLOTS.length; i < SellHolder.SIZE; i++) {
             gui.setItem(i, filler);
         }
 

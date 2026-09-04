@@ -71,6 +71,16 @@ public interface DatabaseManager {
      */
     void removeAuction(int id);
 
+    /**
+     * Enregistre un objet à restituer plus tard à un joueur (ex : annonce expirée alors qu'il était hors-ligne).
+     */
+    void addPendingReturn(UUID owner, ItemStack item);
+
+    /**
+     * Récupère puis supprime tous les objets en attente de restitution pour un joueur.
+     */
+    List<ItemStack> takePendingReturns(UUID owner);
+
     // ===================== TEAMS =====================
 
     /**
