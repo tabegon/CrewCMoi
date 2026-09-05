@@ -101,7 +101,7 @@ public class DuelKitManager {
         inv.setItem(29, splashPotion(PotionType.SWIFTNESS));
         inv.setItem(30, splashPotion(PotionType.SWIFTNESS));
         inv.setItem(31, new ItemStack(Material.WATER_BUCKET));
-        inv.setItem(32, stack(Material.SNOWBALL, 64));
+        inv.setItem(32, stack(Material.WIND_CHARGE, 64));
         inv.setItem(33, stack(Material.ENDER_PEARL, 16));
         inv.setItem(34, splashPotion(PotionType.HEALING));
         inv.setItem(35, stack(Material.GOLDEN_APPLE, 64));
@@ -123,7 +123,7 @@ public class DuelKitManager {
                 Enchantment.MENDING, 1));
         inv.setItem(3, stack(Material.COBWEB, 64));
         inv.setItem(4, new ItemStack(Material.WATER_BUCKET));
-        inv.setItem(5, stack(Material.SNOWBALL, 64));
+        inv.setItem(5, stack(Material.WIND_CHARGE, 64));
         inv.setItem(6, stack(Material.ENDER_PEARL, 16));
         inv.setItem(7, splashPotion(PotionType.HEALING));
         inv.setItem(8, stack(Material.GOLDEN_APPLE, 64));

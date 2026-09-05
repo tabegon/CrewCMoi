@@ -106,22 +106,10 @@ web:
   # = accessible uniquement depuis la machine qui héberge le serveur.
   bind-address: "0.0.0.0"
 
-# ─────────────────────────────────────────────
-# PETS
-# Chaque pet possède un item ItemsAdder et un MythicMob.
-# Pour débloquer un pet, le joueur fait clic droit avec l'item configuré.
-# Le pet MythicMobs est invoqué lorsqu'il est activé dans /pets.
+
 pets:
   list:
-    zombie:
-      itemsadder-id: "crewcmoi:zombie_pet"
-      mythic-mob: "ZombiePet"
-      slot: 20
-    ghost:
-      itemsadder-id: "crewcmoi:ghost_pet"
-      mythic-mob: "GhostPet"
-      slot: 22
-    dragon:
-      itemsadder-id: "crewcmoi:dragon_pet"
-      mythic-mob: "DragonPet"
-      slot: 24
+    spookie_spice:
+      itemsadder-id: "server:spooky_spice"
+      mythic-mob: "Spooky_Spice"
+      slot: 0

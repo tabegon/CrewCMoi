@@ -8,6 +8,8 @@ import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -19,11 +21,17 @@ import java.util.*;
 
 public class PetManager {
 
+    private static final double FOLLOW_DISTANCE_SQUARED = 2.25; // ~1.5 bloc : distance à partir de laquelle il se rapproche
+    private static final double TELEPORT_DISTANCE_SQUARED = 400; // 20 blocs : trop loin pour marcher, on téléporte
+    private static final double MAX_TARGET_DISTANCE_SQUARED = 900; // 30 blocs
+    private static final double WALK_SPEED = 1.2;
+
     private final Main plugin;
     private final File file;
     private FileConfiguration data;
-    private final Map<UUID, UUID> activePets = new HashMap<>();
-    private BukkitTask followTask;
+    private final Map<UUID, UUID> activePets = new HashMap<>(); // owner -> pet entity
+    private final Map<UUID, UUID> petTargets = new HashMap<>(); // pet entity -> cible assignée
+    private BukkitTask petTask;
 
     public PetManager(Main plugin) {
         this.plugin = plugin;
@@ -40,11 +48,11 @@ public class PetManager {
         // Les entités MythicMobs ne survivent pas au redémarrage du serveur :
         // aucun pet ne doit donc rester affiché comme actif après un restart.
         clearPersistedActivePets();
-        startFollowTask();
+        startPetTask();
     }
 
     public void shutdown() {
-        if (followTask != null) followTask.cancel();
+        if (petTask != null) petTask.cancel();
         for (UUID playerId : new HashSet<>(activePets.keySet())) {
             deactivate(Bukkit.getPlayer(playerId), false);
         }
@@ -93,6 +101,15 @@ public class PetManager {
 
     public UUID getActiveEntity(UUID playerId) {
         return activePets.get(playerId);
+    }
+
+    /**
+     * Fait attaquer par le pet du joueur l'entité que ce dernier vient de frapper.
+     * Appelé depuis le listener quand l'owner inflige des dégâts.
+     */
+    public void assignTarget(UUID ownerId, LivingEntity victim) {
+        UUID petId = activePets.get(ownerId);
+        if (petId != null) petTargets.put(petId, victim.getUniqueId());
     }
 
     public ItemStack createPetItem(String petId) {
@@ -181,6 +198,7 @@ public class PetManager {
         UUID playerId = player.getUniqueId();
         UUID entityId = activePets.remove(playerId);
         if (entityId != null) {
+            petTargets.remove(entityId);
             Entity entity = Bukkit.getEntity(entityId);
             if (entity != null && entity.isValid()) entity.remove();
         }
@@ -192,26 +210,78 @@ public class PetManager {
         deactivate(player, false);
     }
 
-    private void startFollowTask() {
-        followTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+    private void startPetTask() {
+        petTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Map.Entry<UUID, UUID> entry : new HashMap<>(activePets).entrySet()) {
                 Player player = Bukkit.getPlayer(entry.getKey());
-                Entity pet = Bukkit.getEntity(entry.getValue());
-                if (player == null || !player.isOnline() || pet == null || !pet.isValid()) {
+                Entity petEntity = Bukkit.getEntity(entry.getValue());
+                if (player == null || !player.isOnline() || petEntity == null || !petEntity.isValid()) {
                     if (player != null) clearActivePet(player.getUniqueId());
                     activePets.remove(entry.getKey());
+                    petTargets.remove(entry.getValue());
                     continue;
                 }
-                if (!pet.getWorld().equals(player.getWorld())) {
-                    pet.teleport(petLocation(player));
+
+                LivingEntity currentTarget = resolveTarget(petEntity.getUniqueId(), player);
+
+                if (petEntity instanceof Mob mob) {
+                    if (currentTarget != null) {
+                        // Une cible valide est assignée : on la garde, peu importe ce que
+                        // l'IA par défaut du MythicMob essaierait de faire.
+                        if (!currentTarget.equals(mob.getTarget())) {
+                            mob.setTarget(currentTarget);
+                        }
+                    } else if (mob.getTarget() != null) {
+                        // Pas de cible assignée par l'owner : on empêche le mob
+                        // d'attaquer tout ce qu'il veut de son propre chef.
+                        mob.setTarget(null);
+                    }
+                }
+
+                if (currentTarget != null) {
+                    // En combat : on laisse le pet se battre, pas de téléportation.
                     continue;
                 }
+
+                if (!petEntity.getWorld().equals(player.getWorld())) {
+                    petEntity.teleport(petLocation(player));
+                    continue;
+                }
+
                 Location target = petLocation(player);
-                if (pet.getLocation().distanceSquared(target) > 0.25) {
-                    pet.teleport(target);
+                double distanceSquared = petEntity.getLocation().distanceSquared(target);
+
+                if (distanceSquared > TELEPORT_DISTANCE_SQUARED) {
+                    // Beaucoup trop loin (tp du joueur, chute, etc.) : on se replace directement.
+                    petEntity.teleport(target);
+                } else if (petEntity instanceof Mob mob) {
+                    if (distanceSquared > FOLLOW_DISTANCE_SQUARED) {
+                        // Marche naturellement vers le joueur au lieu de se téléporter.
+                        mob.getPathfinder().moveTo(target, WALK_SPEED);
+                    } else {
+                        // Assez proche : on arrête le déplacement pour qu'il ne dépasse pas le joueur.
+                        mob.getPathfinder().stopPathfinding();
+                    }
                 }
             }
         }, 1L, 2L);
+    }
+
+    private LivingEntity resolveTarget(UUID petId, Player owner) {
+        UUID targetId = petTargets.get(petId);
+        if (targetId == null) return null;
+
+        Entity target = Bukkit.getEntity(targetId);
+        if (!(target instanceof LivingEntity living) || !living.isValid() || living.isDead()) {
+            petTargets.remove(petId);
+            return null;
+        }
+        if (!living.getWorld().equals(owner.getWorld())
+                || living.getLocation().distanceSquared(owner.getLocation()) > MAX_TARGET_DISTANCE_SQUARED) {
+            petTargets.remove(petId);
+            return null;
+        }
+        return living;
     }
 
     private Location petLocation(Player player) {

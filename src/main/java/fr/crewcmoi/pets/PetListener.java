@@ -2,7 +2,9 @@ package fr.crewcmoi.pets;
 
 import dev.lone.itemsadder.api.CustomStack;
 import fr.crewcmoi.Main;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -10,7 +12,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.block.Action;
@@ -77,32 +78,58 @@ public class PetListener implements Listener {
         }
     }
 
-    private boolean isOwnedPet(org.bukkit.entity.Entity entity) {
-        return entity.getPersistentDataContainer().has(
+    private java.util.UUID getPetOwner(org.bukkit.entity.Entity entity) {
+        String owner = entity.getPersistentDataContainer().get(
                 new org.bukkit.NamespacedKey(plugin, "crew_pet_owner"),
                 PersistentDataType.STRING
         );
+        if (owner == null) return null;
+        try {
+            return java.util.UUID.fromString(owner);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPetDamage(EntityDamageEvent event) {
-        if (isOwnedPet(event.getEntity())) {
+    public void onPetTargetOwner(EntityTargetLivingEntityEvent event) {
+        if (!(event.getTarget() instanceof Player target)) return;
+        java.util.UUID owner = getPetOwner(event.getEntity());
+        if (owner != null && owner.equals(target.getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPetAttack(EntityDamageByEntityEvent event) {
-        if (isOwnedPet(event.getDamager())) {
+    public void onPetAttackOwner(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) return;
+        java.util.UUID owner = getPetOwner(event.getDamager());
+        if (owner != null && owner.equals(victim.getUniqueId())) {
             event.setCancelled(true);
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPetTarget(EntityTargetLivingEntityEvent event) {
-        if (isOwnedPet(event.getEntity())) {
-            event.setCancelled(true);
-        }
+    /**
+     * Quand l'owner frappe quelque chose, son pet actif reçoit cette cible
+     * et se met à l'attaquer — au lieu de choisir seul un adversaire.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onOwnerAttack(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity victim)) return;
+
+        Player owner = resolveAttacker(event.getDamager());
+        if (owner == null) return;
+
+        // On évite qu'un owner qui frappe son propre pet ne le fasse s'attaquer lui-même.
+        if (getPetOwner(victim) != null && owner.getUniqueId().equals(getPetOwner(victim))) return;
+
+        petManager.assignTarget(owner.getUniqueId(), victim);
+    }
+
+    private Player resolveAttacker(org.bukkit.entity.Entity damager) {
+        if (damager instanceof Player player) return player;
+        if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Player player) return player;
+        return null;
     }
 
     @EventHandler
