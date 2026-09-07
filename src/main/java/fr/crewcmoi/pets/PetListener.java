@@ -40,6 +40,16 @@ public class PetListener implements Listener {
         ItemStack stack = player.getInventory().getItemInMainHand();
         if (stack.getType().isAir()) return;
 
+        if (petManager.isRecallItem(stack)) {
+            event.setCancelled(true);
+            if (petManager.recall(player)) {
+                player.sendMessage("§aTon pet a été rappelé à tes côtés !");
+            } else {
+                player.sendMessage("§cTu n'as aucun pet actif à rappeler.");
+            }
+            return;
+        }
+
         for (String petId : petManager.getConfiguredPets()) {
             if (!petManager.isPetItem(stack, petId)) continue;
 

@@ -8,9 +8,11 @@ import fr.crewcmoi.economie.managers.PricesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import fr.crewcmoi.other.utils.MoneyFormat;
@@ -48,7 +50,42 @@ public class SellGuiManager {
         if (taggedPrice > 0) {
             return taggedPrice;
         }
-        return pricesManager.getPrice(stack.getType());
+
+        double basePrice = pricesManager.getPrice(stack.getType());
+        double contentValue = getShulkerContentValue(stack);
+
+        if (basePrice <= 0 && contentValue <= 0) {
+            return -1.0;
+        }
+        return Math.max(basePrice, 0.0) + contentValue;
+    }
+
+    /**
+     * Si l'item est une shulker box (peu importe sa couleur), calcule la valeur
+     * totale de son contenu en réutilisant getSellPrice pour chaque item stocké
+     * (ce qui gère aussi le cas d'une shulker contenant une autre shulker).
+     * Retourne 0 si l'item n'est pas une shulker box ou si elle est vide.
+     */
+    private double getShulkerContentValue(ItemStack stack) {
+        ItemMeta meta = stack.getItemMeta();
+        if (!(meta instanceof BlockStateMeta blockStateMeta)) {
+            return 0.0;
+        }
+        if (!(blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox)) {
+            return 0.0;
+        }
+
+        double total = 0.0;
+        for (ItemStack content : shulkerBox.getInventory().getContents()) {
+            if (content == null || content.getType() == Material.AIR) {
+                continue;
+            }
+            double unitPrice = getSellPrice(content);
+            if (unitPrice > 0) {
+                total += unitPrice * content.getAmount();
+            }
+        }
+        return total;
     }
 
     public void open(Player player) {

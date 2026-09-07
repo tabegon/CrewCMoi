@@ -18,9 +18,13 @@ public class AuctionHolder implements InventoryHolder {
     public static final int PREV_PAGE_SLOT = 45;
     public static final int NEXT_PAGE_SLOT = 53;
     public static final int INFO_SLOT = 49;
+    /** Bouton juste à côté du livre : ouvre "mes annonces" (ou sert de bouton retour en mode "mes annonces"). */
+    public static final int MY_LISTINGS_SLOT = 48;
 
     private Inventory inventory;
     private int page;
+    /** true si cette GUI affiche uniquement les annonces du joueur qui la consulte. */
+    private boolean myListings;
     private final Map<Integer, Integer> slotToAuctionId = new HashMap<>();
 
     public static boolean isAuctionSlot(int slot) {
@@ -54,5 +58,13 @@ public class AuctionHolder implements InventoryHolder {
 
     public Integer getAuctionId(int slot) {
         return slotToAuctionId.get(slot);
+    }
+
+    public boolean isMyListings() {
+        return myListings;
+    }
+
+    public void setMyListings(boolean myListings) {
+        this.myListings = myListings;
     }
 }

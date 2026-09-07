@@ -108,8 +108,34 @@ web:
 
 
 pets:
+  # Item ItemsAdder (n'importe lequel) qui, au clic droit, téléporte le pet actif
+  # du joueur à ses côtés et lui retire sa cible actuelle.
+  recall-item-id: "server:pet_recall_charm"
+
   list:
     spookie_spice:
       itemsadder-id: "server:spooky_spice"
       mythic-mob: "Spooky_Spice"
       slot: 0
+
+fisherman:
+  # ID du NPC Citizens sur lequel il faut clic-droit pour ouvrir la GUI du pêcheur.
+  npc-id: 4
+
+  # Prix de vente AU pêcheur (plus élevés qu'au /sell classique du NPC 0).
+  # Seuls les matériaux listés ici sont vendables dans cette GUI.
+  sell-prices:
+    COD: 10
+    SALMON: 10
+    COOKED_COD: 15
+    COOKED_SALMON: 15
+    PUFFERFISH: 30
+    FISHING_ROD: 50
+
+  # Prix d'achat AU pêcheur (catalogue fixe de 5 objets).
+  buy-prices:
+    cooked-cod: 20
+    cooked-salmon: 20
+    pufferfish: 30
+    fishing-rod: 100
+    fishing-rod-luck-of-the-sea-1: 150

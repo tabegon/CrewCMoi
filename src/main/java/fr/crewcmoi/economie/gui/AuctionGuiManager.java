@@ -77,12 +77,26 @@ public class AuctionGuiManager {
     }
 
     public void open(Player player, int page) {
+        openInternal(player, page, false);
+    }
+
+    /**
+     * Ouvre la même GUI que /ah, mais filtrée sur les annonces du joueur lui-même
+     * (accessible via le bouton à côté du livre d'info).
+     */
+    public void openMyListings(Player player, int page) {
+        openInternal(player, page, true);
+    }
+
+    private void openInternal(Player player, int page, boolean myListings) {
         auctionManager.refreshCache(() -> {
             AuctionHolder holder = new AuctionHolder();
+            String title = myListings ? "&5&lᴍᴇꜱ ᴀɴɴᴏɴᴄᴇꜱ" : "&5&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ";
             Inventory gui = Bukkit.createInventory(holder, AuctionHolder.SIZE,
-                    ChatColor.translateAlternateColorCodes('&', "&5&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ"));
+                    ChatColor.translateAlternateColorCodes('&', title));
             holder.setInventory(gui);
             holder.setPage(page);
+            holder.setMyListings(myListings);
 
             render(player, holder);
             player.openInventory(gui);
@@ -91,6 +105,8 @@ public class AuctionGuiManager {
 
     /**
      * Reconstruit le contenu de la GUI déjà ouverte (après achat/annulation/changement de page).
+     * En mode "mes annonces" (holder.isMyListings()), seules les annonces du joueur qui consulte
+     * la GUI sont affichées.
      */
     public void render(Player viewer, AuctionHolder holder) {
         Inventory gui = holder.getInventory();
@@ -101,6 +117,16 @@ public class AuctionGuiManager {
         }
 
         List<AuctionItem> auctions = auctionManager.getCachedAuctions();
+        if (holder.isMyListings()) {
+            List<AuctionItem> mine = new ArrayList<>();
+            for (AuctionItem auction : auctions) {
+                if (auction.getSellerUuid().equals(viewer.getUniqueId())) {
+                    mine.add(auction);
+                }
+            }
+            auctions = mine;
+        }
+
         int page = Math.max(0, holder.getPage());
         int maxPage = Math.max(0, (auctions.size() - 1) / AuctionHolder.ITEMS_PER_PAGE);
         if (page > maxPage) {
@@ -125,10 +151,12 @@ public class AuctionGuiManager {
                     lore.addAll(meta.getLore());
                     lore.add("");
                 }
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴇɴᴅᴇᴜʀ : &e" + auction.getSellerName()));
+                if (!holder.isMyListings()) {
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴇɴᴅᴇᴜʀ : &e" + auction.getSellerName()));
+                }
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘʀɪx : &a" + MoneyFormat.format(auction.getPrice()) + currency));
 
-                if (auction.getSellerUuid().equals(viewer.getUniqueId())) {
+                if (holder.isMyListings() || auction.getSellerUuid().equals(viewer.getUniqueId())) {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&cᴄʟɪǫᴜᴇ ᴘᴏᴜʀ ʀᴇᴛɪʀᴇʀ ᴛᴏɴ ᴀɴɴᴏɴᴄᴇ"));
                 } else {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&aᴄʟɪǫᴜᴇ ᴘᴏᴜʀ ᴀᴄʜᴇᴛᴇʀ"));
@@ -149,7 +177,9 @@ public class AuctionGuiManager {
         if (end < auctions.size()) {
             gui.setItem(AuctionHolder.NEXT_PAGE_SLOT, createNavItem(Material.ARROW, "&eᴘᴀɢᴇ ꜱᴜɪᴠᴀɴᴛᴇ"));
         }
-        gui.setItem(AuctionHolder.INFO_SLOT, createInfoItem(page + 1, maxPage + 1, auctions.size()));
+        gui.setItem(AuctionHolder.INFO_SLOT, createInfoItem(page + 1, maxPage + 1, auctions.size(), holder.isMyListings()));
+        gui.setItem(AuctionHolder.MY_LISTINGS_SLOT,
+                holder.isMyListings() ? createBackItem() : createMyListingsItem());
     }
 
     private ItemStack createNavItem(Material material, String name) {
@@ -162,16 +192,57 @@ public class AuctionGuiManager {
         return item;
     }
 
-    private ItemStack createInfoItem(int currentPage, int totalPages, int totalAuctions) {
+    private ItemStack createInfoItem(int currentPage, int totalPages, int totalAuctions, boolean myListings) {
         ItemStack item = new ItemStack(Material.BOOK);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&d&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ"));
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&',
+                    myListings ? "&d&lᴍᴇꜱ ᴀɴɴᴏɴᴄᴇꜱ" : "&d&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ"));
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘᴀɢᴇ &e" + currentPage + "&7/&e" + totalPages));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴀɴɴᴏɴᴄᴇꜱ ᴀᴄᴛɪᴠᴇꜱ : &e" + totalAuctions));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴜᴛɪʟɪꜱᴇᴢ &f/ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>&7 ᴘᴏᴜʀ ᴠᴇɴᴅʀᴇ"));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ʟ'ᴏʙᴊᴇᴛ ǫᴜᴇ ᴠᴏᴜꜱ ᴛᴇɴᴇᴢ ᴇɴ ᴍᴀɪɴ."));
+            if (myListings) {
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴏꜱ ᴀɴɴᴏɴᴄᴇꜱ ᴇɴ ᴄᴏᴜʀꜱ : &e" + totalAuctions));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴄʟɪǫᴜᴇᴢ ꜱᴜʀ ᴜɴ ᴏʙᴊᴇᴛ ᴘᴏᴜʀ ʟᴇ ʀᴇᴛɪʀᴇʀ."));
+            } else {
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴀɴɴᴏɴᴄᴇꜱ ᴀᴄᴛɪᴠᴇꜱ : &e" + totalAuctions));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴜᴛɪʟɪꜱᴇᴢ &f/ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>&7 ᴘᴏᴜʀ ᴠᴇɴᴅʀᴇ"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7ʟ'ᴏʙᴊᴇᴛ ǫᴜᴇ ᴠᴏᴜꜱ ᴛᴇɴᴇᴢ ᴇɴ ᴍᴀɪɴ."));
+            }
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    /**
+     * Bouton affiché à côté du livre dans l'hôtel des ventes : ouvre la liste
+     * des annonces actuellement en vente par le joueur qui consulte la GUI.
+     */
+    private ItemStack createMyListingsItem() {
+        ItemStack item = new ItemStack(Material.CHEST);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&e&lᴍᴇꜱ ᴀɴɴᴏɴᴄᴇꜱ"));
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴄʟɪǫᴜᴇᴢ ᴘᴏᴜʀ ᴠᴏɪʀ ʟᴇꜱ ᴏʙᴊᴇᴛꜱ"));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ǫᴜᴇ ᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴍɪꜱ ᴇɴ ᴠᴇɴᴛᴇ."));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    /**
+     * Bouton de retour affiché à la place de "mes annonces" quand on est déjà
+     * dans la vue filtrée sur ses propres annonces.
+     */
+    private ItemStack createBackItem() {
+        ItemStack item = new ItemStack(Material.ARROW);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&l« ʀᴇᴛᴏᴜʀ »"));
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ʀᴇᴛᴏᴜʀ à ʟ'ʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ."));
             meta.setLore(lore);
             item.setItemMeta(meta);
         }

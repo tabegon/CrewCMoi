@@ -23,8 +23,10 @@ import fr.crewcmoi.economie.commands.PayCommand;
 import fr.crewcmoi.economie.commands.SellCommand;
 import fr.crewcmoi.economie.gui.AuctionGuiManager;
 import fr.crewcmoi.economie.gui.SellGuiManager;
+import fr.crewcmoi.economie.gui.FishermanGuiManager;
 import fr.crewcmoi.economie.listeners.CoinItemListener;
 import fr.crewcmoi.economie.listeners.SellNpcListener;
+import fr.crewcmoi.economie.listeners.FishermanNpcListener;
 import fr.crewcmoi.economie.managers.AuctionManager;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import fr.crewcmoi.economie.managers.PricesManager;
@@ -121,6 +123,7 @@ public class Main extends JavaPlugin {
     private WebDashboardServer webDashboardServer;
     private PetManager petManager;
     private PetGuiManager petGuiManager;
+    private FishermanGuiManager fishermanGuiManager;
 
     @Override
     public void onEnable() {
@@ -171,10 +174,11 @@ public class Main extends JavaPlugin {
         this.invisibilityManager = new InvisibilityManager(this, playerTeamManager);
         this.petManager = new PetManager(this);
         this.petGuiManager = new PetGuiManager(this, petManager);
+        this.fishermanGuiManager = new FishermanGuiManager(this, economyManager);
 
         // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer, auctionManager), this);
-        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager), this);
+        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager, fishermanGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager, invisibilityManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
         // Règles PvP additionnelles : cristaux/ancres ne blessent que leur déclencheur,
@@ -205,8 +209,9 @@ public class Main extends JavaPlugin {
         // bien installé et activé, pour éviter un crash au démarrage si absent.
         if (getServer().getPluginManager().isPluginEnabled("Citizens")) {
             getServer().getPluginManager().registerEvents(new SellNpcListener(sellGuiManager), this);
+            getServer().getPluginManager().registerEvents(new FishermanNpcListener(this, fishermanGuiManager), this);
         } else {
-            getLogger().warning("Citizens n'est pas détecté : l'ouverture de /sell via clic droit sur le NPC est désactivée.");
+            getLogger().warning("Citizens n'est pas détecté : l'ouverture de /sell et du pêcheur via clic droit sur les NPC est désactivée.");
         }
         // ItemsAdder est optionnel : on n'enregistre ce listener (qui référence les classes
         // de son API) que s'il est bien installé et activé, pour éviter un crash au démarrage

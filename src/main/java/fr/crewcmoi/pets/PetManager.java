@@ -128,6 +128,45 @@ public class PetManager {
         return custom != null && id.equalsIgnoreCase(custom.getNamespacedID());
     }
 
+    /**
+     * ID ItemsAdder de l'item permettant de rappeler son pet actif (config: pets.recall-item-id).
+     */
+    public String getRecallItemId() {
+        return plugin.getConfig().getString("pets.recall-item-id", "");
+    }
+
+    public boolean isRecallItem(ItemStack stack) {
+        if (stack == null || stack.getType().isAir()) return false;
+        String id = getRecallItemId();
+        if (id.isBlank()) return false;
+        CustomStack custom = CustomStack.byItemStack(stack);
+        return custom != null && id.equalsIgnoreCase(custom.getNamespacedID());
+    }
+
+    /**
+     * Téléporte le pet actif du joueur à ses côtés et lui retire sa cible actuelle
+     * (utilisé par l'item de rappel). Retourne false si le joueur n'a pas de pet actif.
+     */
+    public boolean recall(Player player) {
+        UUID petEntityId = activePets.get(player.getUniqueId());
+        if (petEntityId == null) return false;
+
+        Entity petEntity = Bukkit.getEntity(petEntityId);
+        if (petEntity == null || !petEntity.isValid()) {
+            activePets.remove(player.getUniqueId());
+            clearActivePet(player.getUniqueId());
+            return false;
+        }
+
+        petTargets.remove(petEntityId);
+        if (petEntity instanceof Mob mob) {
+            mob.setTarget(null);
+            mob.getPathfinder().stopPathfinding();
+        }
+        petEntity.teleport(petLocation(player));
+        return true;
+    }
+
     public void toggle(Player player, String petId) {
         if (!owns(player.getUniqueId(), petId)) return;
 

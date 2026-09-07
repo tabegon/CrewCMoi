@@ -6,6 +6,10 @@ import fr.crewcmoi.claims.database.ClaimPermission;
 import fr.crewcmoi.economie.gui.AuctionGuiManager;
 import fr.crewcmoi.economie.gui.AuctionHolder;
 import fr.crewcmoi.economie.gui.BaltopHolder;
+import fr.crewcmoi.economie.gui.FishermanBuyHolder;
+import fr.crewcmoi.economie.gui.FishermanGuiManager;
+import fr.crewcmoi.economie.gui.FishermanMenuHolder;
+import fr.crewcmoi.economie.gui.FishermanSellHolder;
 import fr.crewcmoi.pvp.gui.BountyGuiManager;
 import fr.crewcmoi.pvp.gui.BountyHolder;
 import fr.crewcmoi.pvp.gui.BountyReviewGuiManager;
@@ -48,12 +52,14 @@ public class GuiListener implements Listener {
     private final ClaimSettingsGuiManager claimSettingsGuiManager;
     private final ClaimShopGuiManager claimShopGuiManager;
     private final ClaimAuctionGuiManager claimAuctionGuiManager;
+    private final FishermanGuiManager fishermanGuiManager;
 
     public GuiListener(Main plugin, SellGuiManager sellGuiManager, AuctionManager auctionManager,
                         AuctionGuiManager auctionGuiManager, BountyGuiManager bountyGuiManager,
                         ClaimManager claimManager, ClaimSettingsGuiManager claimSettingsGuiManager,
                         ClaimShopGuiManager claimShopGuiManager, BountyReviewGuiManager bountyReviewGuiManager,
-                        BountyManager bountyManager, ClaimAuctionGuiManager claimAuctionGuiManager) {
+                        BountyManager bountyManager, ClaimAuctionGuiManager claimAuctionGuiManager,
+                        FishermanGuiManager fishermanGuiManager) {
         this.plugin = plugin;
         this.sellGuiManager = sellGuiManager;
         this.auctionManager = auctionManager;
@@ -65,6 +71,7 @@ public class GuiListener implements Listener {
         this.bountyReviewGuiManager = bountyReviewGuiManager;
         this.bountyManager = bountyManager;
         this.claimAuctionGuiManager = claimAuctionGuiManager;
+        this.fishermanGuiManager = fishermanGuiManager;
     }
 
     @EventHandler
@@ -89,6 +96,12 @@ public class GuiListener implements Listener {
             handleClaimAuctionClick(event, claimAuctionHolder);
         } else if (holder instanceof BaltopHolder baltopHolder) {
             handleBaltopClick(event, baltopHolder);
+        } else if (holder instanceof FishermanMenuHolder fishermanMenuHolder) {
+            handleFishermanMenuClick(event, fishermanMenuHolder);
+        } else if (holder instanceof FishermanSellHolder fishermanSellHolder) {
+            handleFishermanSellClick(event, fishermanSellHolder);
+        } else if (holder instanceof FishermanBuyHolder fishermanBuyHolder) {
+            handleFishermanBuyClick(event, fishermanBuyHolder);
         }
     }
 
@@ -108,6 +121,8 @@ public class GuiListener implements Listener {
 
         if (holder instanceof SellHolder sellHolder) {
             sellGuiManager.returnItems(player, event.getInventory(), sellHolder);
+        } else if (holder instanceof FishermanSellHolder fishermanSellHolder) {
+            fishermanGuiManager.returnSellItems(player, event.getInventory(), fishermanSellHolder);
         } else if (holder instanceof ConfirmationHolder confirmationHolder && !confirmationHolder.isResolved()) {
             confirmationHolder.setResolved(true);
             if (confirmationHolder.getOnCancel() != null) {
@@ -152,6 +167,73 @@ public class GuiListener implements Listener {
         }
     }
 
+    private void handleFishermanMenuClick(InventoryClickEvent event, FishermanMenuHolder holder) {
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        int slot = event.getRawSlot();
+        if (slot == FishermanMenuHolder.SELL_BUTTON_SLOT) {
+            fishermanGuiManager.openSell(player);
+        } else if (slot == FishermanMenuHolder.BUY_BUTTON_SLOT) {
+            fishermanGuiManager.openBuy(player);
+        }
+    }
+
+    private void handleFishermanBuyClick(InventoryClickEvent event, FishermanBuyHolder holder) {
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        int slot = event.getRawSlot();
+        if (slot == FishermanBuyHolder.BACK_SLOT) {
+            fishermanGuiManager.openMenu(player);
+            return;
+        }
+        String offerId = holder.getOfferId(slot);
+        if (offerId != null) {
+            fishermanGuiManager.purchase(player, offerId);
+        }
+    }
+
+    private void handleFishermanSellClick(InventoryClickEvent event, FishermanSellHolder holder) {
+        int slot = event.getRawSlot();
+        Inventory gui = event.getInventory();
+
+        if (slot < 0 || slot >= gui.getSize()) {
+            if (holder.isConfirming()) {
+                event.setCancelled(true);
+            }
+            return;
+        }
+
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+
+        if (holder.isConfirming()) {
+            event.setCancelled(true);
+            if (slot == FishermanSellHolder.CONFIRM_SLOT) {
+                fishermanGuiManager.confirmSell(player, gui, holder);
+            } else if (slot == FishermanSellHolder.CANCEL_CONFIRM_SLOT) {
+                fishermanGuiManager.cancelSellConfirmation(gui, holder);
+            }
+            return;
+        }
+
+        if (slot == FishermanSellHolder.SELL_SLOT) {
+            event.setCancelled(true);
+            fishermanGuiManager.askSellConfirmation(player, gui, holder);
+        } else if (slot == FishermanSellHolder.BACK_SLOT) {
+            event.setCancelled(true);
+            fishermanGuiManager.openMenu(player);
+        } else if (!FishermanSellHolder.isItemSlot(slot)) {
+            event.setCancelled(true);
+        } else {
+            plugin.getServer().getScheduler().runTask(plugin, () -> fishermanGuiManager.refreshSellConfirmButton(gui));
+        }
+    }
+
     private void handleAuctionClick(InventoryClickEvent event, AuctionHolder holder) {
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) {
@@ -163,11 +245,27 @@ public class GuiListener implements Listener {
         }
 
         if (slot == AuctionHolder.PREV_PAGE_SLOT) {
-            auctionGuiManager.open(player, holder.getPage() - 1);
+            if (holder.isMyListings()) {
+                auctionGuiManager.openMyListings(player, holder.getPage() - 1);
+            } else {
+                auctionGuiManager.open(player, holder.getPage() - 1);
+            }
             return;
         }
         if (slot == AuctionHolder.NEXT_PAGE_SLOT) {
-            auctionGuiManager.open(player, holder.getPage() + 1);
+            if (holder.isMyListings()) {
+                auctionGuiManager.openMyListings(player, holder.getPage() + 1);
+            } else {
+                auctionGuiManager.open(player, holder.getPage() + 1);
+            }
+            return;
+        }
+        if (slot == AuctionHolder.MY_LISTINGS_SLOT) {
+            if (holder.isMyListings()) {
+                auctionGuiManager.open(player, 0);
+            } else {
+                auctionGuiManager.openMyListings(player, 0);
+            }
             return;
         }
 
@@ -183,7 +281,15 @@ public class GuiListener implements Listener {
                 .orElse(false);
 
         if (ownItem) {
-            auctionManager.cancel(player, auctionId, success -> auctionGuiManager.open(player, holder.getPage()));
+            int page = holder.getPage();
+            boolean myListings = holder.isMyListings();
+            auctionManager.cancel(player, auctionId, success -> {
+                if (myListings) {
+                    auctionGuiManager.openMyListings(player, page);
+                } else {
+                    auctionGuiManager.open(player, page);
+                }
+            });
         } else {
             auctionGuiManager.openBuyConfirmation(player, holder.getPage(), auctionId);
         }
