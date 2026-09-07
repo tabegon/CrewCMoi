@@ -66,6 +66,14 @@ duel:
 
 claims:
 
+  # Objets que les joueurs non autorisés peuvent quand même retirer des conteneurs
+  # dans les claims lorsque la règle CONTAINERS leur est interdite.
+  # Utiliser les noms Bukkit/Material de Minecraft.
+  stealable-items:
+    - MACE
+    - DRAGON_EGG
+    - ELYTRA
+
   max-per-player: 3
   see-radius: 5
   see-duration: 10

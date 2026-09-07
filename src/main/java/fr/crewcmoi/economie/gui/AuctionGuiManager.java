@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import fr.crewcmoi.other.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.GuiItems;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -180,6 +181,16 @@ public class AuctionGuiManager {
         gui.setItem(AuctionHolder.INFO_SLOT, createInfoItem(page + 1, maxPage + 1, auctions.size(), holder.isMyListings()));
         gui.setItem(AuctionHolder.MY_LISTINGS_SLOT,
                 holder.isMyListings() ? createBackItem() : createMyListingsItem());
+
+        // Dernière ligne : remplit les emplacements libres avec l'item custom
+        // "vide", comme dans les autres GUIs du plugin. Les boutons de navigation,
+        // d'information et "mes annonces" déjà présents sont conservés.
+        ItemStack filler = GuiItems.nothing(" ");
+        for (int slot = 45; slot < AuctionHolder.SIZE; slot++) {
+            if (gui.getItem(slot) == null) {
+                gui.setItem(slot, filler);
+            }
+        }
     }
 
     private ItemStack createNavItem(Material material, String name) {

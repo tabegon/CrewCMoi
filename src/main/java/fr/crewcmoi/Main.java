@@ -83,6 +83,11 @@ import java.nio.charset.StandardCharsets;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
 
 public class Main extends JavaPlugin {
 
@@ -131,6 +136,9 @@ public class Main extends JavaPlugin {
 
         saveDefaultConfig();
         setupMessages();
+
+        // Remplace le craft vanilla de la Mace.
+        registerCustomMaceRecipe();
 
         // Initialisation de la base de données (SQLite par défaut)
         this.databaseManager = new SQLiteManager(this);
@@ -345,6 +353,31 @@ public class Main extends JavaPlugin {
         } catch (IOException e) {
             getLogger().warning("Impossible de recharger les messages par défaut : " + e.getMessage());
         }
+    }
+
+
+    /**
+     * Remplace le craft vanilla de la Mace par :
+     *
+     *     [        ] [ Noyau lourd ] [        ]
+     *     [        ] [ Œuf de l'Ender Dragon ] [        ]
+     *     [        ] [ Breeze Rod ] [        ]
+     *
+     * Soit les 3 objets alignés verticalement au centre de la table de craft.
+     */
+    private void registerCustomMaceRecipe() {
+        // La recette vanilla utilise la clé minecraft:mace.
+        Bukkit.removeRecipe(new NamespacedKey("minecraft", "mace"));
+
+        NamespacedKey key = new NamespacedKey(this, "custom_mace");
+        ShapedRecipe recipe = new ShapedRecipe(key, new ItemStack(Material.MACE));
+        recipe.shape(" H ", " D ", " B ");
+        recipe.setIngredient('H', Material.HEAVY_CORE);
+        recipe.setIngredient('D', Material.DRAGON_EGG);
+        recipe.setIngredient('B', Material.BREEZE_ROD);
+
+        Bukkit.addRecipe(recipe);
+        getLogger().info("Recette de la Mace personnalisée enregistrée.");
     }
 
     public FileConfiguration getMessages() {

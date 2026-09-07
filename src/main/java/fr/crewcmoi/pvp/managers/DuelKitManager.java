@@ -76,39 +76,40 @@ public class DuelKitManager {
                 Enchantment.UNBREAKING, 3));
 
         // Inventaire principal : 3 lignes de 9 slots, exactement comme sur la capture.
-        inv.setItem(9, splashPotion(PotionType.STRENGTH));
-        inv.setItem(10, splashPotion(PotionType.STRENGTH));
-        inv.setItem(11, splashPotion(PotionType.SWIFTNESS));
-        inv.setItem(12, splashPotion(PotionType.SWIFTNESS));
+        inv.setItem(9, splashPotion(PotionType.STRONG_STRENGTH));
+        inv.setItem(10, splashPotion(PotionType.STRONG_STRENGTH));
+        inv.setItem(11, splashPotion(PotionType.STRONG_SWIFTNESS));
+        inv.setItem(12, splashPotion(PotionType.STRONG_SWIFTNESS));
         inv.setItem(13, splashPotion(PotionType.FIRE_RESISTANCE));
         inv.setItem(14, splashPotion(PotionType.FIRE_RESISTANCE));
         inv.setItem(15, stack(Material.EXPERIENCE_BOTTLE, 64));
         inv.setItem(16, stack(Material.EXPERIENCE_BOTTLE, 64));
         inv.setItem(17, stack(Material.EXPERIENCE_BOTTLE, 64));
 
-        inv.setItem(18, splashPotion(PotionType.STRENGTH));
-        inv.setItem(19, splashPotion(PotionType.STRENGTH));
-        inv.setItem(20, splashPotion(PotionType.SWIFTNESS));
-        inv.setItem(21, splashPotion(PotionType.SWIFTNESS));
+        inv.setItem(18, splashPotion(PotionType.STRONG_STRENGTH));
+        inv.setItem(19, splashPotion(PotionType.STRONG_STRENGTH));
+        inv.setItem(20, splashPotion(PotionType.STRONG_SWIFTNESS));
+        inv.setItem(21, splashPotion(PotionType.STRONG_SWIFTNESS));
         inv.setItem(22, splashPotion(PotionType.FIRE_RESISTANCE));
         inv.setItem(23, stack(Material.ARROW, 64));
-        inv.setItem(24, splashPotion(PotionType.HEALING));
-        inv.setItem(25, splashPotion(PotionType.HEALING));
+        inv.setItem(24, splashPotion(PotionType.STRONG_HEALING));
+        inv.setItem(25, splashPotion(PotionType.STRONG_HEALING));
         inv.setItem(26, stack(Material.COBWEB, 64));
 
-        inv.setItem(27, splashPotion(PotionType.STRENGTH));
-        inv.setItem(28, splashPotion(PotionType.STRENGTH));
-        inv.setItem(29, splashPotion(PotionType.SWIFTNESS));
-        inv.setItem(30, splashPotion(PotionType.SWIFTNESS));
+        inv.setItem(27, splashPotion(PotionType.STRONG_STRENGTH));
+        inv.setItem(28, splashPotion(PotionType.STRONG_STRENGTH));
+        inv.setItem(29, splashPotion(PotionType.STRONG_SWIFTNESS));
+        inv.setItem(30, splashPotion(PotionType.STRONG_SWIFTNESS));
         inv.setItem(31, new ItemStack(Material.WATER_BUCKET));
         inv.setItem(32, stack(Material.WIND_CHARGE, 64));
         inv.setItem(33, stack(Material.ENDER_PEARL, 16));
-        inv.setItem(34, splashPotion(PotionType.HEALING));
+        inv.setItem(34, splashPotion(PotionType.STRONG_HEALING));
         inv.setItem(35, stack(Material.GOLDEN_APPLE, 64));
 
         // Barre rapide : épée, mace, hache puis les utilitaires visibles sur la capture.
         inv.setItem(0, enchanted(Material.NETHERITE_SWORD,
                 Enchantment.SHARPNESS, 5,
+                Enchantment.KNOCKBACK, 1,
                 Enchantment.MENDING, 1,
                 Enchantment.UNBREAKING, 3,
                 Enchantment.FIRE_ASPECT, 2));
@@ -125,7 +126,7 @@ public class DuelKitManager {
         inv.setItem(4, new ItemStack(Material.WATER_BUCKET));
         inv.setItem(5, stack(Material.WIND_CHARGE, 64));
         inv.setItem(6, stack(Material.ENDER_PEARL, 16));
-        inv.setItem(7, splashPotion(PotionType.HEALING));
+        inv.setItem(7, splashPotion(PotionType.STRONG_HEALING));
         inv.setItem(8, stack(Material.GOLDEN_APPLE, 64));
         player.updateInventory();
     }

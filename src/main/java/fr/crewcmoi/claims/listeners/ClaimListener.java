@@ -26,6 +26,12 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
 
 import java.util.Iterator;
 
@@ -84,10 +90,176 @@ public class ClaimListener implements Listener {
                 || type.contains("CAULDRON");
 
         ClaimFlag flag = container ? ClaimFlag.CONTAINERS : (interact ? ClaimFlag.INTERACT : null);
-        if (flag != null && !claimManager.isAllowed(event.getPlayer(), event.getClickedBlock().getLocation(), flag)) {
+
+        // Important : un claim avec CONTAINERS désactivé, on laisse quand même le joueur
+        // ouvrir le coffre/four/tonneau/etc. La protection du contenu est appliquée dans
+        // onInventoryClick() ci-dessous.
+        if (flag == ClaimFlag.INTERACT
+                && !claimManager.isAllowed(event.getPlayer(), event.getClickedBlock().getLocation(), flag)) {
             event.setCancelled(true);
             deny(event.getPlayer());
         }
+    }
+
+    /**
+     * Protège le contenu des conteneurs d'un claim.
+     *
+     * Le joueur peut ouvrir le conteneur même si CONTAINERS lui est interdit, mais il ne
+     * peut pas en retirer les objets. Les objets dont le Material figure dans
+     * claims.stealable-items restent récupérables.
+     *
+     * Le propriétaire, les joueurs de confiance et les joueurs ayant crew.claim.bypass
+     * conservent le comportement normal via ClaimManager.isAllowed().
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+
+        Inventory top = event.getView().getTopInventory();
+        if (top == null || top.getLocation() == null) {
+            return;
+        }
+
+        Location containerLocation = top.getLocation();
+
+        // Hors claim ou joueur autorisé : comportement normal.
+        if (claimManager.isAllowed(player, containerLocation, ClaimFlag.CONTAINERS)) {
+            return;
+        }
+
+        // Seules les actions qui peuvent retirer un objet du conteneur sont bloquées.
+        // Placer des objets dans le conteneur reste autorisé.
+        if (!isContainerExtraction(event, top)) {
+            return;
+        }
+
+        // Pour les clics directs, on peut vérifier précisément l'objet concerné.
+        ItemStack item = getExtractedItem(event, top);
+
+        // Certaines actions (notamment COLLECT_TO_CURSOR) peuvent toucher plusieurs
+        // emplacements. Dans ce cas, on autorise seulement si aucun objet non autorisé
+        // ne pourrait être récupéré.
+        if (item == null) {
+            if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
+                if (containsNonStealableMatchingItem(top, event.getCursor())) {
+                    event.setCancelled(true);
+                    denyContainerLoot(player);
+                }
+            }
+            return;
+        }
+
+        if (!isStealable(item)) {
+            event.setCancelled(true);
+            denyContainerLoot(player);
+        }
+    }
+
+    /**
+     * Retourne true si l'action retire potentiellement un objet de l'inventaire supérieur.
+     */
+    private boolean isContainerExtraction(InventoryClickEvent event, Inventory top) {
+        Inventory clicked = event.getClickedInventory();
+        InventoryAction action = event.getAction();
+
+        // Un double-clic peut collecter des objets depuis l'inventaire supérieur même si
+        // le slot actuellement cliqué se trouve dans l'inventaire du joueur.
+        if (action == InventoryAction.COLLECT_TO_CURSOR) {
+            return true;
+        }
+
+        if (clicked != top) {
+            return false;
+        }
+
+        return switch (action) {
+            case PICKUP_ALL, PICKUP_SOME, PICKUP_HALF, PICKUP_ONE,
+                 SWAP_WITH_CURSOR, MOVE_TO_OTHER_INVENTORY,
+                 HOTBAR_SWAP, HOTBAR_MOVE_AND_READD,
+                 DROP_ALL_SLOT, DROP_ONE_SLOT, CLONE_STACK -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Récupère l'objet qui serait retiré par une action de clic simple.
+     */
+    private ItemStack getExtractedItem(InventoryClickEvent event, Inventory top) {
+        Inventory clicked = event.getClickedInventory();
+        if (clicked != top) {
+            return null;
+        }
+
+        int slot = event.getSlot();
+        if (slot < 0 || slot >= top.getSize()) {
+            return null;
+        }
+
+        return top.getItem(slot);
+    }
+
+    /**
+     * Pour un double-clic/collecte, vérifie s'il existe dans le conteneur un objet
+     * correspondant au curseur qui n'est pas autorisé au vol.
+     */
+    private boolean containsNonStealableMatchingItem(Inventory inventory, ItemStack cursor) {
+        if (cursor == null || cursor.getType() == Material.AIR) {
+            return false;
+        }
+
+        for (ItemStack item : inventory.getContents()) {
+            if (item == null || item.getType() == Material.AIR) {
+                continue;
+            }
+            if (item.isSimilar(cursor) && !isStealable(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Liste configurable dans config.yml :
+     * claims:
+     *   stealable-items:
+     *     - MACE
+     *     - DRAGON_EGG
+     *     - ELYTRA
+     */
+    private boolean isStealable(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) {
+            return false;
+        }
+
+        for (String configured : plugin.getConfig().getStringList("claims.stealable-items")) {
+            if (configured == null || configured.isBlank()) {
+                continue;
+            }
+
+            Material material = Material.matchMaterial(configured.trim());
+            if (material == item.getType()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void denyContainerLoot(Player player) {
+        String message = plugin.getMessages().getString(
+                "claim.container-item-blocked",
+                "&cVous ne pouvez pas voler cet objet dans ce conteneur."
+        );
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                plugin.getMessages().getString("prefix", "") + message));
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onInventoryDrag(InventoryDragEvent event) { 
+        // Un drag part toujours du curseur du joueur vers le menu. Il ne permet pas de
+        // retirer un objet déjà présent dans le conteneur : le placement reste donc autorisé.
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

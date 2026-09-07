@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import fr.crewcmoi.other.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.GuiItems;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -121,6 +122,16 @@ public class BountyGuiManager {
             gui.setItem(BountyHolder.NEXT_PAGE_SLOT, createNavItem(Material.ARROW, "&eᴘᴀɢᴇ ꜱᴜɪᴠᴀɴᴛᴇ"));
         }
         gui.setItem(BountyHolder.INFO_SLOT, createInfoItem(page + 1, maxPage + 1, targets.size()));
+
+        // Dernière ligne : remplit les emplacements libres avec l'item custom
+        // "vide", comme dans les autres GUIs du plugin. Les boutons de navigation
+        // et d'information déjà présents sont conservés.
+        ItemStack filler = GuiItems.nothing(" ");
+        for (int slot = 45; slot < BountyHolder.SIZE; slot++) {
+            if (gui.getItem(slot) == null) {
+                gui.setItem(slot, filler);
+            }
+        }
     }
 
     private ItemStack createNavItem(Material material, String name) {
