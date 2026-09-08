@@ -21,11 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Commande /info : tableau de bord d'informations sur un joueur.
- *  - /info bounty <joueur> : prime totale/serveur, palier de malchance (Unluck)
- *    actuel et nombre de coeurs retirés par le malus de prime serveur.
- */
 public class InfoCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
@@ -41,8 +36,13 @@ public class InfoCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!sender.hasPermission("crew.staff.info")) {
+            Messages.send(sender, "moderation.info.usage");
+            return true;
+        }
+
         if (args.length < 2 || !args[0].equalsIgnoreCase("bounty")) {
-            Messages.send(sender, "server.info-045b8ea");
+            Messages.send(sender, "moderation.info.usage");
             return true;
         }
 
@@ -57,7 +57,7 @@ public class InfoCommand implements CommandExecutor, TabCompleter {
         } else {
             PlayerData data = plugin.getEconomyManager().getPlayerDataByName(targetName);
             if (data == null) {
-                Messages.send(sender, "server.info-48408b8");
+                Messages.send(sender, "general.player-not-found");
                 return true;
             }
             targetUuid = data.getUuid();
@@ -76,18 +76,18 @@ public class InfoCommand implements CommandExecutor, TabCompleter {
         int heartsRemoved = malusEffectManager.computeHeartsRemoved(serverTotal);
         double baseMaxHealth = malusEffectManager.getBaseMaxHealth();
         double currentMaxHealth = Math.max(2.0, baseMaxHealth - (heartsRemoved * 2.0));
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
-        Messages.send(sender, "server.info-f213575");
-        Messages.send(sender, "server.info-title", java.util.Map.of("player", resolvedName));
-        Messages.send(sender, "server.info-total-bounty", java.util.Map.of("amount", MoneyFormat.format(total) + currency));
-        Messages.send(sender, "server.info-server-bounty", java.util.Map.of("amount", MoneyFormat.format(serverTotal) + currency));
-        Messages.send(sender, "server.info-unluck-tier", java.util.Map.of(
+        Messages.send(sender, "moderation.info.separator");
+        Messages.send(sender, "moderation.info.title", java.util.Map.of("player", resolvedName));
+        Messages.send(sender, "moderation.info.total-bounty", java.util.Map.of("amount", MoneyFormat.format(total) + currency));
+        Messages.send(sender, "moderation.info.server-bounty", java.util.Map.of("amount", MoneyFormat.format(serverTotal) + currency));
+        Messages.send(sender, "moderation.info.unluck-tier", java.util.Map.of(
                 "tier", tierLabel(tier),
                 "reduction", tier > 0 ? " &7(&c-" + percentFormat.format(reductionPercent) + "%&7 ᴅᴇ ᴅᴇɢᴀᴛꜱ ɪɴꜰʟɪɢᴇꜱ)" : ""), true);
-        Messages.send(sender, "server.info-hearts", java.util.Map.of("removed", heartsRemoved, "max", malusEffectManager.getMaxHeartsRemoved()));
-        Messages.send(sender, "server.info-max-health", java.util.Map.of("current", (int)(currentMaxHealth/2), "base", (int)(baseMaxHealth/2)));
-        Messages.send(sender, "server.info-f213575x");
+        Messages.send(sender, "moderation.info.hearts", java.util.Map.of("removed", heartsRemoved, "max", malusEffectManager.getMaxHeartsRemoved()));
+        Messages.send(sender, "moderation.info.max-health", java.util.Map.of("current", (int)(currentMaxHealth/2), "base", (int)(baseMaxHealth/2)));
+        Messages.send(sender, "moderation.info.separatorx");
         return true;
     }
 

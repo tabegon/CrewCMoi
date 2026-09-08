@@ -2,10 +2,6 @@ package fr.crewcmoi.pvp.database;
 
 import java.util.UUID;
 
-/**
- * Représente le total de prime cumulé sur un joueur, utilisé pour l'affichage
- * de la liste des primes dans la GUI /bounty.
- */
 public class BountyTarget {
 
     private final UUID targetUuid;

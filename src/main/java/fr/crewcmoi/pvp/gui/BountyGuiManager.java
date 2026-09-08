@@ -19,10 +19,6 @@ import fr.crewcmoi.other.utils.GuiItems;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Construit et rafraîchit la GUI /bounty : liste en lecture seule des joueurs
- * recherchés, triée par montant de prime décroissant.
- */
 public class BountyGuiManager {
 
     private final Main plugin;
@@ -63,7 +59,7 @@ public class BountyGuiManager {
         int start = page * BountyHolder.ITEMS_PER_PAGE;
         int end = Math.min(start + BountyHolder.ITEMS_PER_PAGE, targets.size());
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         for (int i = start; i < end; i++) {
             BountyTarget target = targets.get(i);
@@ -123,9 +119,8 @@ public class BountyGuiManager {
         }
         gui.setItem(BountyHolder.INFO_SLOT, createInfoItem(page + 1, maxPage + 1, targets.size()));
 
-        // Dernière ligne : remplit les emplacements libres avec l'item custom
-        // "vide", comme dans les autres GUIs du plugin. Les boutons de navigation
-        // et d'information déjà présents sont conservés.
+        
+        
         ItemStack filler = GuiItems.nothing(" ");
         for (int slot = 45; slot < BountyHolder.SIZE; slot++) {
             if (gui.getItem(slot) == null) {

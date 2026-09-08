@@ -10,7 +10,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionType;
 
-/** Gestion de l'unique kit disponible dans les duels. */
 public class DuelKitManager {
 
     public static final String BASIC_KIT_ID = "basic";
@@ -34,16 +33,11 @@ public class DuelKitManager {
 
     public String getDisplayName(String kitId) {
         if (BASIC_KIT_ID.equalsIgnoreCase(kitId)) {
-            return plugin.getConfig().getString("duel.kits.basic.name", "Kit Classique");
+            return plugin.getConfig().getString("duel.kits.basic.name");
         }
         return "Aucun kit";
     }
 
-    /**
-     * Donne exactement le kit visible sur la capture : équipement netherite,
-     * potions, consommables et armes. Le kit ne contient aucun objet de
-     * l'inventaire personnel du joueur.
-     */
     public void applyKit(Player player, String kitId) {
         if (!BASIC_KIT_ID.equalsIgnoreCase(kitId)) {
             return;
@@ -52,7 +46,6 @@ public class DuelKitManager {
         PlayerInventory inv = player.getInventory();
         inv.clear();
 
-        // Armure : Protection IV + Unbreaking III + Mending.
         inv.setHelmet(enchanted(Material.NETHERITE_HELMET,
                 Enchantment.PROTECTION, 4,
                 Enchantment.UNBREAKING, 3,
@@ -70,12 +63,10 @@ public class DuelKitManager {
                 Enchantment.UNBREAKING, 3,
                 Enchantment.MENDING, 1));
 
-        // Bouclier dans la main secondaire.
         inv.setItemInOffHand(enchanted(Material.SHIELD,
                 Enchantment.MENDING, 1,
                 Enchantment.UNBREAKING, 3));
 
-        // Inventaire principal : 3 lignes de 9 slots, exactement comme sur la capture.
         inv.setItem(9, splashPotion(PotionType.STRONG_STRENGTH));
         inv.setItem(10, splashPotion(PotionType.STRONG_STRENGTH));
         inv.setItem(11, splashPotion(PotionType.STRONG_SWIFTNESS));
@@ -106,7 +97,6 @@ public class DuelKitManager {
         inv.setItem(34, splashPotion(PotionType.STRONG_HEALING));
         inv.setItem(35, stack(Material.GOLDEN_APPLE, 64));
 
-        // Barre rapide : épée, mace, hache puis les utilitaires visibles sur la capture.
         inv.setItem(0, enchanted(Material.NETHERITE_SWORD,
                 Enchantment.SHARPNESS, 5,
                 Enchantment.KNOCKBACK, 1,

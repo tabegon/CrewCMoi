@@ -2,9 +2,6 @@ package fr.crewcmoi.teleport.database;
 
 import java.util.UUID;
 
-/**
- * Représente le home d'un joueur (un seul home par joueur).
- */
 public class HomeData {
 
     private final UUID uuid;

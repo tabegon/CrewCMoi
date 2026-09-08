@@ -7,15 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Marqueur permettant d'identifier l'inventaire de la liste des primes (/bounty).
- * GUI en lecture seule (comme /baltop) : elle affiche simplement la liste triée
- * des joueurs recherchés et le montant cumulé de leur prime.
- */
 public class BountyHolder implements InventoryHolder {
 
     public static final int SIZE = 54;
-    public static final int ITEMS_PER_PAGE = 45; // slots 0-44
+    public static final int ITEMS_PER_PAGE = 45; 
     public static final int PREV_PAGE_SLOT = 45;
     public static final int NEXT_PAGE_SLOT = 53;
     public static final int INFO_SLOT = 49;

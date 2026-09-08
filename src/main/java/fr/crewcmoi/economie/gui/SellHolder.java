@@ -6,31 +6,21 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
-/**
- * Marqueur permettant d'identifier l'inventaire du /sell afin de savoir
- * quels slots sont dédiés à la vente, au bouton de confirmation et au
- * remplissage décoratif.
- */
 public class SellHolder implements InventoryHolder {
 
-    // Taille totale de la GUI (6 lignes de 9 = un double coffre)
     public static final int SIZE = 54;
 
-    // Slots réservés aux items à vendre (les 4 premières lignes)
     public static final int[] ITEM_SLOTS = buildItemSlots();
 
-    // Slot du bouton "vendre" (état normal) / "confirmer" (état de confirmation)
     public static final int SELL_SLOT = 40;
     public static final int CONFIRM_SLOT = 33;
 
-    // Slot du bouton "annuler" affiché uniquement pendant l'étape de confirmation
     public static final int CANCEL_CONFIRM_SLOT = 29;
 
     private Inventory inventory;
 
-    // Passe à true lorsque le joueur a cliqué sur "vendre" et doit confirmer la vente.
-    // Pendant cette étape, les objets réels sont retirés visuellement de la GUI (conservés
-    // dans pendingItems) pour empêcher toute manipulation avant confirmation.
+    
+    
     private boolean confirming = false;
     private List<ItemStack> pendingItems;
 

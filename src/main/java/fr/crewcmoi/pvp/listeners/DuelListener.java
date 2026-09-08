@@ -23,23 +23,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Gère :
- *  - les clics dans la GUI /duel (configuration des règles puis envoi de la demande) ;
- *  - la saisie au clavier (dans le chat) du montant de la mise, déclenchée par un
- *    clic molette sur l'item de mise ;
- *  - la résolution d'un duel à la mort d'un des deux participants (application du
- *    keepinventory, versement de la mise au gagnant) ;
- *  - le forfait automatique en cas de déconnexion pendant un duel (ou l'annulation
- *    d'une demande en attente).
- */
 public class DuelListener implements Listener {
 
     private final Main plugin;
     private final DuelManager duelManager;
     private final DuelConfigGuiManager duelConfigGuiManager;
 
-    // Joueurs en train de taper leur mise dans le chat suite à un clic molette.
     private final Map<UUID, DuelConfigHolder> awaitingBetInput = new ConcurrentHashMap<>();
 
     public DuelListener(Main plugin, DuelManager duelManager, DuelConfigGuiManager duelConfigGuiManager) {
@@ -81,8 +70,7 @@ public class DuelListener implements Listener {
             duelConfigGuiManager.render(holder);
         } else if (slot == DuelConfigHolder.BET_SLOT) {
             if (event.getClick() == ClickType.MIDDLE) {
-                // Clic molette : on demande le montant directement dans le chat plutôt
-                // que de l'ajuster pas à pas.
+
                 awaitingBetInput.put(player.getUniqueId(), holder);
                 player.closeInventory();
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
@@ -111,15 +99,14 @@ public class DuelListener implements Listener {
             org.bukkit.entity.Player target = plugin.getServer().getPlayer(holder.getTargetUuid());
             if (target == null || !target.isOnline()) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        plugin.getMessages().getString("prefix", "") +
-                                plugin.getMessages().getString("general.player-not-found",
-                                        "&cCe joueur n'existe pas ou n'est pas en ligne.")));
+                        plugin.getMessages().getString("prefix") +
+                                plugin.getMessages().getString("general.player-not-found")));
                 return;
             }
             if (duelManager.isInDuel(player.getUniqueId()) || duelManager.isInDuel(target.getUniqueId())) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        plugin.getMessages().getString("prefix", "") +
-                                plugin.getMessages().getString("duel.already-in-duel", "&cCe joueur est déjà en duel.")));
+                        plugin.getMessages().getString("prefix") +
+                                plugin.getMessages().getString("duel.already-in-duel")));
                 return;
             }
 
@@ -127,10 +114,6 @@ public class DuelListener implements Listener {
         }
     }
 
-    /**
-     * Capture la saisie du chat pour les joueurs qui viennent de cliquer-molette sur
-     * l'item de mise, afin de leur permettre de rentrer un montant exact.
-     */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBetChatInput(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();

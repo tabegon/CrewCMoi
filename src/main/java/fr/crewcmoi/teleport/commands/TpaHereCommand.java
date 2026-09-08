@@ -12,10 +12,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-/**
- * Commande /tpahere <joueur> : demande à ce qu'un autre joueur soit téléporté jusqu'à soi.
- * La cible se téléportera vers le demandeur une fois qu'elle aura accepté.
- */
 public class TpaHereCommand implements CommandExecutor {
 
     private final Main plugin;
@@ -31,7 +27,7 @@ public class TpaHereCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            Messages.send(sender, "server.tpahere-8660550");
+            Messages.send(sender, "teleport.tpahere.player-only");
             return true;
         }
 
@@ -39,31 +35,30 @@ public class TpaHereCommand implements CommandExecutor {
 
         if (args.length != 1) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("tpa.usage-tpahere", "&cUsage : /tpahere <joueur>")));
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("tpa.usage-tpahere")));
             return true;
         }
 
         Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null || !target.isOnline()) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("general.player-not-found", "&cCe joueur n'existe pas ou n'est pas en ligne.")));
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("general.player-not-found")));
             return true;
         }
 
         if (target.getUniqueId().equals(requester.getUniqueId())) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("tpa.self", "&cVous ne pouvez pas vous téléporter à vous-même.")));
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("tpa.self")));
             return true;
         }
 
-        // C'est la cible qui va se déplacer : on vérifie donc son statut de combat à elle.
         if (combatManager != null && combatManager.isInCombat(target)) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("tpa.target-in-combat", "&c{player} est en combat et ne peut pas être téléporté.")
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("tpa.target-in-combat")
                                     .replace("{player}", target.getName())));
             return true;
         }
@@ -71,8 +66,8 @@ public class TpaHereCommand implements CommandExecutor {
         teleportManager.createRequest(requester, target, TeleportManager.RequestType.TPAHERE);
 
         requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                plugin.getMessages().getString("prefix", "") +
-                        plugin.getMessages().getString("tpa.sent-here", "&aDemande de téléportation envoyée à &e{player}&a.")
+                plugin.getMessages().getString("prefix") +
+                        plugin.getMessages().getString("tpa.sent-here")
                                 .replace("{player}", target.getName())));
 
         TeleportMessages.sendRequestReceived(plugin, target, requester, "tpa.received-here");

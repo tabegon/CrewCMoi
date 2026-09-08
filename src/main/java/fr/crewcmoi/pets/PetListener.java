@@ -1,4 +1,5 @@
 package fr.crewcmoi.pets;
+import fr.crewcmoi.other.utils.Messages;
 
 import dev.lone.itemsadder.api.CustomStack;
 import fr.crewcmoi.Main;
@@ -43,9 +44,9 @@ public class PetListener implements Listener {
         if (petManager.isRecallItem(stack)) {
             event.setCancelled(true);
             if (petManager.recall(player)) {
-                player.sendMessage("§aTon pet a été rappelé à tes côtés !");
+                Messages.send(player, "pets.recalled");
             } else {
-                player.sendMessage("§cTu n'as aucun pet actif à rappeler.");
+                Messages.send(player, "pets.no-active-pet");
             }
             return;
         }
@@ -55,7 +56,7 @@ public class PetListener implements Listener {
 
             event.setCancelled(true);
             if (petManager.owns(player.getUniqueId(), petId)) {
-                player.sendMessage("§cVous possédez déjà ce pet.");
+                Messages.send(player, "pets.already-owned");
                 return;
             }
 
@@ -63,7 +64,7 @@ public class PetListener implements Listener {
             if (stack.getAmount() > 1) stack.setAmount(stack.getAmount() - 1);
             else player.getInventory().setItemInMainHand(null);
 
-            player.sendMessage("§aPet §e" + petId + " §adébloqué !");
+            Messages.send(player, "pets.unlocked", java.util.Map.of("pet", petId));
             guiManager.open(player);
             return;
         }
@@ -119,10 +120,6 @@ public class PetListener implements Listener {
         }
     }
 
-    /**
-     * Quand l'owner frappe quelque chose, son pet actif reçoit cette cible
-     * et se met à l'attaquer — au lieu de choisir seul un adversaire.
-     */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onOwnerAttack(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity victim)) return;
@@ -130,7 +127,6 @@ public class PetListener implements Listener {
         Player owner = resolveAttacker(event.getDamager());
         if (owner == null) return;
 
-        // On évite qu'un owner qui frappe son propre pet ne le fasse s'attaquer lui-même.
         if (getPetOwner(victim) != null && owner.getUniqueId().equals(getPetOwner(victim))) return;
 
         petManager.assignTarget(owner.getUniqueId(), victim);

@@ -6,13 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Petit sérialiseur JSON "maison" (sans dépendance externe type Gson) utilisé
- * uniquement par le dashboard web (fr.crewcmoi.web) pour transformer les
- * structures de données du plugin (Map, List, ConfigurationSection...) en JSON.
- * Ne supporte que ce dont le dashboard a besoin : String, Number, Boolean,
- * null, Map<String, ?> et List<?> (imbrication comprise).
- */
 public final class JsonUtil {
 
     private JsonUtil() {
@@ -24,10 +17,6 @@ public final class JsonUtil {
         return sb.toString();
     }
 
-    /**
-     * Convertit une section de configuration (config.yml) en Map imbriquée, pour
-     * pouvoir exposer "tous les settings" du fichier tel quel via l'API.
-     */
     public static Map<String, Object> fromConfigSection(ConfigurationSection section) {
         Map<String, Object> map = new LinkedHashMap<>();
         for (String key : section.getKeys(false)) {
@@ -74,7 +63,7 @@ public final class JsonUtil {
             }
             sb.append(']');
         } else {
-            // Fallback : tout le reste (dates, objets divers...) est sérialisé en chaîne.
+            
             writeString(sb, String.valueOf(value));
         }
     }

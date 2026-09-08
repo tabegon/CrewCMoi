@@ -1,6 +1,7 @@
 package fr.crewcmoi.pets;
 
 import fr.crewcmoi.Main;
+import fr.crewcmoi.other.utils.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.Inventory;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PetGuiManager {
-    public static final String TITLE = "§5§lᴘᴇᴛꜱ";
+    public static final String TITLE = "";
     public static final int SIZE = 54;
 
     private final Main plugin;
@@ -23,7 +24,7 @@ public class PetGuiManager {
     }
 
     public void open(org.bukkit.entity.Player player) {
-        Inventory gui = Bukkit.createInventory(null, SIZE, TITLE);
+        Inventory gui = Bukkit.createInventory(null, SIZE, Messages.color(plugin.getMessages().getString("gui.pets.title")));
         int index = 0;
         for (String petId : petManager.getConfiguredPets()) {
             if (index >= SIZE) break;
@@ -40,9 +41,9 @@ public class PetGuiManager {
                 boolean owned = petManager.owns(player.getUniqueId(), petId);
                 boolean active = petId.equalsIgnoreCase(petManager.getActivePet(player.getUniqueId()));
                 lore.add(owned
-                        ? (active ? "§a§l✓ PET ACTIF" : "§eCliquez pour activer")
-                        : "§c§l✘ PET NON DÉBLOQUÉ");
-                if (owned) lore.add("§7Cliquez à nouveau pour le désactiver.");
+                        ? (active ? Messages.color(plugin.getMessages().getString("gui.pets.active")) : Messages.color(plugin.getMessages().getString("gui.pets.activate")))
+                        : Messages.color(plugin.getMessages().getString("gui.pets.locked")));
+                if (owned) lore.add(Messages.color(plugin.getMessages().getString("gui.pets.deactivate")));
                 meta.setLore(lore);
                 item.setItemMeta(meta);
             }

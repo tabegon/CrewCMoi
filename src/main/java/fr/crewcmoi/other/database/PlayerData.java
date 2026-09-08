@@ -2,9 +2,6 @@ package fr.crewcmoi.other.database;
 
 import java.util.UUID;
 
-/**
- * Représente les données économiques d'un joueur.
- */
 public class PlayerData {
 
     private final UUID uuid;

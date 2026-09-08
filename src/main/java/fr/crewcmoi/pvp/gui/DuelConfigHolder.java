@@ -5,10 +5,6 @@ import org.bukkit.inventory.InventoryHolder;
 
 import java.util.UUID;
 
-/**
- * Marqueur pour la GUI /duel <joueur> : permet au demandeur de configurer les
- * règles du duel (keepinventory, mise en argent) avant d'envoyer la demande.
- */
 public class DuelConfigHolder implements InventoryHolder {
 
     public static final int SIZE = 27;

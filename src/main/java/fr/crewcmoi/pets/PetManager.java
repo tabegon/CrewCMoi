@@ -1,4 +1,5 @@
 package fr.crewcmoi.pets;
+import fr.crewcmoi.other.utils.Messages;
 
 import dev.lone.itemsadder.api.CustomStack;
 import fr.crewcmoi.Main;
@@ -21,16 +22,16 @@ import java.util.*;
 
 public class PetManager {
 
-    private static final double FOLLOW_DISTANCE_SQUARED = 2.25; // ~1.5 bloc : distance à partir de laquelle il se rapproche
-    private static final double TELEPORT_DISTANCE_SQUARED = 400; // 20 blocs : trop loin pour marcher, on téléporte
-    private static final double MAX_TARGET_DISTANCE_SQUARED = 900; // 30 blocs
+    private static final double FOLLOW_DISTANCE_SQUARED = 2.25; 
+    private static final double TELEPORT_DISTANCE_SQUARED = 400; 
+    private static final double MAX_TARGET_DISTANCE_SQUARED = 900; 
     private static final double WALK_SPEED = 1.2;
 
     private final Main plugin;
     private final File file;
     private FileConfiguration data;
-    private final Map<UUID, UUID> activePets = new HashMap<>(); // owner -> pet entity
-    private final Map<UUID, UUID> petTargets = new HashMap<>(); // pet entity -> cible assignée
+    private final Map<UUID, UUID> activePets = new HashMap<>(); 
+    private final Map<UUID, UUID> petTargets = new HashMap<>(); 
     private BukkitTask petTask;
 
     public PetManager(Main plugin) {
@@ -45,8 +46,7 @@ public class PetManager {
             }
         }
         this.data = YamlConfiguration.loadConfiguration(file);
-        // Les entités MythicMobs ne survivent pas au redémarrage du serveur :
-        // aucun pet ne doit donc rester affiché comme actif après un restart.
+
         clearPersistedActivePets();
         startPetTask();
     }
@@ -103,10 +103,6 @@ public class PetManager {
         return activePets.get(playerId);
     }
 
-    /**
-     * Fait attaquer par le pet du joueur l'entité que ce dernier vient de frapper.
-     * Appelé depuis le listener quand l'owner inflige des dégâts.
-     */
     public void assignTarget(UUID ownerId, LivingEntity victim) {
         UUID petId = activePets.get(ownerId);
         if (petId != null) petTargets.put(petId, victim.getUniqueId());
@@ -128,11 +124,8 @@ public class PetManager {
         return custom != null && id.equalsIgnoreCase(custom.getNamespacedID());
     }
 
-    /**
-     * ID ItemsAdder de l'item permettant de rappeler son pet actif (config: pets.recall-item-id).
-     */
     public String getRecallItemId() {
-        return plugin.getConfig().getString("pets.recall-item-id", "");
+        return plugin.getConfig().getString("pets.recall-item-id");
     }
 
     public boolean isRecallItem(ItemStack stack) {
@@ -143,10 +136,6 @@ public class PetManager {
         return custom != null && id.equalsIgnoreCase(custom.getNamespacedID());
     }
 
-    /**
-     * Téléporte le pet actif du joueur à ses côtés et lui retire sa cible actuelle
-     * (utilisé par l'item de rappel). Retourne false si le joueur n'a pas de pet actif.
-     */
     public boolean recall(Player player) {
         UUID petEntityId = activePets.get(player.getUniqueId());
         if (petEntityId == null) return false;
@@ -185,7 +174,7 @@ public class PetManager {
     private void summon(Player player, String petId) {
         String mythicMob = getMythicMob(petId);
         if (mythicMob.isBlank()) {
-            player.sendMessage("§cLe MythicMob du pet §e" + petId + "§c n'est pas configuré.");
+            Messages.send(player, "pets.mythicmob-not-configured", java.util.Map.of("pet", petId));
             return;
         }
 
@@ -200,7 +189,7 @@ public class PetManager {
                 world + "," + loc.getX() + "," + loc.getY() + "," + loc.getZ();
         boolean dispatched = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
         if (!dispatched) {
-            player.sendMessage("§cImpossible d'invoquer le pet.");
+            Messages.send(player, "pets.summon-failed");
             return;
         }
 
@@ -217,7 +206,7 @@ public class PetManager {
             }
 
             if (found == null) {
-                player.sendMessage("§cMythicMobs n'a pas réussi à invoquer le pet §e" + petId + "§c.");
+                Messages.send(player, "pets.mythicmob-summon-failed", java.util.Map.of("pet", petId));
                 return;
             }
 
@@ -228,7 +217,7 @@ public class PetManager {
                     PersistentDataType.STRING,
                     player.getUniqueId().toString()
             );
-            player.sendMessage("§aPet §e" + petId + " §aactivé !");
+            Messages.send(player, "pets.activated", java.util.Map.of("pet", petId));
         }, 1L);
     }
 
@@ -242,7 +231,7 @@ public class PetManager {
             if (entity != null && entity.isValid()) entity.remove();
         }
         clearActivePet(playerId);
-        if (message) player.sendMessage("§cPet désactivé.");
+        if (message) Messages.send(player, "pets.deactivated");
     }
 
     public void handleQuit(Player player) {
@@ -265,20 +254,18 @@ public class PetManager {
 
                 if (petEntity instanceof Mob mob) {
                     if (currentTarget != null) {
-                        // Une cible valide est assignée : on la garde, peu importe ce que
-                        // l'IA par défaut du MythicMob essaierait de faire.
+
                         if (!currentTarget.equals(mob.getTarget())) {
                             mob.setTarget(currentTarget);
                         }
                     } else if (mob.getTarget() != null) {
-                        // Pas de cible assignée par l'owner : on empêche le mob
-                        // d'attaquer tout ce qu'il veut de son propre chef.
+
                         mob.setTarget(null);
                     }
                 }
 
                 if (currentTarget != null) {
-                    // En combat : on laisse le pet se battre, pas de téléportation.
+                    
                     continue;
                 }
 
@@ -291,14 +278,14 @@ public class PetManager {
                 double distanceSquared = petEntity.getLocation().distanceSquared(target);
 
                 if (distanceSquared > TELEPORT_DISTANCE_SQUARED) {
-                    // Beaucoup trop loin (tp du joueur, chute, etc.) : on se replace directement.
+                    
                     petEntity.teleport(target);
                 } else if (petEntity instanceof Mob mob) {
                     if (distanceSquared > FOLLOW_DISTANCE_SQUARED) {
-                        // Marche naturellement vers le joueur au lieu de se téléporter.
+                        
                         mob.getPathfinder().moveTo(target, WALK_SPEED);
                     } else {
-                        // Assez proche : on arrête le déplacement pour qu'il ne dépasse pas le joueur.
+                        
                         mob.getPathfinder().stopPathfinding();
                     }
                 }
@@ -331,7 +318,6 @@ public class PetManager {
         org.bukkit.util.Vector right = new org.bukkit.util.Vector(dir.getZ(), 0, -dir.getX()).multiply(1.35);
         return p.add(right).add(0, 0.15, 0);
     }
-
 
     private void clearPersistedActivePets() {
         org.bukkit.configuration.ConfigurationSection players = data.getConfigurationSection("players");

@@ -18,6 +18,10 @@ public final class Messages {
         }
         return value;
     }
+    public static String color(String value) {
+        return ChatColor.translateAlternateColorCodes('&', value == null ? "" : value);
+    }
+
     public static void send(CommandSender sender, String path) {
         send(sender, path, Map.of(), false);
     }
@@ -30,6 +34,6 @@ public final class Messages {
     public static void send(CommandSender sender, String path, Map<String, ?> placeholders, boolean withPrefix) {
         String message = get(path, placeholders);
         if (withPrefix) message = get("prefix") + message;
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+        sender.sendMessage(color(message));
     }
 }

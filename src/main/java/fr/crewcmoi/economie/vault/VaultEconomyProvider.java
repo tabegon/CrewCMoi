@@ -13,24 +13,6 @@ import java.util.UUID;
 
 import fr.crewcmoi.other.utils.MoneyFormat;
 
-/**
- * Implémentation de l'interface Vault Economy, qui délègue toutes les opérations
- * au système économique interne de CrewCMoi (EconomyManager / base SQLite).
- *
- * Permet à n'importe quel plugin utilisant l'API Vault (dont PlaceholderAPI via son
- * extension "Vault", utilisée notamment par RPGhuds pour son HUD "money") de lire et
- * modifier le solde des joueurs via le système économique de CrewCMoi, sans qu'il ait
- * besoin de connaître son fonctionnement interne.
- *
- * Ce plugin ne gère volontairement pas les banques (hasBankSupport() renvoie false) :
- * seule l'économie individuelle des joueurs est prise en charge.
- *
- * NOTE : cette classe a été écrite d'après la signature standard et stable de
- * l'interface net.milkbowl.vault.economy.Economy (API Vault). Comme aucune dépendance
- * Vault n'était présente dans le projet fourni, assurez-vous d'ajouter le jar/dépendance
- * Vault (ex: via jitpack.io "com.github.MilkBowl:VaultAPI:1.7") à votre outil de build
- * (Maven/Gradle) avant de compiler, sans quoi cette classe ne compilera pas.
- */
 public class VaultEconomyProvider implements Economy {
 
     private final Main plugin;
@@ -63,18 +45,18 @@ public class VaultEconomyProvider implements Economy {
 
     @Override
     public String format(double amount) {
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
         return MoneyFormat.format(amount) + currency;
     }
 
     @Override
     public String currencyNamePlural() {
-        return plugin.getConfig().getString("economy.currency-symbol", "");
+        return plugin.getConfig().getString("economy.currency-symbol");
     }
 
     @Override
     public String currencyNameSingular() {
-        return plugin.getConfig().getString("economy.currency-symbol", "");
+        return plugin.getConfig().getString("economy.currency-symbol");
     }
 
     @Override
@@ -214,8 +196,6 @@ public class VaultEconomyProvider implements Economy {
         OfflinePlayer offline = Bukkit.getOfflinePlayer(playerName);
         return offline.hasPlayedBefore() ? offline.getUniqueId() : null;
     }
-
-    // ===================== Banques : non supportées =====================
 
     @Override
     public EconomyResponse createBank(String name, String player) {

@@ -1,9 +1,5 @@
 package fr.crewcmoi.claims.database;
 
-/**
- * Une règle configurable au sein d'un claim (ex : casser des blocs, ouvrir des coffres...).
- * Chaque règle a un niveau de permission indépendant (voir {@link ClaimPermission}).
- */
 public enum ClaimFlag {
 
     BUILD("Construire", "Poser des blocs"),

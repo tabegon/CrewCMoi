@@ -9,7 +9,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class PricesManager {
 
     private final Main plugin;
@@ -51,9 +50,6 @@ public class PricesManager {
         load();
     }
 
-    /**
-     * Retourne le prix unitaire d'un matériau, ou -1 si celui-ci n'est pas vendable.
-     */
     public double getPrice(Material material) {
         return prices.getOrDefault(material, -1.0);
     }
@@ -62,10 +58,6 @@ public class PricesManager {
         return prices.containsKey(material) && prices.get(material) > 0.0;
     }
 
-    /**
-     * Copie en lecture seule de tous les prix chargés, utilisée par le dashboard
-     * web (voir fr.crewcmoi.web) pour afficher la liste complète des prix de vente.
-     */
     public Map<Material, Double> getAllPrices() {
         return java.util.Collections.unmodifiableMap(new HashMap<>(prices));
     }

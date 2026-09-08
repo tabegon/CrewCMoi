@@ -21,13 +21,6 @@ import fr.crewcmoi.pvp.utils.HeadSellPrice;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Construit la GUI de /sell et gère le calcul/la validation de la vente.
- * La vente se fait en deux étapes : un premier clic sur le bouton émeraude
- * bascule la GUI en mode "confirmation" (les objets sont mis de côté et
- * remplacés par un récapitulatif avec des boutons confirmer/annuler), un
- * second clic sur "confirmer" valide réellement la vente.
- */
 public class SellGuiManager {
 
     private final Main plugin;
@@ -40,11 +33,6 @@ public class SellGuiManager {
         this.economyManager = economyManager;
     }
 
-    /**
-     * Prix de vente unitaire d'un item : celui tagué dessus (ex : tête de joueur droppée
-     * à la mort, voir HeadSellPrice/PlayerHeadDropListener) en priorité, sinon celui de
-     * prices.yml pour son matériau.
-     */
     private double getSellPrice(ItemStack stack) {
         double taggedPrice = HeadSellPrice.getPrice(plugin, stack);
         if (taggedPrice > 0) {
@@ -60,12 +48,6 @@ public class SellGuiManager {
         return Math.max(basePrice, 0.0) + contentValue;
     }
 
-    /**
-     * Si l'item est une shulker box (peu importe sa couleur), calcule la valeur
-     * totale de son contenu en réutilisant getSellPrice pour chaque item stocké
-     * (ce qui gère aussi le cas d'une shulker contenant une autre shulker).
-     * Retourne 0 si l'item n'est pas une shulker box ou si elle est vide.
-     */
     private double getShulkerContentValue(ItemStack stack) {
         ItemMeta meta = stack.getItemMeta();
         if (!(meta instanceof BlockStateMeta blockStateMeta)) {
@@ -99,7 +81,6 @@ public class SellGuiManager {
         player.openInventory(gui);
     }
 
-
     private void renderNormalState(Inventory gui) {
         ItemStack filler = createFiller();
         for (int i = SellHolder.ITEM_SLOTS.length; i < SellHolder.SIZE; i++) {
@@ -113,7 +94,7 @@ public class SellGuiManager {
     }
 
     private ItemStack createConfirmButton(Inventory gui) {
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
         double total = 0.0;
         int itemCount = 0;
         boolean hasUnsellable = false;
@@ -156,11 +137,9 @@ public class SellGuiManager {
         return item;
     }
 
-
     public void refreshConfirmButton(Inventory gui) {
         gui.setItem(SellHolder.SELL_SLOT, createConfirmButton(gui));
     }
-
 
     public void askConfirmation(Player player, Inventory gui, SellHolder holder) {
         List<ItemStack> snapshot = new ArrayList<>();
@@ -181,17 +160,16 @@ public class SellGuiManager {
         }
 
         if (snapshot.isEmpty()) {
-            Messages.send(player, "server.sell-gui-no-sellable-items", java.util.Map.of(), false);
+            Messages.send(player, "economy.sell.gui-no-sellable-items", java.util.Map.of(), false);
             return;
         }
 
         holder.setPendingItems(snapshot);
         holder.setConfirming(true);
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
         ItemStack filler = createFiller();
 
-        // On masque les objets (mis de côté dans pendingItems) et le remplissage.
         for (int slot : SellHolder.ITEM_SLOTS) {
             gui.setItem(slot, filler);
         }
@@ -214,10 +192,6 @@ public class SellGuiManager {
         gui.setItem(SellHolder.CANCEL_CONFIRM_SLOT, cancelButton);
     }
 
-    /**
-     * Le joueur a annulé la confirmation : on rend leurs emplacements aux objets
-     * mis de côté et on revient à l'état normal de la GUI.
-     */
     public void cancelConfirmation(Inventory gui, SellHolder holder) {
         List<ItemStack> pending = holder.getPendingItems();
         holder.setConfirming(false);
@@ -241,10 +215,6 @@ public class SellGuiManager {
         renderNormalState(gui);
     }
 
-    /**
-     * Étape 2 : le joueur a confirmé. On vend réellement les objets mis de côté
-     * lors de askConfirmation, puis on ferme la GUI.
-     */
     public void confirmSale(Player player, Inventory gui, SellHolder holder) {
         List<ItemStack> pending = holder.getPendingItems();
         holder.setConfirming(false);
@@ -257,13 +227,12 @@ public class SellGuiManager {
 
         double total = 0.0;
         int itemsSold = 0;
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         for (ItemStack stack : pending) {
             double unitPrice = getSellPrice(stack);
             if (unitPrice <= 0) {
-                // Ne devrait pas arriver (déjà filtré au moment du snapshot), mais on
-                // rend l'objet au joueur par sécurité s'il n'est pas vendable.
+
                 returnSingleItem(player, stack);
                 continue;
             }
@@ -273,9 +242,9 @@ public class SellGuiManager {
 
         if (itemsSold > 0) {
             economyManager.deposit(player.getUniqueId(), total);
-            Messages.send(player, "server.sell-gui-sold", java.util.Map.of("count", itemsSold, "amount", MoneyFormat.format(total) + currency), false);
+            Messages.send(player, "economy.sell.gui-sold", java.util.Map.of("count", itemsSold, "amount", MoneyFormat.format(total) + currency), false);
         } else {
-            Messages.send(player, "server.sell-gui-no-sellable-items", java.util.Map.of(), false);
+            Messages.send(player, "economy.sell.gui-no-sellable-items", java.util.Map.of(), false);
         }
 
         for (int slot : SellHolder.ITEM_SLOTS) {
@@ -291,11 +260,6 @@ public class SellGuiManager {
         }
     }
 
-    /**
-     * Rend au joueur les objets restants dans la GUI (appelé à la fermeture de l'inventaire).
-     * Si le joueur ferme la GUI pendant l'étape de confirmation, on lui rend les objets
-     * mis de côté (pendingItems) plutôt que le contenu visuel (masqué par des vitres).
-     */
     public void returnItems(Player player, Inventory gui, SellHolder holder) {
         if (holder.isConfirming() && holder.getPendingItems() != null) {
             for (ItemStack stack : holder.getPendingItems()) {

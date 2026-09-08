@@ -66,9 +66,6 @@ duel:
 
 claims:
 
-  # Objets que les joueurs non autorisés peuvent quand même retirer des conteneurs
-  # dans les claims lorsque la règle CONTAINERS leur est interdite.
-  # Utiliser les noms Bukkit/Material de Minecraft.
   stealable-items:
     - MACE
     - DRAGON_EGG
@@ -105,19 +102,15 @@ roles:
     permission: "crew.role.player"
 
 web:
-  # Active/désactive le dashboard web admin (lecture seule) embarqué dans le plugin.
+
   enabled: true
-  # Port d'écoute du dashboard (http://<ip-du-serveur>:<port>).
+
   port: 48961
-  # Adresse d'écoute : "0.0.0.0" = accessible depuis tout le réseau local (recommandé
-  # uniquement si ton serveur n'est pas exposé directement sur internet), "127.0.0.1"
-  # = accessible uniquement depuis la machine qui héberge le serveur.
+
   bind-address: "0.0.0.0"
 
-
 pets:
-  # Item ItemsAdder (n'importe lequel) qui, au clic droit, téléporte le pet actif
-  # du joueur à ses côtés et lui retire sa cible actuelle.
+
   recall-item-id: "server:pet_recall_charm"
 
   list:
@@ -127,11 +120,9 @@ pets:
       slot: 0
 
 fisherman:
-  # ID du NPC Citizens sur lequel il faut clic-droit pour ouvrir la GUI du pêcheur.
+
   npc-id: 4
 
-  # Prix de vente AU pêcheur (plus élevés qu'au /sell classique du NPC 0).
-  # Seuls les matériaux listés ici sont vendables dans cette GUI.
   sell-prices:
     COD: 10
     SALMON: 10
@@ -140,7 +131,6 @@ fisherman:
     PUFFERFISH: 30
     FISHING_ROD: 50
 
-  # Prix d'achat AU pêcheur (catalogue fixe de 5 objets).
   buy-prices:
     cooked-cod: 20
     cooked-salmon: 20

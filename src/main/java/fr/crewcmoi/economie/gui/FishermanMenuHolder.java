@@ -3,10 +3,6 @@ package fr.crewcmoi.economie.gui;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
-/**
- * GUI affichée au clic droit sur le NPC pêcheur : deux boutons, "Vendre" et
- * "Acheter", menant respectivement vers FishermanSellHolder et FishermanBuyHolder.
- */
 public class FishermanMenuHolder implements InventoryHolder {
 
     public static final int SIZE = 27;

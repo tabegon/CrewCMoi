@@ -6,9 +6,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-/**
- * Applique le rôle du joueur (préfixe + tri dans le tab) dès sa connexion.
- */
 public class TabListListener implements Listener {
 
     private final TabListManager tabListManager;

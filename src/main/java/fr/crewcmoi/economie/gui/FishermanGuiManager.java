@@ -1,4 +1,5 @@
 package fr.crewcmoi.economie.gui;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.managers.EconomyManager;
@@ -19,22 +20,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Gère la GUI du NPC pêcheur (clic droit sur le NPC configuré via
- * "fisherman.npc-id") : un menu avec deux boutons "Vendre"/"Acheter".
- * <p>
- * - Vendre : uniquement du poisson (brut/cuit/pufferfish) et des cannes à
- *   pêche, à des prix plus élevés qu'au /sell classique (voir
- *   "fisherman.sell-prices" dans config.yml).
- * - Acheter : un catalogue fixe de 5 objets (voir {@link #BUY_OFFERS}), prix
- *   configurables dans "fisherman.buy-prices".
- */
 public class FishermanGuiManager {
 
-    /**
-     * Une offre du catalogue d'achat : matériau, enchantement optionnel (pour
-     * la canne à pêche Chance des Flots 1) et clé de config pour le prix.
-     */
     private record BuyOffer(String id, String displayName, Material material,
                              Enchantment enchantment, int enchantLevel, String priceConfigKey, double defaultPrice) {
     }
@@ -83,12 +70,10 @@ public class FishermanGuiManager {
     }
 
     private String currency() {
-        return plugin.getConfig().getString("economy.currency-symbol", "§f");
+        return plugin.getConfig().getString("economy.currency-symbol");
     }
 
-    // -------------------------------------------------------------------
-    // Menu principal
-    // -------------------------------------------------------------------
+    
 
     public void openMenu(Player player) {
         FishermanMenuHolder holder = new FishermanMenuHolder();
@@ -128,14 +113,10 @@ public class FishermanGuiManager {
         return item;
     }
 
-    // -------------------------------------------------------------------
-    // Vente (poisson + cannes à pêche uniquement)
-    // -------------------------------------------------------------------
+    
 
-    /**
-     * Prix de vente unitaire au pêcheur, ou -1 si l'objet n'est pas accepté ici
-     * (seuls le poisson et les cannes à pêche le sont, voir "fisherman.sell-prices").
-     */
+    
+
     private double getSellPrice(ItemStack stack) {
         return sellPrices.getOrDefault(stack.getType(), -1.0);
     }
@@ -340,9 +321,7 @@ public class FishermanGuiManager {
         }
     }
 
-    // -------------------------------------------------------------------
-    // Achat (catalogue fixe)
-    // -------------------------------------------------------------------
+    
 
     public void openBuy(Player player) {
         FishermanBuyHolder holder = new FishermanBuyHolder();
@@ -390,10 +369,6 @@ public class FishermanGuiManager {
         return item;
     }
 
-    /**
-     * Achète 1 exemplaire de l'offre donnée : vérifie le solde, débite, puis
-     * donne l'objet (fait tomber au sol le surplus si l'inventaire est plein).
-     */
     public void purchase(Player player, String offerId) {
         BuyOffer offer = BUY_OFFERS.stream().filter(o -> o.id().equals(offerId)).findFirst().orElse(null);
         if (offer == null) {
@@ -402,12 +377,12 @@ public class FishermanGuiManager {
 
         double price = getBuyPrice(offer);
         if (!economyManager.has(player.getUniqueId(), price)) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cTu n'as pas assez d'argent pour acheter ça."));
+            Messages.send(player, "economy.fisherman.not-enough-money");
             return;
         }
 
         if (!economyManager.withdraw(player.getUniqueId(), price)) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cTu n'as pas assez d'argent pour acheter ça."));
+            Messages.send(player, "economy.fisherman.not-enough-money");
             return;
         }
 

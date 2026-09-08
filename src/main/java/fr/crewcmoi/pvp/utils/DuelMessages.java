@@ -10,10 +10,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
-/**
- * Utilitaire pour l'envoi du message de demande de duel reçue, avec les boutons
- * [Accepter] / [Refuser] cliquables (exécutent /duelaccept et /duelaccept deny).
- */
 public final class DuelMessages {
 
     private DuelMessages() {
@@ -21,14 +17,13 @@ public final class DuelMessages {
 
     public static void sendRequestReceived(Main plugin, Player target, Player requester,
                                             boolean keepInventory, String betText, boolean dropHead, String kitName, double kitPrice) {
-        String rawMessage = plugin.getMessages().getString("prefix", "") +
-                plugin.getMessages().getString("duel.received", "&e{player}&a vous provoque en duel !")
+        String rawMessage = plugin.getMessages().getString("prefix") +
+                plugin.getMessages().getString("duel.received")
                         .replace("{player}", requester.getName());
         target.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(rawMessage));
 
-        String rulesRaw = plugin.getMessages().getString("prefix", "") +
-                plugin.getMessages().getString("duel.received-rules",
-                                "&7Keepinventory : {keepinventory} &7| Mise : {bet} &7| Tête : {drophead} &7| Kit : {kit} &7({kitprice})")
+        String rulesRaw = plugin.getMessages().getString("prefix") +
+                plugin.getMessages().getString("duel.received-rules")
                         .replace("{keepinventory}", keepInventory ? "&aoui" : "&cnon")
                         .replace("{bet}", "&e" + betText)
                         .replace("{drophead}", dropHead ? "&aoui" : "&cnon")
@@ -36,19 +31,19 @@ public final class DuelMessages {
                         .replace("{kitprice}", kitName == null ? "0" : MoneyFormat.format(kitPrice));
         target.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(rulesRaw));
 
-        String acceptRaw = plugin.getMessages().getString("duel.accept-button", "&a&l[Accepter]");
+        String acceptRaw = plugin.getMessages().getString("duel.accept-button");
         Component acceptButton = LegacyComponentSerializer.legacyAmpersand().deserialize(acceptRaw)
                 .decoration(TextDecoration.BOLD, true)
                 .clickEvent(ClickEvent.runCommand("/duelaccept"))
                 .hoverEvent(HoverEvent.showText(LegacyComponentSerializer.legacyAmpersand().deserialize(
-                        plugin.getMessages().getString("duel.accept-hover", "Cliquez pour accepter"))));
+                        plugin.getMessages().getString("duel.accept-hover"))));
 
-        String denyRaw = plugin.getMessages().getString("duel.deny-button", "&c&l[Refuser]");
+        String denyRaw = plugin.getMessages().getString("duel.deny-button");
         Component denyButton = LegacyComponentSerializer.legacyAmpersand().deserialize(denyRaw)
                 .decoration(TextDecoration.BOLD, true)
                 .clickEvent(ClickEvent.runCommand("/duelaccept deny"))
                 .hoverEvent(HoverEvent.showText(LegacyComponentSerializer.legacyAmpersand().deserialize(
-                        plugin.getMessages().getString("duel.deny-hover", "Cliquez pour refuser"))));
+                        plugin.getMessages().getString("duel.deny-hover"))));
 
         target.sendMessage(acceptButton.append(Component.text("   ")).append(denyButton));
     }

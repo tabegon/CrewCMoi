@@ -1,4 +1,4 @@
-package fr.crewcmoi.pvp.gui;
+package fr.crewcmoi.claims.gui;
 
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -6,21 +6,17 @@ import org.bukkit.inventory.InventoryHolder;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BountyReviewHolder implements InventoryHolder {
+public class ClaimAdminHolder implements InventoryHolder {
 
     public static final int SIZE = 54;
-    public static final int ITEMS_PER_PAGE = 45; 
+    public static final int ITEMS_PER_PAGE = 45;
     public static final int PREV_PAGE_SLOT = 45;
-    public static final int NEXT_PAGE_SLOT = 53;
     public static final int INFO_SLOT = 49;
+    public static final int NEXT_PAGE_SLOT = 53;
 
     private Inventory inventory;
     private int page;
-    private final Map<Integer, Integer> slotToEntryId = new HashMap<>();
-
-    public static boolean isEntrySlot(int slot) {
-        return slot >= 0 && slot < ITEMS_PER_PAGE;
-    }
+    private final Map<Integer, String> slotToClaimKey = new HashMap<>();
 
     @Override
     public Inventory getInventory() {
@@ -39,15 +35,15 @@ public class BountyReviewHolder implements InventoryHolder {
         this.page = page;
     }
 
-    public void mapSlot(int slot, int entryId) {
-        slotToEntryId.put(slot, entryId);
+    public void mapSlot(int slot, String world, int chunkX, int chunkZ) {
+        slotToClaimKey.put(slot, world + ";" + chunkX + ";" + chunkZ);
     }
 
     public void clearMapping() {
-        slotToEntryId.clear();
+        slotToClaimKey.clear();
     }
 
-    public Integer getEntryId(int slot) {
-        return slotToEntryId.get(slot);
+    public String getClaimKey(int slot) {
+        return slotToClaimKey.get(slot);
     }
 }

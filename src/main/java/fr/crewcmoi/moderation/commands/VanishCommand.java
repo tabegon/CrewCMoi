@@ -9,11 +9,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-/**
- * /vanish : bascule le vanish (voir VanishManager) — invisibilité totale,
- * armure comprise, et disparition du tab, comme si le joueur n'était plus
- * connecté. Réservé au mode staff (/staff) : inutilisable en dehors.
- */
 public class VanishCommand implements CommandExecutor {
 
     private final StaffModeManager staffModeManager;
@@ -27,20 +22,20 @@ public class VanishCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            Messages.send(sender, "server.vanish-f9476f5");
+            Messages.send(sender, "moderation.vanish.player-only");
             return true;
         }
 
         if (!staffModeManager.isActive(player.getUniqueId())) {
-            Messages.send(player, "server.vanish-1b9ce3e");
+            Messages.send(player, "moderation.vanish.staff-required");
             return true;
         }
 
         boolean nowVanished = vanishManager.toggle(player);
         if (nowVanished) {
-            Messages.send(player, "server.vanish-39e9b4b");
+            Messages.send(player, "moderation.vanish.enabled");
         } else {
-            Messages.send(player, "server.vanish-c8ea56d");
+            Messages.send(player, "moderation.vanish.disabled");
         }
         return true;
     }

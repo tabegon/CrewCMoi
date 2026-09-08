@@ -23,23 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Commande /claim : gère le système de claims de chunks.
- * - /claim : réclame le chunk sur lequel se trouve le joueur.
- * - /claim unclaim : retire le claim du chunk actuel (si le joueur en est le propriétaire).
- * - /claim trust <joueur> : autorise un joueur à construire/détruire sur le claim actuel.
- * - /claim untrust <joueur> : retire cette autorisation.
- * - /claim info : affiche des informations sur le chunk actuel.
- * - /claim settings (ou /claims settings) : ouvre la GUI de configuration des règles du claim.
- * - /claim see : affiche par particules les claims aux alentours (vert = à vous, jaune =
- *   confiance, rouge = autres joueurs) pendant quelques secondes.
- * - /claim shop : ouvre la boutique pour acheter des claims supplémentaires.
- * - /claim sell <prix> : met en vente le claim actuel pour le prix donné (/claim sell cancel
- *   pour annuler la mise en vente).
- * - /claim buy : achète le claim actuel, s'il est mis en vente par son propriétaire.
- * - /claim ah : ouvre l'hôtel des ventes listant tous les claims à vendre sur le serveur,
- *   achetables directement depuis la GUI sans avoir besoin de s'y rendre.
- */
 public class ClaimCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
@@ -63,7 +46,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            Messages.send(sender, "server.claim-8660550");
+            Messages.send(sender, "claims.command.player-only");
             return true;
         }
 
@@ -80,14 +63,14 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 break;
             case "trust":
                 if (args.length < 2) {
-                    Messages.send(player, "server.claim-e901053");
+                    Messages.send(player, "claims.command.trust-usage");
                     return true;
                 }
                 handleTrust(player, args[1], true);
                 break;
             case "untrust":
                 if (args.length < 2) {
-                    Messages.send(player, "server.claim-5981061");
+                    Messages.send(player, "claims.command.untrust-usage");
                     return true;
                 }
                 handleTrust(player, args[1], false);
@@ -114,7 +97,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 claimAuctionGuiManager.open(player, 0);
                 break;
             default:
-                Messages.send(player, "server.claim-24c7631");
+                Messages.send(player, "claims.command.usage");
                 break;
         }
 
@@ -125,17 +108,17 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         ClaimManager.ClaimResult result = claimManager.claim(player);
         switch (result) {
             case SUCCESS:
-                sendMessage(player, "claim.success", "&aVous avez claim ce chunk. Personne d'autre ne peut y construire ou détruire.");
+                sendMessage(player, "claim.success");
                 break;
             case ALREADY_CLAIMED:
-                sendMessage(player, "claim.already-claimed", "&cCe chunk est déjà claim.");
+                sendMessage(player, "claim.already-claimed");
                 break;
             case LIMIT_REACHED:
                 String def = "&cVous avez atteint votre nombre maximum de claims (&e{max}&c). Utilisez /claim shop pour en acheter davantage.";
                 String message = plugin.getMessages().getString("claim.limit-reached", def)
                         .replace("{max}", String.valueOf(claimManager.getMaxClaims(player)));
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        plugin.getMessages().getString("prefix", "") + message));
+                        plugin.getMessages().getString("prefix") + message));
                 break;
         }
     }
@@ -144,16 +127,16 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         ClaimManager.UnclaimResult result = claimManager.unclaim(player);
         switch (result) {
             case SUCCESS:
-                sendMessage(player, "claim.unclaim-success", "&aLe claim de ce chunk a été supprimé.");
+                sendMessage(player, "claim.unclaim-success");
                 break;
             case NOT_CLAIMED:
-                sendMessage(player, "claim.not-claimed", "&cCe chunk n'est pas claim.");
+                sendMessage(player, "claim.not-claimed");
                 break;
             case NOT_OWNER:
-                sendMessage(player, "claim.not-owner", "&cVous n'êtes pas le propriétaire de ce claim.");
+                sendMessage(player, "claim.not-owner");
                 break;
             case ERROR:
-                sendMessage(player, "claim.unclaim-error", "&cUne erreur est survenue, le claim n'a pas été supprimé. Réessayez.");
+                sendMessage(player, "claim.unclaim-error");
                 break;
         }
     }
@@ -162,7 +145,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         @SuppressWarnings("deprecation")
         OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
         if (target == null || (target.getName() == null && !target.hasPlayedBefore())) {
-            sendMessage(player, "claim.player-not-found", "&cJoueur introuvable.");
+            sendMessage(player, "claim.player-not-found");
             return;
         }
 
@@ -177,13 +160,13 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         : "&a{player} ne peut plus construire sur ce claim.";
                 String message = plugin.getMessages().getString(key, def).replace("{player}", targetName);
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        plugin.getMessages().getString("prefix", "") + message));
+                        plugin.getMessages().getString("prefix") + message));
                 break;
             case NOT_CLAIMED:
-                sendMessage(player, "claim.not-claimed", "&cCe chunk n'est pas claim.");
+                sendMessage(player, "claim.not-claimed");
                 break;
             case NOT_OWNER:
-                sendMessage(player, "claim.not-owner", "&cVous n'êtes pas le propriétaire de ce claim.");
+                sendMessage(player, "claim.not-owner");
                 break;
         }
     }
@@ -192,15 +175,15 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         var chunk = player.getLocation().getChunk();
         ClaimData claim = claimManager.getClaimResynced(chunk);
         if (claim == null) {
-            sendMessage(player, "claim.not-claimed", "&cCe chunk n'est pas claim.");
+            sendMessage(player, "claim.not-claimed");
             return;
         }
-        Messages.send(player, "server.claim-info-owner", java.util.Map.of("owner", claim.getOwnerName()), false);
+        Messages.send(player, "claims.command.info-owner", java.util.Map.of("owner", claim.getOwnerName()), false);
         if (!claim.getTrusted().isEmpty()) {
-            Messages.send(player, "server.claim-info-trusted", java.util.Map.of("count", claim.getTrusted().size()), false);
+            Messages.send(player, "claims.command.info-trusted", java.util.Map.of("count", claim.getTrusted().size()), false);
         }
         if (claim.isForSale()) {
-            Messages.send(player, "server.claim-info-for-sale", java.util.Map.of("price", MoneyFormat.format(claim.getSalePrice())), false);
+            Messages.send(player, "claims.command.info-for-sale", java.util.Map.of("price", MoneyFormat.format(claim.getSalePrice())), false);
         }
     }
 
@@ -208,11 +191,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         var chunk = player.getLocation().getChunk();
         ClaimData claim = claimManager.getClaimResynced(chunk);
         if (claim == null) {
-            sendMessage(player, "claim.not-claimed", "&cCe chunk n'est pas claim.");
+            sendMessage(player, "claim.not-claimed");
             return;
         }
         if (!claim.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("crew.claim.admin")) {
-            sendMessage(player, "claim.not-owner", "&cVous n'êtes pas le propriétaire de ce claim.");
+            sendMessage(player, "claim.not-owner");
             return;
         }
         claimSettingsGuiManager.open(player, chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
@@ -221,15 +204,15 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     private void handleSee(Player player) {
         boolean nowActive = claimVisualizer.toggle(player);
         if (nowActive) {
-            sendMessage(player, "claim.see-enabled", "&aAffichage des claims aux alentours activé.");
+            sendMessage(player, "claim.see-enabled");
         } else {
-            sendMessage(player, "claim.see-disabled", "&7Affichage des claims aux alentours désactivé.");
+            sendMessage(player, "claim.see-disabled");
         }
     }
 
     private void handleSell(Player player, String[] args) {
         if (args.length < 2) {
-            Messages.send(player, "server.claim-d3a8a6c");
+            Messages.send(player, "claims.command.sell-usage");
             return;
         }
 
@@ -237,16 +220,16 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             ClaimManager.SellResult result = claimManager.cancelSale(player);
             switch (result) {
                 case SUCCESS:
-                    sendMessage(player, "claim.sale-cancelled", "&aCe claim n'est plus en vente.");
+                    sendMessage(player, "claim.sale-cancelled");
                     break;
                 case NOT_CLAIMED:
-                    sendMessage(player, "claim.not-claimed", "&cCe chunk n'est pas claim.");
+                    sendMessage(player, "claim.not-claimed");
                     break;
                 case NOT_OWNER:
-                    sendMessage(player, "claim.not-owner", "&cVous n'êtes pas le propriétaire de ce claim.");
+                    sendMessage(player, "claim.not-owner");
                     break;
                 case NOT_FOR_SALE:
-                    sendMessage(player, "claim.not-for-sale", "&cCe claim n'est pas en vente.");
+                    sendMessage(player, "claim.not-for-sale");
                     break;
                 default:
                     break;
@@ -258,7 +241,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         try {
             price = MoneyFormat.parse(args[1]);
         } catch (NumberFormatException e) {
-            Messages.send(player, "server.claim-d3a8a6cx");
+            Messages.send(player, "claims.command.sell-usagex");
             return;
         }
 
@@ -269,16 +252,16 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 String message = plugin.getMessages().getString("claim.sale-started", def)
                         .replace("{price}", MoneyFormat.format(price));
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        plugin.getMessages().getString("prefix", "") + message));
+                        plugin.getMessages().getString("prefix") + message));
                 break;
             case INVALID_PRICE:
-                sendMessage(player, "claim.invalid-price", "&cLe prix doit être un nombre positif.");
+                sendMessage(player, "claim.invalid-price");
                 break;
             case NOT_CLAIMED:
-                sendMessage(player, "claim.not-claimed", "&cCe chunk n'est pas claim.");
+                sendMessage(player, "claim.not-claimed");
                 break;
             case NOT_OWNER:
-                sendMessage(player, "claim.not-owner", "&cVous n'êtes pas le propriétaire de ce claim.");
+                sendMessage(player, "claim.not-owner");
                 break;
             default:
                 break;
@@ -289,42 +272,35 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         ClaimManager.BuyResult result = claimManager.buyClaim(player);
         switch (result) {
             case SUCCESS:
-                sendMessage(player, "claim.buy-success", "&aVous avez acheté ce claim.");
+                sendMessage(player, "claim.buy-success");
                 break;
             case NOT_CLAIMED:
-                sendMessage(player, "claim.not-claimed", "&cCe chunk n'est pas claim.");
+                sendMessage(player, "claim.not-claimed");
                 break;
             case NOT_FOR_SALE:
-                sendMessage(player, "claim.not-for-sale", "&cCe claim n'est pas en vente.");
+                sendMessage(player, "claim.not-for-sale");
                 break;
             case OWN_CLAIM:
-                sendMessage(player, "claim.own-claim", "&cVous êtes déjà le propriétaire de ce claim.");
+                sendMessage(player, "claim.own-claim");
                 break;
             case NOT_ENOUGH_MONEY:
-                sendMessage(player, "claim.not-enough-money", "&cVous n'avez pas assez d'argent pour acheter ce claim.");
+                sendMessage(player, "claim.not-enough-money");
                 break;
             case LIMIT_REACHED:
-                String def = "&cVous avez atteint votre nombre maximum de claims (&e{max}&c).";
-                String message = plugin.getMessages().getString("claim.limit-reached-buy", def)
+                String message = plugin.getMessages().getString("claim.limit-reached-buy")
                         .replace("{max}", String.valueOf(claimManager.getMaxClaims(player)));
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        plugin.getMessages().getString("prefix", "") + message));
+                        plugin.getMessages().getString("prefix") + message));
                 break;
         }
     }
 
-    private void sendMessage(Player player, String key, String def) {
+    private void sendMessage(Player player, String key) {
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                plugin.getMessages().getString("prefix", "") + plugin.getMessages().getString(key, def)));
+                plugin.getMessages().getString("prefix") + plugin.getMessages().getString(key)));
         maybeHintNearbyOwnClaim(player, key);
     }
 
-    /**
-     * Après un message "ce chunk n'est pas claim", si le joueur possède en réalité un claim
-     * juste à côté (cas fréquent : il a claim un chunk puis a un peu bougé avant de taper la
-     * commande suivante), on l'aide à comprendre pourquoi au lieu de le laisser penser que
-     * son claim a disparu.
-     */
     private void maybeHintNearbyOwnClaim(Player player, String key) {
         if (!"claim.not-claimed".equals(key)) {
             return;
@@ -333,13 +309,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         boolean ownsAdjacent = nearby.stream().anyMatch(c -> c.getOwnerUuid().equals(player.getUniqueId()));
         if (ownsAdjacent) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&7Vous possédez un claim juste à côté : vous n'êtes plus exactement dessus. " +
-                            "Faites /claim see pour voir ses limites et repositionnez-vous."));
+                    plugin.getMessages().getString("claim.nearby-own-claim-hint")));
         }
-    }
-
-    private void sendMessage(Player player, String rawMessage) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', rawMessage));
     }
 
     @Override

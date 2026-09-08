@@ -9,11 +9,6 @@ import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffectType;
 
-/**
- * Masque le pseudo (nametag) d'un joueur pour tout le monde tant qu'il a l'effet
- * d'invisibilité (potion) actif, et le réaffiche dès que l'effet se termine
- * (expiration, lait, /effect clear, mort, etc.).
- */
 public class InvisibilityListener implements Listener {
 
     private final InvisibilityManager invisibilityManager;
@@ -40,8 +35,7 @@ public class InvisibilityListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        // Nettoyage par sécurité : on évite qu'un joueur reste dans la team "nametag
-        // caché" après sa déconnexion (par exemple s'il se déconnecte pendant l'effet).
+
         invisibilityManager.showNameTag(event.getPlayer());
     }
 }

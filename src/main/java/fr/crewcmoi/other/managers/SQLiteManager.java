@@ -25,10 +25,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-/**
- * Implémentation SQLite du DatabaseManager.
- * Stocke les données dans un fichier data.db à la racine du dossier du plugin.
- */
 public class SQLiteManager implements DatabaseManager {
 
     private final Main plugin;
@@ -174,33 +170,29 @@ public class SQLiteManager implements DatabaseManager {
             statement.execute(homesSql);
             statement.execute(claimsSql);
             statement.execute(claimBonusSql);
-            // Migration : ajoute la colonne "flags" si la table "claims" existait déjà
-            // depuis une version antérieure du plugin (avant le système de règles).
+
             try {
                 statement.execute("ALTER TABLE claims ADD COLUMN flags TEXT NOT NULL DEFAULT '';");
             } catch (SQLException ignored) {
-                // La colonne existe déjà, rien à faire.
+                
             }
-            // Migration : ajoute la colonne "sale_price" si la table "claims" existait déjà
-            // depuis une version antérieure du plugin (avant /claim sell et /claim buy).
+
             try {
                 statement.execute("ALTER TABLE claims ADD COLUMN sale_price REAL NOT NULL DEFAULT -1;");
             } catch (SQLException ignored) {
-                // La colonne existe déjà, rien à faire.
+                
             }
-            // Migration : ajoute la colonne "reason" si la table "bounties" existait déjà
-            // depuis une version antérieure du plugin (avant /bounty add <joueur> <montant> <raison>).
+
             try {
                 statement.execute("ALTER TABLE bounties ADD COLUMN reason TEXT;");
             } catch (SQLException ignored) {
-                // La colonne existe déjà, rien à faire.
+                
             }
-            // Migration : ajoute la colonne "approved" (défaut 1 = valide) si la table
-            // "bounties" existait déjà, depuis avant le système de validation /bounty review.
+
             try {
                 statement.execute("ALTER TABLE bounties ADD COLUMN approved INTEGER NOT NULL DEFAULT 1;");
             } catch (SQLException ignored) {
-                // La colonne existe déjà, rien à faire.
+                
             }
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création des tables team/bounty.", e);
@@ -211,7 +203,7 @@ public class SQLiteManager implements DatabaseManager {
     public PlayerData loadOrCreatePlayer(UUID uuid, String name) {
         PlayerData existing = getPlayer(uuid);
         if (existing != null) {
-            // Met à jour le pseudo si celui-ci a changé
+            
             if (!existing.getName().equals(name)) {
                 existing.setName(name);
                 savePlayer(existing);
@@ -432,8 +424,6 @@ public class SQLiteManager implements DatabaseManager {
         }
     }
 
-    // ===================== TEAMS =====================
-
     @Override
     public int createTeam(String name, UUID ownerUuid, String ownerName) {
         String sql = "INSERT INTO teams (name, owner_uuid) VALUES (?, ?);";
@@ -559,14 +549,11 @@ public class SQLiteManager implements DatabaseManager {
         }
     }
 
-    // ===================== BOUNTIES =====================
-
     @Override
     public void addBounty(UUID targetUuid, String targetName, UUID contributorUuid, String contributorName, double amount, String reason) {
-        // Une prime avec une raison fournie par un joueur doit être validée par un admin
-        // (/bounty review) avant de compter comme "légitime" (voir BountyManager#claimBounty) :
-        // elle démarre donc non-approuvée. Une prime sans raison (ou attribuée par le serveur,
-        // contributorUuid == null) reste valide immédiatement, comme avant ce système.
+
+        
+        
         boolean needsReview = contributorUuid != null && reason != null && !reason.isBlank();
         String sql = "INSERT INTO bounties (target_uuid, target_name, contributor_uuid, contributor_name, amount, created_at, reason, approved) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -697,8 +684,7 @@ public class SQLiteManager implements DatabaseManager {
 
     @Override
     public void clearPlayerBounties(UUID targetUuid) {
-        // On conserve les lignes où contributor_uuid EST NULL : ce sont les contributions
-        // attribuées par le serveur, qui doivent persister à travers la mort du joueur.
+
         String sql = "DELETE FROM bounties WHERE target_uuid = ? AND contributor_uuid IS NOT NULL;";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, targetUuid.toString());
@@ -785,8 +771,6 @@ public class SQLiteManager implements DatabaseManager {
         return null;
     }
 
-    // ===================== CLAIMS =====================
-
     @Override
     public boolean createClaim(String world, int chunkX, int chunkZ, UUID ownerUuid, String ownerName) {
         if (getClaim(world, chunkX, chunkZ) != null) {
@@ -815,12 +799,10 @@ public class SQLiteManager implements DatabaseManager {
             ps.setString(1, world);
             ps.setInt(2, chunkX);
             ps.setInt(3, chunkZ);
-            // On vérifie le nombre de lignes réellement supprimées : si 0, la ligne n'existait
-            // déjà plus (rien à faire, ce n'est pas une erreur) ou la suppression n'a pas eu
-            // l'effet attendu. Dans les deux cas, l'appelant doit pouvoir le distinguer d'un
-            // vrai succès pour éviter que le cache mémoire ne se désynchronise de la base
-            // (symptôme observé : un chunk "unclaim" redevient éternellement impossible à
-            // re-claim, car il reste en réalité toujours présent en base).
+
+            
+
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la suppression du claim.", e);
@@ -959,7 +941,7 @@ public class SQLiteManager implements DatabaseManager {
             try {
                 flags.put(ClaimFlag.valueOf(kv[0]), ClaimPermission.valueOf(kv[1]));
             } catch (IllegalArgumentException ignored) {
-                // Valeur inconnue (ex: ancienne version), on garde la valeur par défaut.
+                
             }
         }
         return flags;

@@ -11,10 +11,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Construit une GUI générique de confirmation (oui/non), utilisée avant un
- * achat via /ah ou une vente via /sell afin d'éviter les clics accidentels.
- */
 public class ConfirmationGuiManager {
 
     public void open(Player player, String title, ItemStack infoItem, List<String> extraLore,

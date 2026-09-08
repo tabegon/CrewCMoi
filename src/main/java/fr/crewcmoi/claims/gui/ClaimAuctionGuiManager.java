@@ -17,13 +17,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Construit et rafraîchit la GUI /claim ah (hôtel des ventes des claims, dans le style
- * d'un hôtel des ventes d'objets) : liste tous les claims actuellement mis en vente par
- * leurs propriétaires (toutes coordonnées confondues), avec le monde, les coordonnées
- * du chunk et le prix. Un clic achète directement le claim, sans avoir besoin de s'y
- * rendre au préalable.
- */
 public class ClaimAuctionGuiManager {
 
     private final Main plugin;
@@ -64,7 +57,7 @@ public class ClaimAuctionGuiManager {
         int start = page * ClaimAuctionHolder.ITEMS_PER_PAGE;
         int end = Math.min(start + ClaimAuctionHolder.ITEMS_PER_PAGE, forSale.size());
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         for (int i = start; i < end; i++) {
             ClaimData claim = forSale.get(i);

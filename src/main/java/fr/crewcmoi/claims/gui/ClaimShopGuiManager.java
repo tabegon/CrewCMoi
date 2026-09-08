@@ -14,10 +14,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Construit et rafraîchit la GUI /claim shop : permet d'acheter des claims supplémentaires
- * en plus du quota gratuit, contre de l'argent (économie du serveur).
- */
 public class ClaimShopGuiManager {
 
     private final Main plugin;
@@ -43,7 +39,7 @@ public class ClaimShopGuiManager {
             gui.setItem(i, null);
         }
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
         int base = plugin.getConfig().getInt("claims.max-per-player", 0);
         int extra = claimManager.getExtraClaims(player.getUniqueId());
         int maxExtra = plugin.getConfig().getInt("claims.shop.max-extra", 10);

@@ -12,9 +12,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-/**
- * Commande /home : téléporte le joueur à son home précédemment défini via /sethome.
- */
 public class HomeCommand implements CommandExecutor {
 
     private final Main plugin;
@@ -28,7 +25,7 @@ public class HomeCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            Messages.send(sender, "server.home-8660550");
+            Messages.send(sender, "teleport.home.player-only");
             return true;
         }
 
@@ -37,16 +34,16 @@ public class HomeCommand implements CommandExecutor {
         homeManager.getHome(player, home -> {
             if (home == null) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        plugin.getMessages().getString("prefix", "") +
-                                plugin.getMessages().getString("home.no-home", "&cVous n'avez pas encore défini de home. Utilisez /sethome.")));
+                        plugin.getMessages().getString("prefix") +
+                                plugin.getMessages().getString("home.no-home")));
                 return;
             }
 
             World world = Bukkit.getWorld(home.getWorld());
             if (world == null) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        plugin.getMessages().getString("prefix", "") +
-                                plugin.getMessages().getString("home.world-missing", "&cLe monde de votre home est introuvable.")));
+                        plugin.getMessages().getString("prefix") +
+                                plugin.getMessages().getString("home.world-missing")));
                 return;
             }
 
@@ -54,8 +51,8 @@ public class HomeCommand implements CommandExecutor {
             player.teleport(location);
 
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("home.teleported", "&aVous avez été téléporté à votre home.")));
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("home.teleported")));
         });
 
         return true;

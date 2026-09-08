@@ -18,14 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Commande /rank :
- *  - /rank                          : affiche votre propre rôle.
- *  - /rank <joueur>                 : affiche le rôle d'un autre joueur.
- *  - /rank list                     : liste tous les rôles disponibles (dans l'ordre du tab).
- *  - /rank set <joueur> <rôle>      : (admin) attribue manuellement un rôle à un joueur.
- *  - /rank clear <joueur>           : (admin) retire l'attribution manuelle (retombe sur les permissions).
- */
 public class RoleCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
@@ -42,44 +34,44 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
             if (!(sender instanceof Player)) {
-                Messages.send(sender, "server.role-5df79fb");
+                Messages.send(sender, "roles.command.player-usage");
                 return true;
             }
             Role role = roleManager.getRole((Player) sender);
-            Messages.send(sender, "server.role-current", java.util.Map.of("role", roleManager.getPrefix(role)), true);
+            Messages.send(sender, "roles.current", java.util.Map.of("role", roleManager.getPrefix(role)), true);
             return true;
         }
 
         if (args[0].equalsIgnoreCase("list")) {
-            Messages.send(sender, "server.role-c4be954");
+            Messages.send(sender, "roles.list.header");
             for (Role role : Role.values()) {
-                Messages.send(sender, "server.role-list-entry", java.util.Map.of("prefix", roleManager.getPrefix(role), "id", role.getId()), false);
+                Messages.send(sender, "roles.list-entry", java.util.Map.of("prefix", roleManager.getPrefix(role), "id", role.getId()), false);
             }
             return true;
         }
 
         if (args[0].equalsIgnoreCase("set")) {
             if (!sender.hasPermission("crew.rank.set")) {
-                Messages.send(sender, "server.role-855ea96");
+                Messages.send(sender, "roles.command.no-permission");
                 return true;
             }
             if (args.length < 3) {
-                Messages.send(sender, "server.role-usage-set", java.util.Map.of("roles", rolesIdsJoined()), true);
+                Messages.send(sender, "roles.usage-set", java.util.Map.of("roles", rolesIdsJoined()), true);
                 return true;
             }
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
             if (!target.hasPlayedBefore() && !target.isOnline()) {
-                Messages.send(sender, "server.role-ff26093");
+                Messages.send(sender, "general.player-not-found");
                 return true;
             }
             Role role = Role.fromId(args[2]);
             if (role == null) {
-                Messages.send(sender, "server.role-unknown", java.util.Map.of("roles", rolesIdsJoined()), true);
+                Messages.send(sender, "roles.unknown", java.util.Map.of("roles", rolesIdsJoined()), true);
                 return true;
             }
 
             roleManager.setRole(target.getUniqueId(), role);
-            Messages.send(sender, "server.role-set", java.util.Map.of("player", target.getName(), "role", roleManager.getPrefix(role)), true);
+            Messages.send(sender, "roles.set", java.util.Map.of("player", target.getName(), "role", roleManager.getPrefix(role)), true);
 
             if (target.isOnline()) {
                 tabListManager.applyRole((Player) target);
@@ -89,16 +81,16 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
 
         if (args[0].equalsIgnoreCase("clear")) {
             if (!sender.hasPermission("crew.rank.set")) {
-                Messages.send(sender, "server.role-855ea96x");
+                Messages.send(sender, "roles.command.no-permissionx");
                 return true;
             }
             if (args.length < 2) {
-                Messages.send(sender, "server.role-e5fcbd3");
+                Messages.send(sender, "roles.clear.usage");
                 return true;
             }
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
             roleManager.clearRole(target.getUniqueId());
-            Messages.send(sender, "server.role-cleared", java.util.Map.of("player", target.getName()), true);
+            Messages.send(sender, "roles.cleared", java.util.Map.of("player", target.getName()), true);
 
             if (target.isOnline()) {
                 tabListManager.applyRole((Player) target);
@@ -106,14 +98,13 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // /rank <joueur> : affiche le rôle d'un autre joueur
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
         if (!target.isOnline()) {
-            Messages.send(sender, "server.role-9143733");
+            Messages.send(sender, "roles.player-not-online");
             return true;
         }
         Role role = roleManager.getRole((Player) target);
-        Messages.send(sender, "server.role-player", java.util.Map.of("player", target.getName(), "role", roleManager.getPrefix(role)), true);
+        Messages.send(sender, "roles.player", java.util.Map.of("player", target.getName(), "role", roleManager.getPrefix(role)), true);
         return true;
     }
 

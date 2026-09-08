@@ -17,12 +17,6 @@ import fr.crewcmoi.other.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Construit et rafraîchit la GUI /bounty review (admins uniquement) : liste des
- * raisons de primes en attente de validation. Clic gauche = approuver (la prime
- * devient réclamable normalement, sans malus pour celui qui tue la cible), clic
- * droit = refuser (la contribution est supprimée et remboursée à son auteur).
- */
 public class BountyReviewGuiManager {
 
     private final Main plugin;
@@ -63,7 +57,7 @@ public class BountyReviewGuiManager {
         int start = page * BountyReviewHolder.ITEMS_PER_PAGE;
         int end = Math.min(start + BountyReviewHolder.ITEMS_PER_PAGE, entries.size());
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         for (int i = start; i < end; i++) {
             BountyEntry entry = entries.get(i);

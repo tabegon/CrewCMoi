@@ -17,11 +17,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Construit et rafraîchit la GUI /claims settings : permet au propriétaire d'un claim
- * de choisir, pour chaque règle (construire, détruire, feu, explosions...), qui est
- * autorisé à faire l'action (propriétaire uniquement / joueurs de confiance / tout le monde).
- */
 public class ClaimSettingsGuiManager {
 
     private static final int SIZE = 27;
@@ -36,9 +31,19 @@ public class ClaimSettingsGuiManager {
     }
 
     public void open(Player player, String world, int chunkX, int chunkZ) {
-        ClaimSettingsHolder holder = new ClaimSettingsHolder(world, chunkX, chunkZ);
+        ClaimSettingsHolder holder = new ClaimSettingsHolder(world, chunkX, chunkZ, false);
         Inventory gui = Bukkit.createInventory(holder, SIZE,
                 ChatColor.translateAlternateColorCodes('&', "&8&lRègles du claim"));
+        holder.setInventory(gui);
+        render(holder);
+        player.openInventory(gui);
+    }
+
+    
+    public void openAdmin(Player player, String world, int chunkX, int chunkZ) {
+        ClaimSettingsHolder holder = new ClaimSettingsHolder(world, chunkX, chunkZ, true);
+        Inventory gui = Bukkit.createInventory(holder, SIZE,
+                ChatColor.translateAlternateColorCodes('&', "&8&lGestion du claim &7• &cADMIN"));
         holder.setInventory(gui);
         render(holder);
         player.openInventory(gui);
@@ -55,8 +60,7 @@ public class ClaimSettingsGuiManager {
             return;
         }
 
-        // MOB_GRIEFING est affiché à part, centré au slot 23 (2e slot de la 3e ligne
-        // en partant du centre) ; les autres règles se partagent la 2e ligne (10-16).
+        
         int slot = 10;
         for (ClaimFlag flag : ClaimFlag.values()) {
             if (flag == ClaimFlag.MOB_GRIEFING) {
@@ -82,8 +86,29 @@ public class ClaimSettingsGuiManager {
         info.setItemMeta(infoMeta);
         gui.setItem(4, info);
 
-        // Remplit tous les emplacements encore vides (bordures, trous entre les règles...)
-        // avec l'item de remplissage neutre, pour ne plus laisser de slots visuellement vides.
+        if (holder.isAdminMode()) {
+            if (holder.isDeleteArmed()) {
+                gui.setItem(18, GuiItems.cancelButton("&aAnnuler la suppression"));
+                gui.setItem(26, GuiItems.checkmarkButton("&c&lCONFIRMER LA SUPPRESSION"));
+            } else {
+                gui.setItem(18, GuiItems.cancelButton("&7Retour à la liste"));
+                ItemStack delete = new ItemStack(Material.BARRIER);
+                ItemMeta deleteMeta = delete.getItemMeta();
+                if (deleteMeta != null) {
+                    deleteMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lSupprimer le claim"));
+                    List<String> deleteLore = new ArrayList<>();
+                    deleteLore.add(ChatColor.translateAlternateColorCodes('&', "&7Supprime définitivement ce claim."));
+                    deleteLore.add(ChatColor.translateAlternateColorCodes('&', "&cCette action est irréversible."));
+                    deleteLore.add("");
+                    deleteLore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour confirmer"));
+                    deleteMeta.setLore(deleteLore);
+                    delete.setItemMeta(deleteMeta);
+                }
+                gui.setItem(26, delete);
+            }
+        }
+
+        
         ItemStack filler = GuiItems.nothing(" ");
         for (int i = 0; i < SIZE; i++) {
             if (gui.getItem(i) == null) {
@@ -109,12 +134,6 @@ public class ClaimSettingsGuiManager {
         return item;
     }
 
-    /**
-     * Icône représentant le type de règle (et non plus la permission actuelle,
-     * qui laine indiquait auparavant via sa couleur). La permission actuelle est
-     * désormais indiquée par la couleur du nom de l'item et la ligne de lore
-     * "Autorisé pour : ...".
-     */
     private Material materialFor(ClaimFlag flag) {
         return switch (flag) {
             case BUILD -> Material.BRICKS;

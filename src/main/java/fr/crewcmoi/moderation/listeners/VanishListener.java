@@ -7,12 +7,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-/**
- * Applique le vanish aux joueurs qui se connectent (pour qu'ils ne voient pas
- * les joueurs actuellement vanish), et nettoie l'état d'un joueur vanish qui se
- * déconnecte. Le vanish n'est pas persisté : un joueur revient toujours visible
- * à sa prochaine connexion (voir VanishManager).
- */
 public class VanishListener implements Listener {
 
     private final VanishManager vanishManager;

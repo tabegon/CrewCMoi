@@ -12,10 +12,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-/**
- * Commande /duel <joueur> : ouvre une GUI permettant de configurer les règles
- * du duel (keepinventory, argent en jeu) avant d'envoyer la demande au joueur ciblé.
- */
 public class DuelCommand implements CommandExecutor {
 
     private final Main plugin;
@@ -34,7 +30,7 @@ public class DuelCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            Messages.send(sender, "server.duel-8660550");
+            Messages.send(sender, "duel.command.player-only");
             return true;
         }
 
@@ -42,37 +38,37 @@ public class DuelCommand implements CommandExecutor {
 
         if (args.length != 1) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("duel.usage", "&cUsage : /duel <joueur>")));
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("duel.usage")));
             return true;
         }
 
         Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null || !target.isOnline()) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("general.player-not-found", "&cCe joueur n'existe pas ou n'est pas en ligne.")));
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("general.player-not-found")));
             return true;
         }
 
         if (target.getUniqueId().equals(requester.getUniqueId())) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("duel.self", "&cVous ne pouvez pas vous provoquer vous-même.")));
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("duel.self")));
             return true;
         }
 
         if (duelManager.isInDuel(requester.getUniqueId()) || duelManager.isInDuel(target.getUniqueId())) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("duel.already-in-duel", "&cCe joueur est déjà en duel.")));
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("duel.already-in-duel")));
             return true;
         }
 
         if (combatManager != null && combatManager.isInCombat(requester)) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    plugin.getMessages().getString("prefix", "") +
-                            plugin.getMessages().getString("combat-log.action-blocked", "&cVous ne pouvez pas faire ça en combat !")
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("combat-log.action-blocked")
                                     .replace("{seconds}", String.valueOf(combatManager.getRemainingSeconds(requester)))));
             return true;
         }

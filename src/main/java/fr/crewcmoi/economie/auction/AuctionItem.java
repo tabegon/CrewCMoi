@@ -4,9 +4,6 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 
-/**
- * Représente une annonce de l'hôtel des ventes (/ah).
- */
 public class AuctionItem {
 
     private final int id;

@@ -15,9 +15,6 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Commande /balance (alias /bal) : affiche son propre solde ou celui d'un autre joueur.
- */
 public class BalanceCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
@@ -30,31 +27,29 @@ public class BalanceCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         if (args.length == 0) {
             if (!(sender instanceof Player)) {
-                Messages.send(sender, "server.balance-2e8ddc7");
+                Messages.send(sender, "economy.balance.usage");
                 return true;
             }
 
             Player player = (Player) sender;
             double balance = economyManager.getBalance(player.getUniqueId());
-            Messages.send(sender, "server.balance-self", java.util.Map.of("amount", balance + currency));
+            Messages.send(sender, "economy.balance.self", java.util.Map.of("amount", balance + currency));
             return true;
         }
-
-        // /balance <joueur>
 
         String targetName = args[0];
         PlayerData data = economyManager.getPlayerDataByName(targetName);
 
         if (data == null) {
-            Messages.send(sender, "server.balance-48408b8");
+            Messages.send(sender, "general.player-not-found");
             return true;
         }
 
-        Messages.send(sender, "server.balance-other", java.util.Map.of("player", data.getName(), "amount", data.getBalance() + currency));
+        Messages.send(sender, "economy.balance.other", java.util.Map.of("player", data.getName(), "amount", data.getBalance() + currency));
         return true;
     }
 

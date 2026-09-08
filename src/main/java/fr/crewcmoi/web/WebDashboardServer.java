@@ -36,10 +36,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Serveur web embarqué qui expose un dashboard admin en lecture seule :
- * réglages, joueurs, économie, /ah (hôtel des ventes), claims, claims à vendre et primes.
- */
 public class WebDashboardServer {
 
     private final Main plugin;
@@ -102,10 +98,8 @@ public class WebDashboardServer {
         server.createContext("/api/claims", wrap(this::handleClaims));
         server.createContext("/api/bounties", wrap(this::handleBounties));
 
-        // Nouveaux Endpoints /ah et /claim ah
         server.createContext("/api/ah", wrap(this::handleAuctionHouse));
         server.createContext("/api/claim-ah", wrap(this::handleClaimAuctionHouse));
-
 
         server.start();
         plugin.getLogger().info("Dashboard web démarré sur http://" + bindAddress + ":" + port
@@ -128,9 +122,7 @@ public class WebDashboardServer {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // Fichiers statiques
-    // ---------------------------------------------------------------------
+    
 
     private void extractSiteFiles() {
         siteFolder = new File(plugin.getDataFolder(), "site");
@@ -195,9 +187,7 @@ public class WebDashboardServer {
         return "application/octet-stream";
     }
 
-    // ---------------------------------------------------------------------
-    // Endpoints API
-    // ---------------------------------------------------------------------
+    
 
     private interface ApiHandler {
         Object handle(URI uri) throws Exception;
@@ -424,13 +414,9 @@ public class WebDashboardServer {
         return result;
     }
 
-    // ---------------------------------------------------------------------
-    // Handlers Ventes (/ah et claims en vente)
-    // ---------------------------------------------------------------------
+    
 
-    /**
-     * Endpoint /api/ah : Retourne les items enregistrés dans l'AuctionManager (/ah)
-     */
+    
 
     private Object handleAuctionHouse(URI uri) throws Exception {
         return runSync(() -> {
@@ -457,16 +443,12 @@ public class WebDashboardServer {
 
             responseData.put("listings", listings);
 
-            // On récupère directement la Map si elle existe
             responseData.put("lastSale", auctionManager != null ? auctionManager.getLastSaleData() : null);
 
             return responseData;
         });
     }
 
-    /**
-     * Endpoint /api/claim-ah : Filtre tous les claims actuellement mis en vente
-     */
     private Object handleClaimAuctionHouse(URI uri) {
         List<Object> result = new ArrayList<>();
         for (ClaimData claim : claimManager.getAllClaims()) {
@@ -484,9 +466,7 @@ public class WebDashboardServer {
         return result;
     }
 
-    // ---------------------------------------------------------------------
-    // Utilitaires
-    // ---------------------------------------------------------------------
+    
 
     private int parseIntParam(URI uri, String name, int defaultValue) {
         String query = uri.getRawQuery();

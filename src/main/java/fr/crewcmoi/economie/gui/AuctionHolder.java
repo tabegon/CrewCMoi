@@ -6,24 +6,19 @@ import org.bukkit.inventory.InventoryHolder;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Marqueur permettant d'identifier l'inventaire de l'hôtel des ventes (/ah).
- * Conserve la page actuelle et la correspondance slot -> identifiant d'annonce
- * pour savoir quoi faire lors d'un clic.
- */
 public class AuctionHolder implements InventoryHolder {
 
     public static final int SIZE = 54;
-    public static final int ITEMS_PER_PAGE = 45; // slots 0-44
+    public static final int ITEMS_PER_PAGE = 45; 
     public static final int PREV_PAGE_SLOT = 45;
     public static final int NEXT_PAGE_SLOT = 53;
     public static final int INFO_SLOT = 49;
-    /** Bouton juste à côté du livre : ouvre "mes annonces" (ou sert de bouton retour en mode "mes annonces"). */
+    
     public static final int MY_LISTINGS_SLOT = 48;
 
     private Inventory inventory;
     private int page;
-    /** true si cette GUI affiche uniquement les annonces du joueur qui la consulte. */
+    
     private boolean myListings;
     private final Map<Integer, Integer> slotToAuctionId = new HashMap<>();
 

@@ -1,4 +1,5 @@
 package fr.crewcmoi.pvp.managers;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.utils.DuelMessages;
@@ -15,19 +16,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Gère le système de duel (/duel) : demande + règles configurables (keepinventory,
- * argent en jeu), acceptation par la cible, téléportation des deux joueurs dans
- * l'arène configurée, puis résolution (victoire/défaite) à la mort de l'un des deux.
- *
- * Une seule demande de duel en attente à la fois par joueur receveur (comme /tpa),
- * et un joueur ne peut pas être impliqué dans plusieurs duels actifs à la fois.
- */
 public class DuelManager {
 
-    /**
-     * Une demande de duel en attente, avec les règles choisies par le demandeur.
-     */
     public static class DuelRequest {
         private final UUID requesterUuid;
         private final boolean keepInventory;
@@ -73,11 +63,9 @@ public class DuelManager {
     private final int expirySeconds;
     private final int countdownSeconds;
 
-    // Clé : UUID du joueur qui doit répondre (target) -> demande en attente le concernant
     private final Map<UUID, DuelRequest> pendingRequests = new ConcurrentHashMap<>();
 
-    // Clé : UUID de chaque joueur impliqué -> session du duel en cours (les deux joueurs
-    // d'un même duel pointent vers la même instance de DuelSession).
+    
     private final Map<UUID, DuelSession> activeDuels = new ConcurrentHashMap<>();
 
     public DuelManager(Main plugin, EconomyManager economyManager, CombatManager combatManager) {
@@ -92,10 +80,6 @@ public class DuelManager {
         return activeDuels.containsKey(uuid);
     }
 
-    /**
-     * Branché depuis Main après construction (évite une dépendance circulaire au
-     * constructeur) : permet de restaurer l'arène à la fin de chaque duel.
-     */
     public void setDuelArenaManager(DuelArenaManager duelArenaManager) {
         this.duelArenaManager = duelArenaManager;
     }
@@ -108,10 +92,6 @@ public class DuelManager {
         return activeDuels.get(uuid);
     }
 
-    /**
-     * Enregistre une nouvelle demande de duel (envoyée après confirmation des règles
-     * dans la GUI /duel). Écrase toute demande précédente en attente pour ce même receveur.
-     */
     public void createRequest(Player requester, Player target, boolean keepInventory, double bet, boolean dropHead, String kitId) {
         UUID targetUuid = target.getUniqueId();
         cancelRequest(targetUuid);
@@ -133,7 +113,7 @@ public class DuelManager {
 
         pendingRequests.put(targetUuid, new DuelRequest(requester.getUniqueId(), keepInventory, bet, dropHead, kitId, expiryTask));
 
-        String betText = bet > 0 ? MoneyFormat.format(bet) : plugin.getMessages().getString("duel.no-bet", "aucune");
+        String betText = bet > 0 ? MoneyFormat.format(bet) : plugin.getMessages().getString("duel.no-bet");
         sendMessage(requester, "duel.sent", "{player}", target.getName());
         DuelMessages.sendRequestReceived(plugin, target, requester, keepInventory, betText, dropHead, kitId == null ? null : plugin.getDuelKitManager().getDisplayName(kitId), kitId == null ? 0.0 : plugin.getDuelKitManager().getPrice(kitId));
     }
@@ -145,9 +125,6 @@ public class DuelManager {
         }
     }
 
-    /**
-     * Refus explicite d'une demande de duel par la cible.
-     */
     public void deny(Player target) {
         DuelRequest request = pendingRequests.remove(target.getUniqueId());
         if (request != null && request.expiryTask != null) {
@@ -164,11 +141,6 @@ public class DuelManager {
         }
     }
 
-    /**
-     * Traite l'acceptation d'une demande de duel : vérifie que les deux joueurs sont
-     * toujours éligibles, prélève la mise en jeu, téléporte les deux joueurs dans
-     * l'arène et lance le compte à rebours avant le début effectif du combat.
-     */
     public void accept(Player target) {
         UUID targetUuid = target.getUniqueId();
         DuelRequest request = pendingRequests.remove(targetUuid);
@@ -242,7 +214,7 @@ public class DuelManager {
         if (arena1 == null || arena2 == null) {
             sendMessage(target, "duel.arena-not-configured", null, null);
             sendMessage(requester, "duel.arena-not-configured", null, null);
-            // Rembourse intégralement ce qui aurait déjà été prélevé.
+            
             if (bet > 0) {
                 economyManager.deposit(requester.getUniqueId(), bet);
                 economyManager.deposit(target.getUniqueId(), bet);
@@ -311,11 +283,6 @@ public class DuelManager {
         }, 0L, 20L);
     }
 
-    /**
-     * Résout un duel à la mort d'un des deux participants : l'autre joueur remporte
-     * la mise (le cas échéant), les deux joueurs sont renvoyés à leur position d'origine
-     * et le duel est nettoyé. Retourne true si la mort concernait bien un duel actif.
-     */
     public boolean handleDeath(Player victim) {
         DuelSession session = activeDuels.get(victim.getUniqueId());
         if (session == null) {
@@ -329,10 +296,6 @@ public class DuelManager {
         return true;
     }
 
-    /**
-     * Traite la déconnexion d'un joueur : annule sa demande en attente s'il en a une,
-     * et si un duel est en cours, l'adversaire gagne automatiquement par forfait.
-     */
     public void handleQuit(Player player) {
         cancelRequest(player.getUniqueId());
 
@@ -363,12 +326,10 @@ public class DuelManager {
             Location origin = session.getOriginLocation(winner.getUniqueId());
             if (origin != null) {
                 if (session.isKeepInventory() || forfeit) {
-                    // Rien à looter au sol (keepinventory actif, ou l'adversaire a
-                    // juste déconnecté sans mourir) : le gagnant est renvoyé tout de suite.
+
                     winner.teleport(origin);
                 } else {
-                    // Pas de keepinventory : le perdant a lâché ses affaires. On laisse
-                    // 30 secondes au gagnant pour looter avant de le renvoyer d'office.
+
                     sendMessage(winner, "duel.won-loot-time", null, null);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         if (winner.isOnline()) {
@@ -385,20 +346,17 @@ public class DuelManager {
                 session.restoreInventory(winner.getUniqueId(), winner);
             }
             if (loser != null && loser.isOnline()) {
-                // Pour une mort avec kit, keepInventory est activé uniquement en interne
-                // afin de protéger le joueur : le réglage du duel reste bien "non".
-                // On remet immédiatement son inventaire original.
+
+                
                 session.restoreInventory(loser.getUniqueId(), loser);
             }
         }
 
-        // Le perdant est traité séparément : s'il vient de mourir, le respawn le
-        // repositionnera de toute façon ; s'il quitte le serveur, rien à faire de plus.
+        
         if (loser != null && loser.isOnline() && !forfeit) {
             Location origin = session.getOriginLocation(loser.getUniqueId());
             if (origin != null) {
-                // Petite temporisation pour laisser l'écran de mort/respawn se dérouler
-                // avant de renvoyer le joueur à sa position d'origine.
+
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     if (loser.isOnline()) {
                         loser.teleport(origin);
@@ -454,7 +412,7 @@ public class DuelManager {
         if (player == null || !player.isOnline()) {
             return;
         }
-        String prefix = plugin.getMessages().getString("prefix", "");
+        String prefix = plugin.getMessages().getString("prefix");
         String message = plugin.getMessages().getString(path, "");
         if (message.isEmpty()) {
             return;

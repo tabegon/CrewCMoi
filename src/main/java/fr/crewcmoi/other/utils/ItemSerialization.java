@@ -9,10 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 
-/**
- * Utilitaire de (dé)sérialisation d'ItemStack en Base64, pour stockage en base de données
- * (ex : objets mis en vente dans l'hôtel des ventes).
- */
 public final class ItemSerialization {
 
     private ItemSerialization() {
@@ -34,11 +30,6 @@ public final class ItemSerialization {
         }
     }
 
-    /**
-     * Sérialise un tableau d'ItemStack complet (ex : le contenu d'un inventaire,
-     * armure comprise) en une seule chaîne Base64. Utilisé pour sauvegarder/
-     * restaurer l'inventaire d'un joueur (ex : /staff, voir StaffModeManager).
-     */
     public static String toBase64(ItemStack[] items) throws IOException {
         try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
              BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(byteStream)) {

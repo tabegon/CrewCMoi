@@ -35,11 +35,6 @@ import org.bukkit.Material;
 
 import java.util.Iterator;
 
-/**
- * Protège les chunks claim : personne d'autre que le propriétaire (ou un joueur de
- * confiance) ne peut y construire, détruire, mettre le feu, faire exploser, utiliser
- * un seau, ouvrir des coffres/portes, etc.
- */
 public class ClaimListener implements Listener {
 
     private final Main plugin;
@@ -52,8 +47,8 @@ public class ClaimListener implements Listener {
 
     private void deny(Player player) {
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                plugin.getMessages().getString("prefix", "") +
-                        plugin.getMessages().getString("claim.protected", "&cCe chunk est protégé par un claim, vous ne pouvez pas faire cela ici.")));
+                plugin.getMessages().getString("prefix") +
+                        plugin.getMessages().getString("claim.protected")));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -78,12 +73,12 @@ public class ClaimListener implements Listener {
             return;
         }
         String type = event.getClickedBlock().getType().name();
-        // Règle CONTAINERS : coffres, fours, tonneaux, enclumes, tables d'enchantement, etc.
+        
         boolean container = type.contains("CHEST") || type.contains("FURNACE") || type.contains("BARREL")
                 || type.contains("SHULKER") || type.contains("ANVIL") || type.contains("ENCHANT")
                 || type.contains("HOPPER") || type.contains("DISPENSER") || type.contains("DROPPER")
                 || type.contains("BREWING") || type.contains("CRAFTING");
-        // Règle INTERACT : portes, leviers, boutons, lits, etc.
+        
         boolean interact = type.contains("DOOR") || type.contains("TRAPDOOR") || type.contains("GATE")
                 || type.contains("BUTTON") || type.contains("LEVER") || type.contains("BED")
                 || type.contains("REPEATER") || type.contains("COMPARATOR") || type.contains("NOTE_BLOCK")
@@ -91,9 +86,8 @@ public class ClaimListener implements Listener {
 
         ClaimFlag flag = container ? ClaimFlag.CONTAINERS : (interact ? ClaimFlag.INTERACT : null);
 
-        // Important : un claim avec CONTAINERS désactivé, on laisse quand même le joueur
-        // ouvrir le coffre/four/tonneau/etc. La protection du contenu est appliquée dans
-        // onInventoryClick() ci-dessous.
+        
+        
         if (flag == ClaimFlag.INTERACT
                 && !claimManager.isAllowed(event.getPlayer(), event.getClickedBlock().getLocation(), flag)) {
             event.setCancelled(true);
@@ -101,16 +95,6 @@ public class ClaimListener implements Listener {
         }
     }
 
-    /**
-     * Protège le contenu des conteneurs d'un claim.
-     *
-     * Le joueur peut ouvrir le conteneur même si CONTAINERS lui est interdit, mais il ne
-     * peut pas en retirer les objets. Les objets dont le Material figure dans
-     * claims.stealable-items restent récupérables.
-     *
-     * Le propriétaire, les joueurs de confiance et les joueurs ayant crew.claim.bypass
-     * conservent le comportement normal via ClaimManager.isAllowed().
-     */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) {
@@ -124,23 +108,19 @@ public class ClaimListener implements Listener {
 
         Location containerLocation = top.getLocation();
 
-        // Hors claim ou joueur autorisé : comportement normal.
         if (claimManager.isAllowed(player, containerLocation, ClaimFlag.CONTAINERS)) {
             return;
         }
 
-        // Seules les actions qui peuvent retirer un objet du conteneur sont bloquées.
-        // Placer des objets dans le conteneur reste autorisé.
+        
         if (!isContainerExtraction(event, top)) {
             return;
         }
 
-        // Pour les clics directs, on peut vérifier précisément l'objet concerné.
         ItemStack item = getExtractedItem(event, top);
 
-        // Certaines actions (notamment COLLECT_TO_CURSOR) peuvent toucher plusieurs
-        // emplacements. Dans ce cas, on autorise seulement si aucun objet non autorisé
-        // ne pourrait être récupéré.
+        
+        
         if (item == null) {
             if (event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
                 if (containsNonStealableMatchingItem(top, event.getCursor())) {
@@ -157,15 +137,11 @@ public class ClaimListener implements Listener {
         }
     }
 
-    /**
-     * Retourne true si l'action retire potentiellement un objet de l'inventaire supérieur.
-     */
     private boolean isContainerExtraction(InventoryClickEvent event, Inventory top) {
         Inventory clicked = event.getClickedInventory();
         InventoryAction action = event.getAction();
 
-        // Un double-clic peut collecter des objets depuis l'inventaire supérieur même si
-        // le slot actuellement cliqué se trouve dans l'inventaire du joueur.
+        
         if (action == InventoryAction.COLLECT_TO_CURSOR) {
             return true;
         }
@@ -183,9 +159,6 @@ public class ClaimListener implements Listener {
         };
     }
 
-    /**
-     * Récupère l'objet qui serait retiré par une action de clic simple.
-     */
     private ItemStack getExtractedItem(InventoryClickEvent event, Inventory top) {
         Inventory clicked = event.getClickedInventory();
         if (clicked != top) {
@@ -200,10 +173,6 @@ public class ClaimListener implements Listener {
         return top.getItem(slot);
     }
 
-    /**
-     * Pour un double-clic/collecte, vérifie s'il existe dans le conteneur un objet
-     * correspondant au curseur qui n'est pas autorisé au vol.
-     */
     private boolean containsNonStealableMatchingItem(Inventory inventory, ItemStack cursor) {
         if (cursor == null || cursor.getType() == Material.AIR) {
             return false;
@@ -220,14 +189,6 @@ public class ClaimListener implements Listener {
         return false;
     }
 
-    /**
-     * Liste configurable dans config.yml :
-     * claims:
-     *   stealable-items:
-     *     - MACE
-     *     - DRAGON_EGG
-     *     - ELYTRA
-     */
     private boolean isStealable(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) {
             return false;
@@ -253,13 +214,12 @@ public class ClaimListener implements Listener {
                 "&cVous ne pouvez pas voler cet objet dans ce conteneur."
         );
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                plugin.getMessages().getString("prefix", "") + message));
+                plugin.getMessages().getString("prefix") + message));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInventoryDrag(InventoryDragEvent event) { 
-        // Un drag part toujours du curseur du joueur vers le menu. Il ne permet pas de
-        // retirer un objet déjà présent dans le conteneur : le placement reste donc autorisé.
+
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -272,8 +232,7 @@ public class ClaimListener implements Listener {
                 deny(player);
             }
         } else if (!claimManager.isOpen(loc, ClaimFlag.FIRE)) {
-            // Propagation de feu non initiée par un joueur (foudre, propagation naturelle) :
-            // on bloque quand même si la règle FIRE n'est pas ouverte à tout le monde.
+
             event.setCancelled(true);
         }
     }
@@ -328,8 +287,7 @@ public class ClaimListener implements Listener {
     }
 
     private boolean isPistonBlockedByClaim(Location pistonLocation, Iterator<Location> movedBlocks) {
-        // Empêche un piston situé hors d'un claim de pousser/tirer des blocs à l'intérieur d'un
-        // claim (ou inversement), pour éviter de contourner la protection.
+
         ClaimData pistonClaim = claimManager.getClaim(pistonLocation);
         while (movedBlocks.hasNext()) {
             Location loc = movedBlocks.next();
@@ -353,8 +311,7 @@ public class ClaimListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        // Empêche les mobs (endermen qui déplacent des blocs, sangliers/creepers, etc.) et
-        // autres entités non-joueurs de modifier des blocs à l'intérieur d'un claim.
+
         Entity entity = event.getEntity();
         if (!(entity instanceof Player) && !claimManager.isOpen(event.getBlock().getLocation(), ClaimFlag.MOB_GRIEFING)) {
             event.setCancelled(true);

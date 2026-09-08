@@ -14,28 +14,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Point central qui gère UNE SEULE team scoreboard par joueur (sur la
- * scoreboard principale, ainsi que sur la scoreboard propre de chaque joueur
- * en ligne si elle diffère — voir onlineScoreboards()).
- * <p>
- * Bukkit n'autorise un joueur à être membre que d'UNE SEULE team par
- * scoreboard. Or plusieurs fonctionnalités du plugin ont besoin d'afficher
- * quelque chose via une team : le préfixe de rôle (voir TabListManager), le
- * suffixe de prime (voir BountyScoreboardManager), et le masquage du pseudo
- * pendant l'invisibilité (voir InvisibilityManager) — qui masque à la fois le
- * pseudo flottant au-dessus de la tête ET le préfixe/suffixe dans le tab (rang,
- * prime), pour qu'un joueur invisible reste vraiment anonyme partout. Les gérer chacune avec
- * leur propre team se marchait dessus : la dernière appliquée "volait"
- * l'entrée du joueur et faisait disparaître l'effet des autres (ex : un
- * joueur avec une prime active qui recevait son rôle dans le tab perdait le
- * suffixe de sa prime, ou inversement).
- * <p>
- * Ce manager centralise tout ça : chaque fonctionnalité ne fait que
- * déclarer son prefix/suffix/visibilité voulu pour un joueur, sans jamais
- * manipuler de team directement — c'est ce manager qui les combine sur la
- * team personnelle du joueur.
- */
 public class PlayerTeamManager {
 
     private static final String TEAM_PREFIX = "ccp_";
@@ -54,12 +32,8 @@ public class PlayerTeamManager {
         this.plugin = plugin;
     }
 
-    /** Anciens préfixes de teams utilisés par des versions précédentes du plugin
-     * (avant l'unification en une seule team par joueur) : nettoyés au démarrage
-     * pour éviter des résidus s'ils ont persisté dans data/scoreboard.dat. */
     private static final String[] LEGACY_TEAM_PREFIXES = {"cc_role_", "cc_invisible", "ccbounty_", "r0_", "r1_", "r2_", "r3_", "r4_", "r5_"};
 
-    /** Nettoie les teams orphelines d'une session précédente (ex : après un crash, ou une mise à jour du plugin). */
     public void start() {
         for (Scoreboard scoreboard : onlineScoreboards()) {
             for (Team team : scoreboard.getTeams().toArray(new Team[0])) {
@@ -91,12 +65,6 @@ public class PlayerTeamManager {
         teamsByScoreboard.clear();
     }
 
-    /**
-     * Préfixe affiché devant le pseudo (ex : le rôle, "- Fonda "). sortWeight
-     * détermine l'ordre dans le tab : plus il est petit, plus le joueur apparaît
-     * haut (les teams étant triées par le client par ordre alphabétique de leur
-     * nom, qui encode ce poids).
-     */
     public void setPrefix(Player player, String prefix, int sortWeight) {
         UUID uuid = player.getUniqueId();
         names.put(uuid, player.getName());
@@ -105,12 +73,6 @@ public class PlayerTeamManager {
         applyToAllScoreboards(uuid);
     }
 
-    /**
-     * Suffixe affiché après le pseudo (ex : le montant de la prime). Fonctionne
-     * même si le joueur ciblé est hors ligne (son nom est simplement pré-
-     * enregistré comme entrée de sa team, et s'affichera à sa reconnexion).
-     * Passer null pour retirer le suffixe.
-     */
     public void setSuffix(UUID uuid, String targetName, String suffix) {
         names.put(uuid, targetName);
         if (suffix == null) {
@@ -120,7 +82,6 @@ public class PlayerTeamManager {
         }
         applyToAllScoreboards(uuid);
     }
-
 
     public String getPrefix(UUID uuid) {
         return prefixes.getOrDefault(uuid, "");
@@ -168,7 +129,6 @@ public class PlayerTeamManager {
         team.setSuffix(hidden ? "" : cut(suffixes.getOrDefault(uuid, ""), 64));
     }
 
-    /** Retire le suffixe d'un joueur (son nom doit déjà être connu, voir setPrefix/setSuffix). */
     public void clearSuffix(UUID uuid) {
         suffixes.remove(uuid);
         if (names.containsKey(uuid)) {
@@ -176,13 +136,6 @@ public class PlayerTeamManager {
         }
     }
 
-    /**
-     * Masque ou réaffiche le pseudo au-dessus de la tête du joueur pendant
-     * l'invisibilité. Le préfixe et le suffixe restent normalement visibles dans le TAB.
-     * Pour un besoin ponctuel, notamment un message de mort anonyme,
-     * setTabFormattingHidden(UUID, boolean) permet de masquer temporairement
-     * uniquement le préfixe/suffixe.
-     */
     public void setNameTagHidden(Player player, boolean hidden) {
         UUID uuid = player.getUniqueId();
         names.put(uuid, player.getName());
@@ -190,14 +143,6 @@ public class PlayerTeamManager {
         applyToAllScoreboards(uuid);
     }
 
-    /**
-     * Réapplique l'état déjà connu (prefix/suffix/visibilité) de TOUS les joueurs
-     * suivis sur la scoreboard propre du joueur qui vient de se connecter (qui
-     * peut être différente de la scoreboard principale, ex : si un autre plugin
-     * lui en attribue une) : sans ça, son client ne verrait ni les rôles ni les
-     * primes des autres joueurs tant qu'ils ne changent pas entre-temps. À
-     * appeler depuis un PlayerJoinEvent (voir TabListManager#onPlayerJoin).
-     */
     public void refreshOnJoin(Player player) {
         Scoreboard scoreboard = player.getScoreboard();
         for (UUID uuid : names.keySet()) {
@@ -205,7 +150,6 @@ public class PlayerTeamManager {
         }
     }
 
-    /** Oublie totalement l'état d'un joueur (ex : à sa déconnexion). */
     public void clear(Player player) {
         UUID uuid = player.getUniqueId();
         prefixes.remove(uuid);
@@ -240,8 +184,7 @@ public class PlayerTeamManager {
         Team team = teams.get(uuid);
 
         if (team != null && (team.getScoreboard() == null || !team.getName().equals(expectedName))) {
-            // La team n'existe plus, ou le poids de tri a changé (ex : changement
-            // de rôle) : Bukkit ne permettant pas de renommer une team, on la recrée.
+
             if (team.getScoreboard() != null) {
                 team.unregister();
             }
@@ -260,19 +203,13 @@ public class PlayerTeamManager {
             team.addEntry(entryName);
         }
 
-        // L'invisibilité ne doit cacher que le nametag au-dessus de la tête.
-        // Le préfixe/suffixe doivent rester visibles dans le TAB.
+        
         team.setPrefix(cut(prefixes.getOrDefault(uuid, ""), 64));
         team.setSuffix(cut(suffixes.getOrDefault(uuid, ""), 64));
         team.setOption(Team.Option.NAME_TAG_VISIBILITY,
                 hiddenNameTags.getOrDefault(uuid, false) ? Team.OptionStatus.NEVER : Team.OptionStatus.ALWAYS);
     }
 
-    /**
-     * Toutes les scoreboards actuellement "en jeu" : la scoreboard principale,
-     * ainsi que la scoreboard propre à chaque joueur en ligne si elle en utilise
-     * une différente.
-     */
     private Set<Scoreboard> onlineScoreboards() {
         Set<Scoreboard> scoreboards = Collections.newSetFromMap(new IdentityHashMap<>());
         scoreboards.add(Bukkit.getScoreboardManager().getMainScoreboard());

@@ -2,12 +2,6 @@ package fr.crewcmoi.pvp.managers;
 
 import java.util.UUID;
 
-/**
- * Représente un duel en cours entre deux joueurs (créé après acceptation d'une
- * demande de /duel). Contient les règles choisies par le demandeur (keepinventory,
- * argent en jeu) ainsi que l'emplacement d'origine des deux joueurs, pour pouvoir
- * les y renvoyer une fois le duel terminé.
- */
 public class DuelSession {
 
     private final UUID player1;
@@ -17,7 +11,6 @@ public class DuelSession {
     private final boolean dropHead;
     private final String kitId;
 
-    // Inventaire original sauvegardé lorsque le duel utilise un kit.
     private org.bukkit.inventory.ItemStack[] player1Contents;
     private org.bukkit.inventory.ItemStack[] player1Armor;
     private org.bukkit.inventory.ItemStack[] player1Extra;
@@ -25,11 +18,9 @@ public class DuelSession {
     private org.bukkit.inventory.ItemStack[] player2Armor;
     private org.bukkit.inventory.ItemStack[] player2Extra;
 
-    // Position avant téléportation dans l'arène, pour ramener les joueurs après le duel.
     private org.bukkit.Location originLocation1;
     private org.bukkit.Location originLocation2;
 
-    // Le duel n'inflige/ne prend en compte les dégâts qu'une fois le compte à rebours terminé.
     private boolean started = false;
 
     public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet, boolean dropHead) {

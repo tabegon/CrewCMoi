@@ -17,17 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * /staff :
- *  - /staff              : bascule entre l'état normal (inventaire habituel,
- *    façade Vip dans le tab) et l'état staff (inventaire dédié, vrai rôle
- *    affiché — voir StaffModeManager). Réservé aux vrais rôles Fonda/Admin/
- *    Dev/Mod (Vip/Player ne peuvent pas l'utiliser, même avec un rôle manuel
- *    via /rank set).
- *  - /staff info [joueur] : affiche le vrai rôle, l'état du mode staff et du
- *    vanish d'un joueur (soi-même par défaut). Réservé aux OP et aux vrais
- *    rôles de staff.
- */
 public class StaffCommand implements CommandExecutor, TabCompleter {
 
     private final StaffModeManager staffModeManager;
@@ -48,28 +37,23 @@ public class StaffCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!(sender instanceof Player player)) {
-            Messages.send(sender, "server.staff-f9476f5");
+            Messages.send(sender, "moderation.staff.player-only");
             return true;
         }
 
         StaffModeManager.ToggleResult result = staffModeManager.toggle(player);
         switch (result) {
-            case NOT_ALLOWED -> Messages.send(player, "server.staff-af68c90");
-            case NOW_STAFF -> Messages.send(player, "server.staff-534bef4");
-            case NOW_NORMAL -> Messages.send(player, "server.staff-cefa9a6");
+            case NOT_ALLOWED -> Messages.send(player, "moderation.staff.staff-only");
+            case NOW_STAFF -> Messages.send(player, "moderation.staff.enabled");
+            case NOW_NORMAL -> Messages.send(player, "moderation.staff.disabled");
         }
         return true;
     }
 
-    /**
-     * /staff info [joueur] : réservé aux OP et aux vrais rôles de staff (même si
-     * affichés comme Vip via la façade). Affiche le vrai rôle, l'état du mode
-     * staff et du vanish de la cible (soi-même par défaut).
-     */
     private void handleInfo(CommandSender sender, String[] args) {
         boolean allowed = sender.isOp() || (sender instanceof Player p && roleManager.getRealRole(p).isStaffRole());
         if (!allowed) {
-            Messages.send(sender, "server.staff-1091a9a");
+            Messages.send(sender, "moderation.staff.no-permission");
             return;
         }
 
@@ -77,13 +61,13 @@ public class StaffCommand implements CommandExecutor, TabCompleter {
         if (args.length >= 2) {
             target = Bukkit.getPlayerExact(args[1]);
             if (target == null) {
-                Messages.send(sender, "server.staff-36f20e5");
+                Messages.send(sender, "moderation.staff.player-not-found");
                 return;
             }
         } else if (sender instanceof Player p) {
             target = p;
         } else {
-            Messages.send(sender, "server.staff-997c31f");
+            Messages.send(sender, "moderation.staff.info-usage");
             return;
         }
 
@@ -91,10 +75,10 @@ public class StaffCommand implements CommandExecutor, TabCompleter {
         boolean staffActive = staffModeManager.isActive(target.getUniqueId());
         boolean vanished = vanishManager.isVanished(target.getUniqueId());
 
-        Messages.send(sender, "server.staff-info-title", java.util.Map.of("player", target.getName()));
-        Messages.send(sender, "server.staff-info-role", java.util.Map.of("role", roleManager.getPrefix(realRole).trim()));
-        Messages.send(sender, "server.staff-info-mode", java.util.Map.of("status", staffActive ? "&aactivé" : "&cdésactivé"));
-        Messages.send(sender, "server.staff-info-vanish", java.util.Map.of("status", vanished ? "&aactivé" : "&cdésactivé"));
+        Messages.send(sender, "moderation.staff.info-title", java.util.Map.of("player", target.getName()));
+        Messages.send(sender, "moderation.staff.info-role", java.util.Map.of("role", roleManager.getPrefix(realRole).trim()));
+        Messages.send(sender, "moderation.staff.info-mode", java.util.Map.of("status", staffActive ? "&aactivé" : "&cdésactivé"));
+        Messages.send(sender, "moderation.staff.info-vanish", java.util.Map.of("status", vanished ? "&aactivé" : "&cdésactivé"));
     }
 
     @Override

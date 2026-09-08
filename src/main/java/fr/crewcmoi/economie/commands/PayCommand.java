@@ -16,10 +16,6 @@ import fr.crewcmoi.other.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Commande /pay <joueur> <montant> : permet à un joueur de transférer
- * une partie de son solde à un autre joueur (en ligne ou hors ligne).
- */
 public class PayCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
@@ -33,12 +29,12 @@ public class PayCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            Messages.send(sender, "server.pay-59b5161");
+            Messages.send(sender, "economy.pay.player-only");
             return true;
         }
 
         if (args.length < 2) {
-            Messages.send(sender, "server.pay-cd1502f");
+            Messages.send(sender, "economy.pay.usage");
             return true;
         }
 
@@ -48,46 +44,46 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         try {
             amount = MoneyFormat.parse(args[1]);
         } catch (NumberFormatException e) {
-            Messages.send(sender, "server.pay-invalid-amount", java.util.Map.of("amount", args[1]));
+            Messages.send(sender, "economy.pay.invalid-amount", java.util.Map.of("amount", args[1]));
             return true;
         }
 
         if (!Double.isFinite(amount) || amount <= 0) {
-            Messages.send(sender, "server.pay-3d7a153");
+            Messages.send(sender, "economy.pay.positive-amount");
             return true;
         }
 
         PlayerData targetData = economyManager.getPlayerDataByName(targetName);
         if (targetData == null) {
-            Messages.send(sender, "server.pay-48408b8");
+            Messages.send(sender, "general.player-not-found");
             return true;
         }
 
         if (targetData.getUuid().equals(player.getUniqueId())) {
-            Messages.send(sender, "server.pay-435dc6b");
+            Messages.send(sender, "economy.pay.self");
             return true;
         }
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         if (!economyManager.has(player.getUniqueId(), amount)) {
-            Messages.send(sender, "server.pay-not-enough-money", java.util.Map.of("amount", MoneyFormat.format(amount) + currency));
+            Messages.send(sender, "economy.pay.not-enough-money", java.util.Map.of("amount", MoneyFormat.format(amount) + currency));
             return true;
         }
 
         boolean withdrawn = economyManager.withdraw(player.getUniqueId(), amount);
         if (!withdrawn) {
-            Messages.send(sender, "server.pay-not-enough-money", java.util.Map.of("amount", MoneyFormat.format(amount) + currency));
+            Messages.send(sender, "economy.pay.not-enough-money", java.util.Map.of("amount", MoneyFormat.format(amount) + currency));
             return true;
         }
 
         economyManager.deposit(targetData.getUuid(), amount);
 
-        Messages.send(sender, "server.pay-sent", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", targetData.getName()));
+        Messages.send(sender, "economy.pay.sent", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", targetData.getName()));
 
         Player online = Bukkit.getPlayer(targetData.getUuid());
         if (online != null && online.isOnline()) {
-            Messages.send(online, "server.pay-received", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", player.getName()));
+            Messages.send(online, "economy.pay.received", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", player.getName()));
         }
 
         return true;

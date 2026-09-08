@@ -7,22 +7,37 @@ import org.bukkit.inventory.InventoryHolder;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Marqueur permettant d'identifier l'inventaire de la GUI /claims settings :
- * chaque slot correspond à une règle (ClaimFlag) du claim que le joueur édite.
- */
 public class ClaimSettingsHolder implements InventoryHolder {
 
     private final String world;
     private final int chunkX;
     private final int chunkZ;
     private Inventory inventory;
+    private final boolean adminMode;
+    private boolean deleteArmed;
     private final Map<Integer, ClaimFlag> slotToFlag = new HashMap<>();
 
     public ClaimSettingsHolder(String world, int chunkX, int chunkZ) {
+        this(world, chunkX, chunkZ, false);
+    }
+
+    public ClaimSettingsHolder(String world, int chunkX, int chunkZ, boolean adminMode) {
         this.world = world;
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
+        this.adminMode = adminMode;
+    }
+
+    public boolean isAdminMode() {
+        return adminMode;
+    }
+
+    public boolean isDeleteArmed() {
+        return deleteArmed;
+    }
+
+    public void setDeleteArmed(boolean deleteArmed) {
+        this.deleteArmed = deleteArmed;
     }
 
     public String getWorld() {

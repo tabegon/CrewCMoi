@@ -17,12 +17,6 @@ import fr.crewcmoi.other.utils.MoneyFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Commande /bounty :
- *  - /bounty                       : ouvre la GUI listant les primes actives.
- *  - /bounty add <joueur> <montant> [raison] : place une prime sur un joueur (le montant est débité immédiatement).
- *  - /bounty review                          : (admins/op) ouvre la GUI de validation des raisons de primes en attente.
- */
 public class BountyCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
@@ -41,7 +35,7 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            Messages.send(sender, "server.bounty-59b5161");
+            Messages.send(sender, "bounty.command.player-only");
             return true;
         }
 
@@ -57,20 +51,20 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
 
         if (args[0].equalsIgnoreCase("review")) {
             if (!player.isOp() && !player.hasPermission("crew.admin")) {
-                Messages.send(player, "server.bounty-5382389");
+                Messages.send(player, "bounty.command.no-permission");
                 return true;
             }
             bountyReviewGuiManager.open(player, 0);
             return true;
         }
 
-        Messages.send(player, "server.bounty-87ec34e");
+        Messages.send(player, "bounty.command.usage");
         return true;
     }
 
     private void handleAdd(Player player, String[] args) {
         if (args.length < 3) {
-            Messages.send(player, "server.bounty-8f503e0");
+            Messages.send(player, "bounty.add.usage");
             return;
         }
 
@@ -79,35 +73,34 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
         try {
             amount = MoneyFormat.parse(args[2]);
         } catch (NumberFormatException e) {
-            Messages.send(player, "server.bounty-invalid-amount", java.util.Map.of("amount", args[2]), true);
+            Messages.send(player, "bounty.invalid-amount", java.util.Map.of("amount", args[2]), true);
             return;
         }
 
-        // Raison optionnelle : tout ce qui suit le montant, rejoint en une seule chaîne.
         String reason = null;
         if (args.length > 3) {
             reason = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
         }
         String finalReason = reason;
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         bountyManager.addPlayerBounty(player, targetName, amount, finalReason, result -> {
             switch (result) {
                 case SUCCESS -> {
-                    Messages.send(player, "server.bounty-placed", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", targetName), true);
+                    Messages.send(player, "bounty.placed", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", targetName), true);
                     Player online = Bukkit.getPlayerExact(targetName);
                     if (online != null) {
                         String reasonSuffix = (finalReason != null && !finalReason.isBlank())
                                 ? " &7(&e" + finalReason + "&7)"
                                 : "";
-                        Messages.send(online, "server.bounty-received", java.util.Map.of("player", player.getName(), "amount", MoneyFormat.format(amount) + currency, "reason", reasonSuffix), true);
+                        Messages.send(online, "bounty.received", java.util.Map.of("player", player.getName(), "amount", MoneyFormat.format(amount) + currency, "reason", reasonSuffix), true);
                     }
                 }
-                case INVALID_AMOUNT -> Messages.send(player, "server.bounty-3d7a153");
-                case SELF_TARGET -> Messages.send(player, "server.bounty-b3c9a31");
-                case NOT_ENOUGH_MONEY -> Messages.send(player, "server.bounty-not-enough-money", java.util.Map.of("amount", MoneyFormat.format(amount) + currency), true);
-                case TARGET_NOT_FOUND -> Messages.send(player, "server.bounty-48408b8");
+                case INVALID_AMOUNT -> Messages.send(player, "bounty.add.positive-amount");
+                case SELF_TARGET -> Messages.send(player, "bounty.add.self");
+                case NOT_ENOUGH_MONEY -> Messages.send(player, "bounty.not-enough-money", java.util.Map.of("amount", MoneyFormat.format(amount) + currency), true);
+                case TARGET_NOT_FOUND -> Messages.send(player, "general.player-not-found");
             }
         });
     }
@@ -142,7 +135,7 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendMessage(CommandSender sender, String message) {
-        String prefix = plugin.getMessages().getString("prefix", "");
+        String prefix = plugin.getMessages().getString("prefix");
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + message));
     }
 }

@@ -14,11 +14,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Gère l'affichage (via particules) des bordures des claims aux alentours d'un joueur,
- * déclenché par /claim see. Vert = vos claims, jaune = claims où vous êtes de confiance,
- * rouge = claims d'autres joueurs.
- */
 public class ClaimVisualizer {
 
     private final Main plugin;
@@ -30,10 +25,6 @@ public class ClaimVisualizer {
         this.claimManager = claimManager;
     }
 
-    /**
-     * Active ou désactive l'affichage des claims pour ce joueur.
-     * Retourne true si l'affichage vient d'être activé, false s'il vient d'être désactivé.
-     */
     public boolean toggle(Player player) {
         BukkitTask existing = activeTasks.remove(player.getUniqueId());
         if (existing != null) {
@@ -99,8 +90,7 @@ public class ClaimVisualizer {
 
         Particle.DustOptions dust = new Particle.DustOptions(color, 1.4f);
 
-        // Coins verticaux : une colonne de particules à chaque coin du chunk, du sol jusqu'à
-        // bien au-dessus de la tête, pour bien repérer les angles même de loin.
+        
         int[][] corners = {
                 {minX, minZ},
                 {maxX, minZ},
@@ -114,8 +104,7 @@ public class ClaimVisualizer {
             }
         }
 
-        // Bordures horizontales : les 4 arêtes du chunk, dessinées à deux hauteurs (sol et
-        // niveau des yeux) pour visualiser l'intégralité du contour, pas seulement ses coins.
+        
         double step = 0.25;
         double[] edgeHeights = {baseY + 0.2, baseY + 1.6};
         for (double edgeY : edgeHeights) {

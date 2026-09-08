@@ -6,10 +6,6 @@ import org.bukkit.inventory.InventoryHolder;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * GUI d'achat du NPC pêcheur : chaque slot cliquable est associé à l'id d'une
- * offre (voir FishermanGuiManager#BUY_OFFERS).
- */
 public class FishermanBuyHolder implements InventoryHolder {
 
     public static final int SIZE = 27;

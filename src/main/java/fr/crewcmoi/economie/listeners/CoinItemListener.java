@@ -13,15 +13,6 @@ import org.bukkit.inventory.ItemStack;
 
 import fr.crewcmoi.other.utils.MoneyFormat;
 
-/**
- * Permet à un joueur de gagner de l'argent en faisant clic droit avec une "pièce" custom
- * (item ItemsAdder identifié par son id namespaced, ex: "crewcmoi:piece"). L'item est
- * identifié via l'API ItemsAdder (CustomStack) et non via son Custom Model Data brut, ce
- * qui reste fiable même si ItemsAdder change/réattribue les model data en interne.
- *
- * Un clic droit consomme une pièce (retire 1 du stack en main) et crédite le joueur du
- * montant configuré.
- */
 public class CoinItemListener implements Listener {
 
     private final Main plugin;
@@ -36,7 +27,7 @@ public class CoinItemListener implements Listener {
         this.economyManager = economyManager;
 
         this.enabled = plugin.getConfig().getBoolean("coin-item.enabled", true);
-        this.coinItemId = plugin.getConfig().getString("coin-item.itemsadder-id", "server:ccoin");
+        this.coinItemId = plugin.getConfig().getString("coin-item.itemsadder-id");
         this.coinValue = plugin.getConfig().getDouble("coin-item.value", 50.0);
     }
 
@@ -46,8 +37,7 @@ public class CoinItemListener implements Listener {
             return;
         }
 
-        // Ignore le clic gauche, les blocs, et évite de déclencher deux fois l'event
-        // (une fois pour la main principale, une fois pour la main secondaire).
+        
         if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
@@ -69,7 +59,6 @@ public class CoinItemListener implements Listener {
 
         event.setCancelled(true);
 
-        // Consomme une pièce du stack en main.
         if (item.getAmount() > 1) {
             item.setAmount(item.getAmount() - 1);
         } else {
@@ -85,8 +74,8 @@ public class CoinItemListener implements Listener {
         if (message == null) {
             return;
         }
-        String prefix = plugin.getMessages().getString("prefix", "");
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String prefix = plugin.getMessages().getString("prefix");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
         player.sendMessage((prefix + message)
                 .replace("{amount}", MoneyFormat.format(coinValue) + currency)
                 .replace('&', '§'));

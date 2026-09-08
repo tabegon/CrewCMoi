@@ -12,100 +12,214 @@ commands:
     description: Affiche votre solde ou celui d'un autre joueur.
     usage: /balance [joueur]
     aliases: [bal]
+    permission: crew.command.balance
   money:
     description: Commande admin pour gérer l'argent des joueurs.
     usage: /money <add|remove|set> <joueur> <montant>
     aliases: [eco]
+    permission: crew.admin
   baltop:
     description: Affiche le classement des joueurs les plus riches.
     usage: /baltop
+    permission: crew.command.baltop
   sell:
     description: Ouvre une interface pour vendre vos objets.
     usage: /sell
+    permission: crew.command.sell
   pay:
     description: Envoie de l'argent à un autre joueur.
     usage: /pay <joueur> <montant>
+    permission: crew.command.pay
   ah:
     description: Ouvre l'hôtel des ventes entre joueurs.
     usage: /ah [sell <prix>]
     aliases: [auctionhouse, auction]
+    permission: crew.command.ah
   team:
     description: Gère votre équipe (création, invitation, acceptation, départ).
     usage: /team <create|add|accept|deny|leave|disband|info> [argument]
     aliases: [t]
+    permission: crew.command.team
   bounty:
     description: Ouvre la liste des primes, en place une sur un joueur, ou (admin) valide les raisons en attente.
     usage: /bounty [add <joueur> <montant> [raison]|review]
     aliases: [prime]
+    permission: crew.command.bounty
   info:
     description: Tableau de bord d'informations sur un joueur (prime, malchance, coeurs retirés).
     usage: /information bounty <joueur>
     aliases: [information, infos]
+    permission: crew.staff.info
   spawn:
     description: Teleportation au spawn
     usage: /spawn
+    permission: crew.command.spawn
   sethome:
     description: Definit votre home a votre position actuelle
     usage: /sethome
+    permission: crew.command.sethome
   home:
     description: Teleportation vers votre home
     usage: /home
+    permission: crew.command.home
   tpa:
     description: Teleportation vers un autre joueur apres confirmation
     usage: /tpa <joueur>
+    permission: crew.command.tpa
   tpahere:
-    description: Teleportation d'un joueur sur soi
+    description: Teleportation d'un joueur sur soi apres confirmation
     usage: /tpahere <joueur>
+    permission: crew.command.tpahere
   tpaccept:
-    description: Acceptation d'une invition de tp
+    description: Acceptation d'une invitation de tp
     usage: /tpaccept
+    permission: crew.command.tpaccept
   claim:
     description: Réclame le chunk actuel pour empêcher les autres joueurs d'y construire/détruire.
     usage: /claim [unclaim|trust <joueur>|untrust <joueur>|info|settings|see|shop|sell <prix>|buy|ah]
+    permission: crew.command.claim
   claims:
     description: Alias de /claim, notamment pour /claims settings (GUI des règles du claim).
     usage: /claims settings
+    permission: crew.command.claim
+  claimadmin:
+    description: Ouvre la GUI de gestion de tous les claims du serveur. Réservé au staff à partir de Mod.
+    usage: /claimadmin
+    aliases: [claimsadmin, claimmanage]
+    permission: crew.claim.admin
   duel:
     description: Provoque un joueur en duel, avec configuration des règles (keepinventory, mise) via une GUI.
     usage: /duel <joueur>
+    permission: crew.command.duel
   duelaccept:
     description: Accepte (ou refuse avec "deny") la demande de duel reçue.
     usage: /duelaccept [deny]
+    permission: crew.command.duelaccept
   duelarena:
     description: "Admin : configure l'arène de duel (coins, sauvegarde, restauration manuelle)."
     usage: /duelarena <corner1|corner2|save|reset>
+    permission: crew.admin
   rank:
-    description: Affiche ou gère les rôles (Player/Vip/Mod/Dev/Admin/Fonda) affichés dans le tab.
+    description: Affiche ou gère les rôles (Player/Vip/Mod/Dev/Fonda) affichés dans le tab.
     usage: /rank [joueur|list|set <joueur> <rôle>|clear <joueur>]
+    permission: crew.rank.set
   staff:
-    description: Bascule ton mode staff (façade Vip <-> vrai rôle + inventaire dédié). "/staff info [joueur]" affiche le vrai rôle/mode staff/vanish (OP et staff uniquement).
+    description: Bascule ton mode staff (façade Vip <-> vrai rôle + inventaire dédié). "/staff info [joueur]" affiche le vrai rôle/mode staff/vanish.
     usage: /staff [info <joueur>]
+    permission: crew.staff
   vanish:
-    description: Bascule le vanish (invisibilité totale, armure comprise, et disparition du tab). Nécessite le mode staff.
+    description: Bascule le vanish. Nécessite le mode staff.
     usage: /vanish
+    permission: crew.vanish
+  vanishlist:
+    description: Liste les joueurs actuellement en vanish. Réservé aux fondateurs.
+    usage: /vanishlist
+    permission: crew.vanish.list
   pets:
     description: Ouvre la collection de pets.
     usage: /pets
+    permission: crew.command.pets
 
 permissions:
+
+  crew.role.player:
+    description: Rôle Player de base.
+    default: true
+  crew.role.vip:
+    description: Rôle VIP.
+    default: false
+  crew.role.mod:
+    description: Rôle Modérateur.
+    default: false
+  crew.role.dev:
+    description: Rôle Développeur.
+    default: false
+  crew.role.fonda:
+    description: Rôle Fondateur.
+    default: false
+
+  crew.command.balance:
+    description: Permet d'utiliser /balance et /bal.
+    default: true
+  crew.command.baltop:
+    description: Permet d'utiliser /baltop.
+    default: true
+  crew.command.sell:
+    description: Permet d'utiliser /sell.
+    default: true
+  crew.command.pay:
+    description: Permet d'utiliser /pay.
+    default: true
+  crew.command.ah:
+    description: Permet d'utiliser /ah.
+    default: true
+  crew.command.team:
+    description: Permet d'utiliser /team.
+    default: true
+  crew.command.bounty:
+    description: Permet d'utiliser /bounty.
+    default: true
+  crew.command.spawn:
+    description: Permet d'utiliser /spawn.
+    default: true
+  crew.command.sethome:
+    description: Permet d'utiliser /sethome.
+    default: true
+  crew.command.home:
+    description: Permet d'utiliser /home.
+    default: true
+  crew.command.tpa:
+    description: Permet d'utiliser /tpa.
+    default: true
+  crew.command.tpahere:
+    description: Permet d'utiliser /tpahere.
+    default: true
+  crew.command.tpaccept:
+    description: Permet d'utiliser /tpaccept.
+    default: true
+  crew.command.claim:
+    description: Permet d'utiliser /claim et /claims.
+    default: true
+  crew.command.duel:
+    description: Permet d'utiliser /duel.
+    default: true
+  crew.command.duelaccept:
+    description: Permet d'utiliser /duelaccept.
+    default: true
+  crew.command.pets:
+    description: Permet d'utiliser /pets.
+    default: true
+
+  crew.staff:
+    description: Permet d'utiliser /staff.
+    default: false
+  crew.vanish:
+    description: Permet d'utiliser /vanish.
+    default: false
+  crew.staff.info:
+    description: Permet d'utiliser /info bounty et d'inspecter les informations de prime.
+    default: false
   crew.rank.set:
-    description: Permet d'attribuer/retirer manuellement un rôle à un joueur (/rank set, /rank clear).
-    default: op
-  crew.balance.others:
-    description: Permet de voir le solde d'un autre joueur.
-    default: op
+    description: Permet d'utiliser /rank pour attribuer ou retirer manuellement un rôle.
+    default: false
   crew.admin:
-    description: Permet d'utiliser les commandes admin d'économie.
-    default: op
+    description: Permissions d'administration de l'économie, des primes et de l'arène de duel.
+    default: false
+  crew.balance.others:
+    description: Permet de voir le solde d'un autre joueur avec /balance <joueur>.
+    default: false
   crew.claim.bypass:
     description: Permet de construire/détruire librement dans n'importe quel claim.
-    default: op
+    default: false
   crew.claim.admin:
-    description: Permet de unclaim/trust/untrust n'importe quel claim, même sans en être le propriétaire.
-    default: op
+    description: Permet de gérer n'importe quel claim (unclaim/trust/untrust/etc.).
+    default: false
   crew.claim.bypasslimit:
-    description: Permet de dépasser la limite du nombre de claims par joueur.
-    default: op
+    description: Permet de dépasser la limite configurée de claims par joueur.
+    default: false
+  crew.vanish.list:
+    description: Permet de voir la liste des joueurs actuellement en vanish. Réservé au Fonda.
+    default: false
   crew.duel.arena.bypass:
-    description: Permet de casser des blocs dans l'arène de duel malgré la protection (pour la décorer).
-    default: op
+    description: Permet de casser des blocs dans l'arène de duel malgré la protection.
+    default: false

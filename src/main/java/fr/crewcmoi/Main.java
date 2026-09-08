@@ -2,6 +2,8 @@ package fr.crewcmoi;
 
 import fr.crewcmoi.claims.commands.ClaimCommand;
 import fr.crewcmoi.claims.gui.ClaimAuctionGuiManager;
+import fr.crewcmoi.claims.gui.ClaimAdminGuiManager;
+import fr.crewcmoi.claims.commands.ClaimAdminCommand;
 import fr.crewcmoi.claims.gui.ClaimSettingsGuiManager;
 import fr.crewcmoi.claims.gui.ClaimShopGuiManager;
 import fr.crewcmoi.claims.listeners.ClaimListener;
@@ -61,6 +63,7 @@ import fr.crewcmoi.pvp.managers.InvisibilityManager;
 import fr.crewcmoi.pvp.managers.MalusEffectManager;
 import fr.crewcmoi.moderation.commands.StaffCommand;
 import fr.crewcmoi.moderation.commands.VanishCommand;
+import fr.crewcmoi.moderation.commands.VanishListCommand;
 import fr.crewcmoi.moderation.listeners.StaffModeListener;
 import fr.crewcmoi.moderation.listeners.VanishListener;
 import fr.crewcmoi.moderation.managers.StaffModeManager;
@@ -113,6 +116,7 @@ public class Main extends JavaPlugin {
     private ClaimShopGuiManager claimShopGuiManager;
     private ClaimVisualizer claimVisualizer;
     private ClaimAuctionGuiManager claimAuctionGuiManager;
+    private ClaimAdminGuiManager claimAdminGuiManager;
     private DuelManager duelManager;
     private fr.crewcmoi.pvp.managers.DuelKitManager duelKitManager;
     private DuelConfigGuiManager duelConfigGuiManager;
@@ -137,10 +141,8 @@ public class Main extends JavaPlugin {
         saveDefaultConfig();
         setupMessages();
 
-        // Remplace le craft vanilla de la Mace.
         registerCustomMaceRecipe();
 
-        // Initialisation de la base de données (SQLite par défaut)
         this.databaseManager = new SQLiteManager(this);
         this.databaseManager.connect();
         this.databaseManager.init();
@@ -154,8 +156,7 @@ public class Main extends JavaPlugin {
         this.combatManager.startActionBar();
         this.teamManager = new TeamManager(this, databaseManager);
         this.malusEffectManager = new MalusEffectManager(this);
-        // Gestionnaire central des teams scoreboard "par joueur" (préfixe de rôle,
-        // suffixe de prime, masquage du pseudo en invisibilité) : voir sa Javadoc.
+
         this.playerTeamManager = new PlayerTeamManager(this);
         this.playerTeamManager.start();
         this.bountyScoreboardManager = new BountyScoreboardManager(this, playerTeamManager);
@@ -170,6 +171,7 @@ public class Main extends JavaPlugin {
         this.claimShopGuiManager = new ClaimShopGuiManager(this, claimManager);
         this.claimVisualizer = new ClaimVisualizer(this, claimManager);
         this.claimAuctionGuiManager = new ClaimAuctionGuiManager(this, claimManager);
+        this.claimAdminGuiManager = new ClaimAdminGuiManager(this, claimManager, claimSettingsGuiManager);
         this.duelKitManager = new fr.crewcmoi.pvp.managers.DuelKitManager(this);
         this.duelManager = new DuelManager(this, economyManager, combatManager);
         this.duelConfigGuiManager = new DuelConfigGuiManager(this, duelManager);
@@ -184,55 +186,47 @@ public class Main extends JavaPlugin {
         this.petGuiManager = new PetGuiManager(this, petManager);
         this.fishermanGuiManager = new FishermanGuiManager(this, economyManager);
 
-        // Enregistrement des listeners
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer, auctionManager), this);
-        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager, fishermanGuiManager), this);
+        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager, claimAdminGuiManager, fishermanGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager, invisibilityManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
-        // Règles PvP additionnelles : cristaux/ancres ne blessent que leur déclencheur,
-        // et les ender pearls restent utilisables en combat (rafraîchit juste le tag).
+
         getServer().getPluginManager().registerEvents(new PvpRulesListener(combatManager), this);
         getServer().getPluginManager().registerEvents(new ClaimListener(this, claimManager), this);
         getServer().getPluginManager().registerEvents(new DuelListener(this, duelManager, duelConfigGuiManager), this);
         getServer().getPluginManager().registerEvents(new PlayerHeadDropListener(this, duelManager), this);
         getServer().getPluginManager().registerEvents(new DuelArenaListener(duelArenaManager), this);
-        // Rend le pseudo d'un joueur invisible (potion) invisible pour tout le monde
-        // (nametag masqué) et anonymise son nom en cas de kill (voir BountyListener).
+
         getServer().getPluginManager().registerEvents(new InvisibilityListener(invisibilityManager), this);
         if (getServer().getPluginManager().isPluginEnabled("ItemsAdder") && getServer().getPluginManager().isPluginEnabled("MythicMobs")) {
             getServer().getPluginManager().registerEvents(new PetListener(this, petManager, petGuiManager), this);
         } else {
             getLogger().warning("Pets désactivés : ItemsAdder et MythicMobs sont nécessaires.");
         }
-        // Applique le préfixe de rôle (Fonda/Admin/Dev/Mod/Vip/Player) et le tri dans
-        // le tab dès la connexion d'un joueur (voir fr.crewcmoi.tab).
+
         getServer().getPluginManager().registerEvents(new TabListListener(tabListManager), this);
-        // Restaure le mode incognito (/staff) d'un joueur qui se reconnecte alors
-        // qu'il l'avait laissé activé (priorité NORMAL, avant TabListListener en MONITOR).
+
         getServer().getPluginManager().registerEvents(new StaffModeListener(staffModeManager, roleManager), this);
-        // Masque/affiche les joueurs vanish selon les connexions/déconnexions (voir VanishManager).
+        
         getServer().getPluginManager().registerEvents(new VanishListener(vanishManager), this);
-        // Citizens est nécessaire pour déclencher /sell via clic droit sur le NPC d'id 1 :
-        // on n'enregistre ce listener (qui référence les classes de son API) que s'il est
-        // bien installé et activé, pour éviter un crash au démarrage si absent.
+
+        
         if (getServer().getPluginManager().isPluginEnabled("Citizens")) {
             getServer().getPluginManager().registerEvents(new SellNpcListener(sellGuiManager), this);
             getServer().getPluginManager().registerEvents(new FishermanNpcListener(this, fishermanGuiManager), this);
         } else {
             getLogger().warning("Citizens n'est pas détecté : l'ouverture de /sell et du pêcheur via clic droit sur les NPC est désactivée.");
         }
-        // ItemsAdder est optionnel : on n'enregistre ce listener (qui référence les classes
-        // de son API) que s'il est bien installé et activé, pour éviter un crash au démarrage
-        // si ce plugin n'est pas présent sur le serveur.
+
+        
         if (getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
             getServer().getPluginManager().registerEvents(new CoinItemListener(this, economyManager), this);
         } else {
             getLogger().warning("ItemsAdder n'est pas détecté : la pièce échangeable contre de l'argent est désactivée.");
         }
 
-        // Enregistrement de CrewCMoi comme fournisseur d'économie Vault, pour que les
-        // plugins tiers (ex: PlaceholderAPI -> %vault_eco_balance_formatted%, utilisé par
-        // le HUD "money" de RPGhuds) puissent lire le solde des joueurs.
+        
+        
         if (getServer().getPluginManager().isPluginEnabled("Vault")) {
             getServer().getServicesManager().register(
                     net.milkbowl.vault.economy.Economy.class,
@@ -245,12 +239,10 @@ public class Main extends JavaPlugin {
             getLogger().warning("Vault n'est pas détecté : l'intégration économique Vault (ex: HUD money de RPGhuds) est désactivée.");
         }
 
-        // Enregistrement de l'expansion PlaceholderAPI exposant la prime (%crewcmoi_bounty%,
-        // %crewcmoi_bounty_suffix%, %crewcmoi_has_bounty%) : RPGhuds gère l'affichage
-        // au-dessus des joueurs par ses propres moyens (packets/HUD, pas le scoreboard
-        // vanilla), donc c'est via ce placeholder qu'il faut intégrer la prime dans SA
-        // config de nametag pour qu'elle soit réellement visible en jeu. Optionnel comme
-        // ItemsAdder ci-dessus : on ne s'enregistre que si PlaceholderAPI est bien présent.
+        
+
+        
+        
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new fr.crewcmoi.pvp.placeholder.BountyPlaceholderExpansion(this, bountyManager).register();
             getLogger().info("Placeholders CrewCMoi enregistrés auprès de PlaceholderAPI "
@@ -261,7 +253,6 @@ public class Main extends JavaPlugin {
                     + "afficher la prime au-dessus des joueurs.");
         }
 
-        // Enregistrement des commandes
         registerCommand("balance", new BalanceCommand(this, economyManager));
         registerCommand("money", new MoneyCommand(this, economyManager));
         registerCommand("baltop", new BalanceTopCommand(this, economyManager));
@@ -280,17 +271,18 @@ public class Main extends JavaPlugin {
         ClaimCommand claimCommand = new ClaimCommand(this, claimManager, claimSettingsGuiManager, claimShopGuiManager, claimVisualizer, claimAuctionGuiManager);
         registerCommand("claim", claimCommand);
         registerCommand("claims", claimCommand);
+        registerCommand("claimadmin", new ClaimAdminCommand(claimAdminGuiManager));
         registerCommand("duel", new DuelCommand(this, duelManager, duelConfigGuiManager, combatManager));
         registerCommand("duelaccept", new DuelAcceptCommand(this, duelManager));
         registerCommand("duelarena", new DuelArenaCommand(duelArenaManager));
         registerCommand("rank", new RoleCommand(this, roleManager, tabListManager));
         registerCommand("staff", new StaffCommand(staffModeManager, roleManager, vanishManager));
         registerCommand("vanish", new VanishCommand(staffModeManager, vanishManager));
+        registerCommand("vanishlist", new VanishListCommand(vanishManager));
         registerCommand("pets", new PetsCommand(petGuiManager));
 
-        // Dashboard web admin en lecture seule (voir fr.crewcmoi.web) : classement des
-        // richesses, prix, claims, primes et réglages config.yml, consultables depuis un
-        // navigateur en local/réseau local (voir web.* dans config.yml).
+        
+        
         this.webDashboardServer = new WebDashboardServer(this, economyManager, pricesManager, claimManager, bountyManager, auctionManager);
         this.webDashboardServer.start();
 
@@ -335,7 +327,6 @@ public class Main extends JavaPlugin {
         }
         messages = YamlConfiguration.loadConfiguration(messagesFile);
 
-        // Charge les valeurs par défaut depuis le jar au cas où certaines clés manquent
         try (InputStreamReader defConfigStream = new InputStreamReader(
                 getResource("messages.yml"), StandardCharsets.UTF_8)) {
             YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
@@ -355,18 +346,10 @@ public class Main extends JavaPlugin {
         }
     }
 
+    
 
-    /**
-     * Remplace le craft vanilla de la Mace par :
-     *
-     *     [        ] [ Noyau lourd ] [        ]
-     *     [        ] [ Œuf de l'Ender Dragon ] [        ]
-     *     [        ] [ Breeze Rod ] [        ]
-     *
-     * Soit les 3 objets alignés verticalement au centre de la table de craft.
-     */
     private void registerCustomMaceRecipe() {
-        // La recette vanilla utilise la clé minecraft:mace.
+        
         Bukkit.removeRecipe(new NamespacedKey("minecraft", "mace"));
 
         NamespacedKey key = new NamespacedKey(this, "custom_mace");

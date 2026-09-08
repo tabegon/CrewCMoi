@@ -18,34 +18,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
-/**
- * Gère la commande /staff : bascule un membre du staff (Fonda/Admin/Dev/Mod,
- * voir Role#isStaffRole) entre deux états, en échangeant à chaque fois :
- *  - son inventaire (contenu + armure + main secondaire) ;
- *  - son rôle affiché dans le tab (façade Vip <-> vrai rôle, voir
- *    RoleManager#setStaffModeActive).
- * <p>
- * État "normal" (par défaut, /staff désactivé) : inventaire habituel du
- * joueur, tab affiche la façade **Vip** — son vrai rôle (Fonda/Admin/Dev/Mod)
- * reste invisible aux autres tant qu'il n'active pas /staff.
- * <p>
- * État "staff" (après /staff) : inventaire dédié au staff (vide la première
- * fois, puis conservé tel quel d'une utilisation à l'autre — sers-t'en comme
- * d'une trousse à outils d'investigation), tab affiche son **vrai rôle**.
- * <p>
- * Les deux inventaires sont persistés dans staffmode.yml (indépendant de la
- * base SQLite du reste du plugin), donc conservés d'une session à l'autre.
- * Si tu veux inverser le sens du toggle, il suffit d'inverser les deux blocs
- * dans {@link #toggle(Player)}.
- * <p>
- * Le mode staff est aussi la condition requise pour utiliser /vanish (voir
- * VanishManager) : en sortir force automatiquement la désactivation du vanish.
- */
 public class StaffModeManager {
 
     private static final int INVENTORY_SIZE = 36;
     private static final int ARMOR_SIZE = 4;
-    private static final int SNAPSHOT_SIZE = INVENTORY_SIZE + ARMOR_SIZE + 1; // + main secondaire
+    private static final int SNAPSHOT_SIZE = INVENTORY_SIZE + ARMOR_SIZE + 1; 
 
     public enum ToggleResult {
         NOT_ALLOWED,
@@ -94,7 +71,7 @@ public class StaffModeManager {
             try {
                 active.add(UUID.fromString(uuidStr));
             } catch (IllegalArgumentException ignored) {
-                // UUID mal formé dans staffmode.yml : on ignore simplement cette entrée.
+                
             }
         }
     }
@@ -107,20 +84,10 @@ public class StaffModeManager {
         }
     }
 
-    /**
-     * Est-ce que ce joueur est actuellement en mode /staff (incognito) ? À
-     * utiliser, par exemple, pour réappliquer l'état correct à la connexion
-     * (voir StaffModeListener).
-     */
     public boolean isActive(UUID uuid) {
         return active.contains(uuid);
     }
 
-    /**
-     * Bascule le joueur entre ses deux inventaires (normal <-> staff) et son
-     * affichage dans le tab (façade Vip <-> vrai rôle). Ne fait rien et renvoie
-     * NOT_ALLOWED si le joueur n'a pas un vrai rôle de staff (Fonda/Admin/Dev/Mod).
-     */
     public ToggleResult toggle(Player player) {
         Role realRole = roleManager.getRealRole(player);
         if (!realRole.isStaffRole()) {
@@ -131,36 +98,30 @@ public class StaffModeManager {
         boolean wasActive = active.contains(uuid);
 
         if (!wasActive) {
-            // Passage en mode staff : on sauvegarde l'inventaire normal, puis on
-            // charge l'inventaire staff (vide la toute première fois). Le vrai
-            // rôle devient visible dans le tab (fin de la façade Vip).
+
+            
             saveSnapshot(uuid, "normal", takeSnapshot(player));
             applySnapshot(player, loadSnapshot(uuid, "staff"));
             active.add(uuid);
             roleManager.setStaffModeActive(uuid, true);
         } else {
-            // Retour au mode normal : on sauvegarde l'inventaire staff, puis on
-            // restaure l'inventaire normal. Le tab repasse à la façade Vip.
+
             saveSnapshot(uuid, "staff", takeSnapshot(player));
             applySnapshot(player, loadSnapshot(uuid, "normal"));
             active.remove(uuid);
             roleManager.setStaffModeActive(uuid, false);
-            // Le vanish (/vanish) n'est autorisé qu'en mode staff : on force sa
-            // désactivation en sortant du mode staff, pour ne pas rester invisible
-            // sans possibilité de le savoir/désactiver.
+
+            
             vanishManager.forceUnvanish(player);
         }
 
         config.set("players." + uuid + ".active", !wasActive);
         save();
 
-        // Réapplique immédiatement le préfixe/tri dans le tab avec le nouveau rôle.
         tabListManager.applyRole(player);
 
         return wasActive ? ToggleResult.NOW_NORMAL : ToggleResult.NOW_STAFF;
     }
-
-    // ===================== Snapshot d'inventaire =====================
 
     private ItemStack[] takeSnapshot(Player player) {
         PlayerInventory inventory = player.getInventory();
@@ -183,8 +144,7 @@ public class StaffModeManager {
         inventory.setItemInOffHand(null);
 
         if (snapshot == null) {
-            // Aucun inventaire sauvegardé (ex : première utilisation de /staff) :
-            // le joueur repart avec un inventaire vide plutôt qu'une erreur.
+
             return;
         }
 

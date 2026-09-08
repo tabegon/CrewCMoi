@@ -19,9 +19,6 @@ import fr.crewcmoi.other.utils.GuiItems;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Construit et rafraîchit la GUI de l'hôtel des ventes, et gère les clics (achat, annulation, navigation).
- */
 public class AuctionGuiManager {
 
     private final Main plugin;
@@ -33,10 +30,6 @@ public class AuctionGuiManager {
         this.auctionManager = auctionManager;
     }
 
-    /**
-     * Ouvre une GUI de confirmation avant l'achat d'une annonce. Si l'annonce n'existe
-     * plus (achetée/retirée entre temps), on prévient le joueur et on revient à la GUI.
-     */
     public void openBuyConfirmation(Player player, int page, int auctionId) {
         AuctionItem auction = auctionManager.getCachedAuctions().stream()
                 .filter(a -> a.getId() == auctionId)
@@ -44,12 +37,12 @@ public class AuctionGuiManager {
                 .orElse(null);
 
         if (auction == null) {
-            Messages.send(player, "server.auction-not-available", java.util.Map.of(), false);
+            Messages.send(player, "economy.auction.not-available", java.util.Map.of(), false);
             open(player, page);
             return;
         }
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         List<String> extraLore = new ArrayList<>();
         extraLore.add("");
@@ -65,11 +58,11 @@ public class AuctionGuiManager {
                 extraLore,
                 () -> auctionManager.buy(player, auctionId, result -> {
                     switch (result) {
-                        case SUCCESS -> Messages.send(player, "server.auction-buy-success", java.util.Map.of(), false);
-                        case NOT_ENOUGH_MONEY -> Messages.send(player, "server.auction-buy-not-enough-money", java.util.Map.of(), false);
-                        case INVENTORY_FULL -> Messages.send(player, "server.auction-buy-inventory-full", java.util.Map.of(), false);
-                        case OWN_ITEM -> Messages.send(player, "server.auction-buy-own-item", java.util.Map.of(), false);
-                        case NOT_FOUND -> Messages.send(player, "server.auction-not-available", java.util.Map.of(), false);
+                        case SUCCESS -> Messages.send(player, "economy.auction.buy-success", java.util.Map.of(), false);
+                        case NOT_ENOUGH_MONEY -> Messages.send(player, "economy.auction.buy-not-enough-money", java.util.Map.of(), false);
+                        case INVENTORY_FULL -> Messages.send(player, "economy.auction.buy-inventory-full", java.util.Map.of(), false);
+                        case OWN_ITEM -> Messages.send(player, "economy.auction.buy-own-item", java.util.Map.of(), false);
+                        case NOT_FOUND -> Messages.send(player, "economy.auction.not-available", java.util.Map.of(), false);
                     }
                     open(player, page);
                 }),
@@ -81,10 +74,6 @@ public class AuctionGuiManager {
         openInternal(player, page, false);
     }
 
-    /**
-     * Ouvre la même GUI que /ah, mais filtrée sur les annonces du joueur lui-même
-     * (accessible via le bouton à côté du livre d'info).
-     */
     public void openMyListings(Player player, int page) {
         openInternal(player, page, true);
     }
@@ -104,11 +93,6 @@ public class AuctionGuiManager {
         });
     }
 
-    /**
-     * Reconstruit le contenu de la GUI déjà ouverte (après achat/annulation/changement de page).
-     * En mode "mes annonces" (holder.isMyListings()), seules les annonces du joueur qui consulte
-     * la GUI sont affichées.
-     */
     public void render(Player viewer, AuctionHolder holder) {
         Inventory gui = holder.getInventory();
         holder.clearMapping();
@@ -138,7 +122,7 @@ public class AuctionGuiManager {
         int start = page * AuctionHolder.ITEMS_PER_PAGE;
         int end = Math.min(start + AuctionHolder.ITEMS_PER_PAGE, auctions.size());
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         for (int i = start; i < end; i++) {
             AuctionItem auction = auctions.get(i);
@@ -171,7 +155,6 @@ public class AuctionGuiManager {
             holder.mapSlot(slot, auction.getId());
         }
 
-        // Navigation
         if (page > 0) {
             gui.setItem(AuctionHolder.PREV_PAGE_SLOT, createNavItem(Material.ARROW, "&eᴘᴀɢᴇ ᴘʀᴇᴄᴇᴅᴇɴᴛᴇ"));
         }
@@ -182,9 +165,8 @@ public class AuctionGuiManager {
         gui.setItem(AuctionHolder.MY_LISTINGS_SLOT,
                 holder.isMyListings() ? createBackItem() : createMyListingsItem());
 
-        // Dernière ligne : remplit les emplacements libres avec l'item custom
-        // "vide", comme dans les autres GUIs du plugin. Les boutons de navigation,
-        // d'information et "mes annonces" déjà présents sont conservés.
+        
+        
         ItemStack filler = GuiItems.nothing(" ");
         for (int slot = 45; slot < AuctionHolder.SIZE; slot++) {
             if (gui.getItem(slot) == null) {
@@ -225,10 +207,6 @@ public class AuctionGuiManager {
         return item;
     }
 
-    /**
-     * Bouton affiché à côté du livre dans l'hôtel des ventes : ouvre la liste
-     * des annonces actuellement en vente par le joueur qui consulte la GUI.
-     */
     private ItemStack createMyListingsItem() {
         ItemStack item = new ItemStack(Material.CHEST);
         ItemMeta meta = item.getItemMeta();
@@ -243,10 +221,6 @@ public class AuctionGuiManager {
         return item;
     }
 
-    /**
-     * Bouton de retour affiché à la place de "mes annonces" quand on est déjà
-     * dans la vue filtrée sur ses propres annonces.
-     */
     private ItemStack createBackItem() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();

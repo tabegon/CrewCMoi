@@ -15,11 +15,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Construit et rafraîchit la GUI /duel <joueur> : permet au demandeur de choisir
- * si l'inventaire est conservé en cas de défaite (keepinventory) et le montant
- * d'argent mis en jeu, avant de confirmer et d'envoyer la demande à l'adversaire.
- */
 public class DuelConfigGuiManager {
 
     private final Main plugin;

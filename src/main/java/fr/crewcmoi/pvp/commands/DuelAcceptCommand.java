@@ -9,10 +9,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-/**
- * Commande /duelaccept : accepte la demande de duel reçue. Avec l'argument "deny"
- * (ou via le bouton [Refuser] cliquable), refuse la demande à la place.
- */
 public class DuelAcceptCommand implements CommandExecutor {
 
     private final Main plugin;
@@ -26,7 +22,7 @@ public class DuelAcceptCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            Messages.send(sender, "server.duelaccept-8660550");
+            Messages.send(sender, "duel.accept.player-only");
             return true;
         }
 

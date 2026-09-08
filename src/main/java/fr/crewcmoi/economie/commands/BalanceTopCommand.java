@@ -17,12 +17,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import fr.crewcmoi.other.utils.MoneyFormat;
+import fr.crewcmoi.other.utils.GuiItems;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Commande /baltop : affiche le classement des joueurs les plus riches dans une GUI.
- */
 public class BalanceTopCommand implements CommandExecutor {
 
     private final Main plugin;
@@ -36,13 +34,12 @@ public class BalanceTopCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            Messages.send(sender, "server.balancetop-8660550");
+            Messages.send(sender, "economy.balancetop.player-only");
             return true;
         }
 
         Player player = (Player) sender;
 
-        // La récupération en base doit se faire de façon asynchrone puis l'ouverture de l'inventaire de façon synchrone.
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             List<PlayerData> top = economyManager.getTopBalances(45);
             Bukkit.getScheduler().runTask(plugin, () -> openGui(player, top));
@@ -57,7 +54,7 @@ public class BalanceTopCommand implements CommandExecutor {
         Inventory gui = Bukkit.createInventory(holder, size, ChatColor.translateAlternateColorCodes('&', "&6&lᴄʟᴀꜱꜱᴇᴍᴇɴᴛ ᴅᴇꜱ ʀɪᴄʜᴇꜱꜱᴇꜱ"));
         holder.setInventory(gui);
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         List<ItemStack> items = new ArrayList<>();
         int rank = 1;
@@ -90,8 +87,13 @@ public class BalanceTopCommand implements CommandExecutor {
             rank++;
         }
 
-        for (int i = 0; i < items.size() && i < size; i++) {
+        for (int i = 0; i < items.size() && i < 45; i++) {
             gui.setItem(i, items.get(i));
+        }
+
+        ItemStack nothing = GuiItems.nothing(" ");
+        for (int slot = 45; slot < size; slot++) {
+            gui.setItem(slot, nothing);
         }
 
         viewer.openInventory(gui);

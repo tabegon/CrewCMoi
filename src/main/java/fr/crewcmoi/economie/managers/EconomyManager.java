@@ -10,16 +10,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Gère la logique économique du plugin : cache des données joueurs en ligne,
- * opérations de dépôt/retrait/set, et accès à la base de données.
- */
 public class EconomyManager {
 
     private final Main plugin;
     private final DatabaseManager databaseManager;
 
-    // Cache des joueurs actuellement en ligne (accès rapide, thread-safe)
     private final Map<UUID, PlayerData> cache = new ConcurrentHashMap<>();
 
     public EconomyManager(Main plugin, DatabaseManager databaseManager) {
@@ -27,9 +22,6 @@ public class EconomyManager {
         this.databaseManager = databaseManager;
     }
 
-    /**
-     * Charge les données d'un joueur en cache de manière asynchrone.
-     */
     public void loadPlayer(UUID uuid, String name) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             PlayerData data = databaseManager.loadOrCreatePlayer(uuid, name);
@@ -37,9 +29,6 @@ public class EconomyManager {
         });
     }
 
-    /**
-     * Décharge un joueur du cache (à appeler à la déconnexion), en sauvegardant au préalable.
-     */
     public void unloadPlayer(UUID uuid) {
         PlayerData data = cache.remove(uuid);
         if (data != null) {
@@ -47,9 +36,6 @@ public class EconomyManager {
         }
     }
 
-    /**
-     * Récupère les données d'un joueur, en cache si disponible, sinon en base (synchrone, à utiliser hors du thread principal si possible).
-     */
     public PlayerData getPlayerData(UUID uuid) {
         PlayerData cached = cache.get(uuid);
         if (cached != null) {
@@ -76,9 +62,6 @@ public class EconomyManager {
         return getBalance(uuid) >= amount;
     }
 
-    /**
-     * Ajoute de l'argent au solde d'un joueur.
-     */
     public void deposit(UUID uuid, double amount) {
         if (amount <= 0) return;
         PlayerData data = getPlayerData(uuid);
@@ -87,10 +70,6 @@ public class EconomyManager {
         persist(data);
     }
 
-    /**
-     * Retire de l'argent au solde d'un joueur. Ne descend jamais en dessous de 0
-     * sauf si "economy.allow-negative-balance" est activé dans la config.
-     */
     public boolean withdraw(UUID uuid, double amount) {
         if (amount <= 0) return false;
         PlayerData data = getPlayerData(uuid);
@@ -106,9 +85,6 @@ public class EconomyManager {
         return true;
     }
 
-    /**
-     * Définit directement le solde d'un joueur.
-     */
     public void setBalance(UUID uuid, double amount) {
         PlayerData data = getPlayerData(uuid);
         if (data == null) return;
@@ -116,9 +92,6 @@ public class EconomyManager {
         persist(data);
     }
 
-    /**
-     * Sauvegarde une donnée joueur : met à jour le cache si présent, et sauvegarde en base de façon asynchrone.
-     */
     private void persist(PlayerData data) {
         if (cache.containsKey(data.getUuid())) {
             cache.put(data.getUuid(), data);

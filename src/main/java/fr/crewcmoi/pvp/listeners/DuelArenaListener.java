@@ -13,16 +13,9 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 
 import java.util.Iterator;
 
-/**
- * Rend l'arène de duel indestructible : on peut toujours y poser des blocs (cobweb,
- * etc. — voir DuelListener/DuelManager pour le début du combat), mais on ne peut ni en
- * casser, ni la faire exploser, ni la brûler. Elle est remise à son état sauvegardé par
- * DuelArenaManager#resetArena() à la fin de chaque duel.
- */
 public class DuelArenaListener implements Listener {
 
-    // Permission qui permet de casser des blocs dans l'arène malgré tout (pour la
-    // décorer/l'aménager avant de faire /duelarena save).
+    
     private static final String BYPASS_PERMISSION = "crew.duel.arena.bypass";
 
     private final DuelArenaManager duelArenaManager;
@@ -42,8 +35,7 @@ public class DuelArenaListener implements Listener {
         }
     }
 
-    // Poser des blocs (cobweb, etc.) reste volontairement autorisé dans l'arène :
-    // aucun handler sur BlockPlaceEvent.
+    
 
     @EventHandler(ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {

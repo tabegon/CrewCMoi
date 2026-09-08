@@ -1,4 +1,5 @@
 package fr.crewcmoi.pvp.managers;
+import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import org.bukkit.Bukkit;
@@ -15,23 +16,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Gère la zone de l'arène de duel : ses deux coins (définissant un cuboïde), une
- * "photo" (snapshot) de son état propre, et sa restauration après chaque combat.
- *
- * Fonctionnement :
- *  - Un admin délimite l'arène avec /duelarena corner1 et /duelarena corner2 (aux
- *    positions où il se trouve), puis sauvegarde son état propre avec /duelarena save.
- *  - Tant que le cuboïde est défini, toute cassure de bloc à l'intérieur est bloquée
- *    (voir DuelArenaListener) : l'arène est indestructible. La pose de blocs (cobweb,
- *    etc.) reste autorisée.
- *  - À la fin de chaque duel, resetArena() restaure tous les blocs de la zone à l'état
- *    sauvegardé, effaçant ainsi tout ce qui a été posé/changé pendant le combat.
- */
 public class DuelArenaManager {
 
-    // Au-delà de ce nombre de blocs à restaurer, la restauration est étalée sur
-    // plusieurs ticks pour éviter tout lag serveur.
+    
     private static final int BLOCKS_PER_TICK = 4000;
 
     private final Main plugin;
@@ -39,7 +26,7 @@ public class DuelArenaManager {
 
     private String worldName;
     private int minX, minY, minZ, maxX, maxY, maxZ;
-    private String[] savedBlocks; // null tant qu'aucune sauvegarde n'a été faite
+    private String[] savedBlocks; 
 
     public DuelArenaManager(Main plugin) {
         this.plugin = plugin;
@@ -48,9 +35,7 @@ public class DuelArenaManager {
         loadSnapshotFromDisk();
     }
 
-    // ------------------------------------------------------------------
-    // Configuration des coins
-    // ------------------------------------------------------------------
+    
 
     private void loadCorners() {
         this.worldName = plugin.getConfig().getString("duel.arena.region.world");
@@ -65,11 +50,6 @@ public class DuelArenaManager {
     private Location corner1;
     private Location corner2;
 
-    /**
-     * Enregistre un des deux coins de l'arène (index 1 ou 2). Dès que les deux coins
-     * sont posés (dans le même monde), le cuboïde protégé est recalculé et persisté
-     * dans config.yml.
-     */
     public void setCorner(int index, Location location) {
         if (index == 1) {
             corner1 = location.getBlock().getLocation();
@@ -101,25 +81,18 @@ public class DuelArenaManager {
         plugin.getConfig().set("duel.arena.region.maxZ", maxZ);
         plugin.saveConfig();
 
-        // La zone a changé : l'ancienne sauvegarde ne correspond plus forcément.
         savedBlocks = null;
         try {
             Files.deleteIfExists(snapshotFile);
         } catch (IOException ignored) {
-            // Rien de grave si le fichier ne peut pas être supprimé immédiatement.
+            
         }
     }
 
-    /**
-     * Vrai si les deux coins de l'arène sont configurés (le cuboïde existe).
-     */
     public boolean isRegionDefined() {
         return worldName != null;
     }
 
-    /**
-     * Vrai si l'emplacement donné se trouve à l'intérieur du cuboïde de l'arène.
-     */
     public boolean isInsideArena(Location location) {
         if (!isRegionDefined() || location.getWorld() == null
                 || !location.getWorld().getName().equals(worldName)) {
@@ -131,26 +104,20 @@ public class DuelArenaManager {
         return x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ;
     }
 
-    // ------------------------------------------------------------------
-    // Snapshot (état "propre" de référence)
-    // ------------------------------------------------------------------
+    
 
     public boolean hasSnapshot() {
         return savedBlocks != null;
     }
 
-    /**
-     * Prend une photo de l'état actuel de la zone : c'est cet état qui sera restauré
-     * après chaque duel. À lancer une fois l'arène décorée et prête.
-     */
     public boolean saveSnapshot(CommandSender sender) {
         if (!isRegionDefined()) {
-            sender.sendMessage("§cDéfinissez d'abord les deux coins avec /duelarena corner1 et /duelarena corner2.");
+            Messages.send(sender, "moderation.duelarena.corners-required");
             return false;
         }
         World world = Bukkit.getWorld(worldName);
         if (world == null) {
-            sender.sendMessage("§cLe monde de l'arène (" + worldName + ") n'est pas chargé.");
+            Messages.send(sender, "moderation.duelarena.world-not-loaded", java.util.Map.of("world", worldName));
             return false;
         }
 
@@ -170,7 +137,7 @@ public class DuelArenaManager {
         savedBlocks = lines.toArray(new String[0]);
         writeSnapshotToDisk(lines);
 
-        sender.sendMessage("§aArène sauvegardée (" + savedBlocks.length + " blocs). Elle sera restaurée à cet état après chaque duel.");
+        Messages.send(sender, "moderation.duelarena.saved", java.util.Map.of("blocks", savedBlocks.length));
         return true;
     }
 
@@ -199,7 +166,7 @@ public class DuelArenaManager {
             String savedWorld = content.get(0);
             String[] bounds = content.get(1).split(" ");
             if (bounds.length != 6 || !savedWorld.equals(worldName)) {
-                // La sauvegarde ne correspond plus à la région actuellement configurée.
+                
                 return;
             }
             int savedMinX = Integer.parseInt(bounds[0]);
@@ -218,15 +185,10 @@ public class DuelArenaManager {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Restauration
-    // ------------------------------------------------------------------
+    
 
-    /**
-     * Restaure la zone à l'état sauvegardé (voir {@link #saveSnapshot(CommandSender)}).
-     * Ne fait rien si aucune sauvegarde n'existe. Étale la restauration sur plusieurs
-     * ticks si la zone est grande, pour ne pas impacter le TPS.
-     */
+    
+
     public void resetArena() {
         if (!isRegionDefined() || savedBlocks == null) {
             return;
@@ -239,7 +201,7 @@ public class DuelArenaManager {
         int sizeY = maxY - minY + 1;
         int sizeZ = maxZ - minZ + 1;
 
-        int[] cursor = {0}; // index courant dans savedBlocks
+        int[] cursor = {0}; 
         BukkitTask[] taskHolder = new BukkitTask[1];
         taskHolder[0] = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             int processed = 0;

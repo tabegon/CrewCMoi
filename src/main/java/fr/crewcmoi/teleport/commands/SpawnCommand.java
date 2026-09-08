@@ -12,10 +12,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-/**
- * Commande /spawn : téléporte le joueur aux coordonnées du spawn définies dans config.yml.
- * Accessible à tout le monde.
- */
 public class SpawnCommand implements CommandExecutor {
 
     private final Main plugin;
@@ -27,7 +23,7 @@ public class SpawnCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            Messages.send(sender, "server.spawn-8660550");
+            Messages.send(sender, "teleport.spawn.player-only");
             return true;
         }
 
@@ -38,7 +34,7 @@ public class SpawnCommand implements CommandExecutor {
         World world = Bukkit.getWorld(worldName);
 
         if (world == null) {
-            Messages.send(player, "server.spawn-world-not-found", java.util.Map.of("world", worldName), true);
+            Messages.send(player, "teleport.spawn.world-not-found", java.util.Map.of("world", worldName), true);
             return true;
         }
 
@@ -51,7 +47,7 @@ public class SpawnCommand implements CommandExecutor {
         Location spawnLocation = new Location(world, x, y, z, yaw, pitch);
         player.teleport(spawnLocation);
 
-        Messages.send(player, "server.spawn-teleported", java.util.Map.of(), true);
+        Messages.send(player, "teleport.spawn.teleported", java.util.Map.of(), true);
 
         return true;
     }

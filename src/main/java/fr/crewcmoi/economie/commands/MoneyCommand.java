@@ -17,10 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Commande admin /money <add|remove|set> <joueur> <montant>
- * Permission : economy.admin
- */
 public class MoneyCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
@@ -34,12 +30,12 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("crew.admin")) {
-            Messages.send(sender, "server.money-a4e1d2b");
+            Messages.send(sender, "economy.money.no-permission");
             return true;
         }
 
         if (args.length < 3) {
-            Messages.send(sender, "server.money-b08cb36");
+            Messages.send(sender, "economy.money.usage");
             return true;
         }
 
@@ -50,48 +46,48 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         try {
             amount = MoneyFormat.parse(args[2]);
         } catch (NumberFormatException e) {
-            Messages.send(sender, "server.money-invalid-amount", java.util.Map.of("amount", args[2]));
+            Messages.send(sender, "economy.money.invalid-amount", java.util.Map.of("amount", args[2]));
             return true;
         }
 
         if (amount < 0) {
-            Messages.send(sender, "server.money-f2ae10f");
+            Messages.send(sender, "economy.money.positive-amount");
             return true;
         }
 
         PlayerData data = economyManager.getPlayerDataByName(targetName);
         if (data == null) {
-            Messages.send(sender, "server.money-48408b8");
+            Messages.send(sender, "general.player-not-found");
             return true;
         }
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         switch (action) {
             case "add":
                 economyManager.deposit(data.getUuid(), amount);
-                Messages.send(sender, "server.money-add-success", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", data.getName()));
+                Messages.send(sender, "economy.money.add-success", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", data.getName()));
                 notifyTarget(data, "&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e" + MoneyFormat.format(amount) + currency + "&a !");
                 break;
 
             case "remove":
                 boolean success = economyManager.withdraw(data.getUuid(), amount);
                 if (!success) {
-                    Messages.send(sender, "server.money-remove-not-enough", java.util.Map.of("player", data.getName()));
+                    Messages.send(sender, "economy.money.remove-not-enough", java.util.Map.of("player", data.getName()));
                     return true;
                 }
-                Messages.send(sender, "server.money-remove-success", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", data.getName()));
+                Messages.send(sender, "economy.money.remove-success", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", data.getName()));
                 notifyTarget(data, "&cᴏɴ ᴠᴏᴜꜱ ᴀ ʀᴇᴛɪʀᴇ &e" + MoneyFormat.format(amount) + currency + "&c.");
                 break;
 
             case "set":
                 economyManager.setBalance(data.getUuid(), amount);
-                Messages.send(sender, "server.money-set-success", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", data.getName()));
+                Messages.send(sender, "economy.money.set-success", java.util.Map.of("amount", MoneyFormat.format(amount) + currency, "player", data.getName()));
                 notifyTarget(data, "&eᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ ᴀ ᴇᴛᴇ ᴅᴇꜰɪɴɪ ᴀ " + MoneyFormat.format(amount) + currency + ".");
                 break;
 
             default:
-                Messages.send(sender, "server.money-7bdd64f");
+                Messages.send(sender, "economy.money.unknown-action");
                 break;
         }
 

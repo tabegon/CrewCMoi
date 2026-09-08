@@ -7,10 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-/**
- * Clic droit sur le NPC pêcheur (id configuré via "fisherman.npc-id", 2 par défaut) :
- * ouvre le menu Vendre/Acheter (voir FishermanGuiManager).
- */
 public class FishermanNpcListener implements Listener {
 
     private final Main plugin;

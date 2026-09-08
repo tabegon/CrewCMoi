@@ -18,18 +18,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import fr.crewcmoi.other.utils.MoneyFormat;
 import java.util.UUID;
 
-/**
- * Gère les conséquences économiques d'une mort en JcJ :
- *  - le tueur récupère TOUJOURS l'intégralité de la prime active de la victime, s'il y en a
- *    une (y compris les contributions qu'il a lui-même placées, ou celles de ses alliés).
- *  - en plus de ça, si cette prime n'était pas "légitime" (aucune prime du tout, ou
- *    uniquement des contributions du tueur/de ses alliés, ou avec une raison jamais
- *    approuvée par un admin) ET que le tueur a initié le combat (premier coup), le serveur
- *    lui attribue automatiquement une prime + un malus sur sa propre tête, sauf si :
- *      - la victime fait partie d'une équipe (les membres d'équipe ne déclenchent pas ce malus),
- *      - le tueur s'est déjà vu attribuer cette prime serveur 3 fois aujourd'hui,
- *      - le tueur se défendait (c'est la victime qui avait initié le combat).
- */
 public class BountyListener implements Listener {
 
     private final Main plugin;
@@ -52,14 +40,6 @@ public class BountyListener implements Listener {
         this.playerTeamManager = plugin.getPlayerTeamManager();
     }
 
-    /**
-     * Si le tueur était invisible (potion) au moment du kill, on masque son nom dans
-     * le message de mort diffusé à tout le serveur, pour qu'il reste anonyme aux yeux
-     * de tout le monde. Cela ne l'empêche pas de toucher la prime de sa victime
-     * normalement (voir onPlayerDeath ci-dessous) : seule son identité affichée change.
-     * Priorité HIGHEST pour s'exécuter après les autres plugins susceptibles de
-     * construire/modifier ce message, et donc avoir le dernier mot dessus.
-     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDeathAnonymizeInvisibleKiller(PlayerDeathEvent event) {
         Player victim = event.getEntity();
@@ -77,9 +57,8 @@ public class BountyListener implements Listener {
             String suffix = playerTeamManager.getSuffix(killer.getUniqueId());
             String fullDisplayName = prefix + killer.getName() + suffix;
 
-            // Le préfixe/suffixe restent toujours actifs pour le TAB. Pour le message
-            // de mort, on retire uniquement la décoration du tueur invisible et on
-            // remplace son identité par « Anonyme ».
+            
+            
             String anonymized = deathMessage.replace(fullDisplayName, InvisibilityManager.ANONYMOUS_NAME);
             if (anonymized.equals(deathMessage)) {
                 anonymized = deathMessage.replace(killer.getName(), InvisibilityManager.ANONYMOUS_NAME);
@@ -98,57 +77,47 @@ public class BountyListener implements Listener {
             return;
         }
 
-        // Important : on lit qui a initié ce combat AVANT de nettoyer le combat log,
-        // car stopCombatForBoth() efface justement cette information (engagementAggressor).
-        // L'inverser faisait que getAggressor(victim) renvoyait toujours null, et donc que
-        // la prime + malus serveur n'était jamais attribuée.
+        
+
         UUID aggressor = combatManager.getAggressor(victim);
         boolean killerInitiated = aggressor != null && aggressor.equals(killer.getUniqueId());
 
-        // Le combat log des deux joueurs impliqués s'arrête immédiatement à la mort.
         combatManager.stopCombatForBoth(victim);
 
-        String currency = plugin.getConfig().getString("economy.currency-symbol", "§f");
+        String currency = plugin.getConfig().getString("economy.currency-symbol");
 
-        // On ne compte pas comme prime "légitime" les contributions placées par le tueur
-        // lui-même ou par l'un de ses alliés d'équipe : sinon il suffirait de se placer
-        // (ou de faire placer par un allié) une prime sur sa cible pour toucher l'argent
-        // en la tuant, tout en évitant le malus prévu pour un kill sans prime réelle. Notez
-        // que l'argent est quand même versé au tueur dans TOUS les cas (voir claimBounty) :
-        // seule la légitimité change, et détermine si le malus/mise à prix ci-dessous
-        // s'applique en plus.
+        
+
+        
+
         UUID killerUuid = killer.getUniqueId();
         BountyManager.BountyClaimResult claim = bountyManager.claimBounty(killerUuid, victim.getUniqueId(),
                 contributorUuid -> contributorUuid.equals(killerUuid) || teamManager.isSameTeam(contributorUuid, killerUuid));
         if (claim.amount() > 0) {
-            Messages.send(killer, "server.bounty-claimed-kill", java.util.Map.of("amount", MoneyFormat.format(claim.amount()) + currency, "player", victim.getName()));
+            Messages.send(killer, "bounty.claimed-kill", java.util.Map.of("amount", MoneyFormat.format(claim.amount()) + currency, "player", victim.getName()));
         }
         if (claim.legitimate()) {
             return;
         }
 
-        // Pas de prime légitime (aucune prime, ou seulement des contributions du tueur/de ses
-        // alliés, ou avec une raison jamais approuvée) : on vérifie si une prime + malus
-        // serveur doit être attribuée. L'argent ci-dessus (s'il y en avait) reste malgré tout
-        // acquis au tueur.
+        
+
         if (!killerInitiated) {
-            // Le tueur se défendait : pas de malus, conformément à la règle.
+            
             return;
         }
 
-        // Un kill réalisé dans un duel /duel est un combat organisé et ne doit jamais
-        // déclencher la prime + malus automatique attribuée par le serveur.
-        // On effectue ce contrôle ici, avant toute création de server bounty, car le
-        // BountyListener et le DuelListener reçoivent tous les deux PlayerDeathEvent :
-        // le DuelSession existe encore à ce moment-là et sera nettoyé juste après par
-        // DuelListener#onPlayerDeath.
+        
+
+        
+        
         fr.crewcmoi.pvp.managers.DuelSession duelSession = plugin.getDuelManager().getSession(killer.getUniqueId());
         if (duelSession != null && duelSession.involves(victim.getUniqueId())) {
             return;
         }
 
         if (teamManager.hasTeam(victim.getUniqueId())) {
-            // La victime fait partie d'une équipe : pas de malus attribué à l'agresseur.
+            
             return;
         }
 
@@ -165,17 +134,15 @@ public class BountyListener implements Listener {
         bountyManager.addServerBounty(killer.getUniqueId(), killer.getName(), bountyAmount);
         bountyManager.incrementServerBountyCount(killer.getUniqueId());
 
-        // Les effets de malus (réduction de dégâts contre les joueurs, puis retrait permanent
-        // de coeurs à partir d'un certain montant) sont recalculés automatiquement en fonction
-        // du nouveau total de prime serveur du tueur (voir BountyManager#addServerBounty ->
-        // refreshBountyDisplay -> MalusEffectManager#updateBountyEffect), pas besoin de les
-        // déclencher ici manuellement.
+        
 
-        Messages.send(killer, "server.bounty-server-malus", java.util.Map.of("player", victim.getName(), "malus", MoneyFormat.format(malusAmount) + currency, "bounty", MoneyFormat.format(bountyAmount) + currency));
+        
+
+        Messages.send(killer, "bounty.server-malus", java.util.Map.of("player", victim.getName(), "malus", MoneyFormat.format(malusAmount) + currency, "bounty", MoneyFormat.format(bountyAmount) + currency));
     }
 
     private void sendMessage(Player player, String message) {
-        String prefix = plugin.getMessages().getString("prefix", "");
+        String prefix = plugin.getMessages().getString("prefix");
         player.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + message));
     }
 }
