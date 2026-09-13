@@ -136,13 +136,20 @@ public class SQLiteManager implements DatabaseManager {
                 ");";
 
         String homesSql = "CREATE TABLE IF NOT EXISTS homes (" +
-                "player_uuid TEXT PRIMARY KEY," +
+                "player_uuid TEXT NOT NULL," +
+                "name TEXT NOT NULL," +
                 "world TEXT NOT NULL," +
                 "x REAL NOT NULL," +
                 "y REAL NOT NULL," +
                 "z REAL NOT NULL," +
                 "yaw REAL NOT NULL," +
-                "pitch REAL NOT NULL" +
+                "pitch REAL NOT NULL," +
+                "PRIMARY KEY (player_uuid, name)" +
+                ");";
+
+        String homeSlotsSql = "CREATE TABLE IF NOT EXISTS home_slots (" +
+                "player_uuid TEXT PRIMARY KEY," +
+                "slots INTEGER NOT NULL DEFAULT 1" +
                 ");";
 
         String claimsSql = "CREATE TABLE IF NOT EXISTS claims (" +
@@ -168,6 +175,8 @@ public class SQLiteManager implements DatabaseManager {
             statement.execute(bountiesSql);
             statement.execute(serverBountyCountSql);
             statement.execute(homesSql);
+            statement.execute(homeSlotsSql);
+            migrateHomesTableIfNeeded(statement);
             statement.execute(claimsSql);
             statement.execute(claimBonusSql);
 
@@ -196,6 +205,27 @@ public class SQLiteManager implements DatabaseManager {
             }
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création des tables team/bounty.", e);
+        }
+    }
+
+    private void migrateHomesTableIfNeeded(Statement statement) {
+        try (ResultSet rs = statement.executeQuery("PRAGMA table_info(homes);")) {
+            boolean hasName = false;
+            while (rs.next()) {
+                if ("name".equalsIgnoreCase(rs.getString("name"))) { hasName = true; break; }
+            }
+            if (hasName) return;
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.WARNING, "Impossible de vérifier la structure de la table homes.", e);
+            return;
+        }
+        try {
+            statement.execute("ALTER TABLE homes RENAME TO homes_legacy;");
+            statement.execute("CREATE TABLE homes (player_uuid TEXT NOT NULL, name TEXT NOT NULL, world TEXT NOT NULL, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL, yaw REAL NOT NULL, pitch REAL NOT NULL, PRIMARY KEY (player_uuid, name));");
+            statement.execute("INSERT INTO homes (player_uuid, name, world, x, y, z, yaw, pitch) SELECT player_uuid, 'home', world, x, y, z, yaw, pitch FROM homes_legacy;");
+            statement.execute("DROP TABLE homes_legacy;");
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Impossible de migrer les anciens homes.", e);
         }
     }
 
@@ -297,6 +327,18 @@ public class SQLiteManager implements DatabaseManager {
             }
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération du classement.", e);
+        }
+        return list;
+    }
+
+    @Override
+    public List<PlayerData> getAllPlayers() {
+        List<PlayerData> list = new ArrayList<>();
+        String sql = "SELECT * FROM players ORDER BY LOWER(name) ASC;";
+        try (Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(sql)) {
+            while (rs.next()) list.add(new PlayerData(UUID.fromString(rs.getString("uuid")), rs.getString("name"), rs.getDouble("balance")));
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération des joueurs.", e);
         }
         return list;
     }
@@ -729,46 +771,60 @@ public class SQLiteManager implements DatabaseManager {
     }
 
     @Override
-    public void setHome(UUID playerUuid, String world, double x, double y, double z, float yaw, float pitch) {
-        String sql = "INSERT INTO homes (player_uuid, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?) " +
-                "ON CONFLICT(player_uuid) DO UPDATE SET world = excluded.world, x = excluded.x, " +
-                "y = excluded.y, z = excluded.z, yaw = excluded.yaw, pitch = excluded.pitch;";
+    public void setHome(UUID playerUuid, String name, String world, double x, double y, double z, float yaw, float pitch) {
+        String sql = "INSERT INTO homes (player_uuid, name, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
+                "ON CONFLICT(player_uuid, name) DO UPDATE SET world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch;";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, playerUuid.toString());
-            ps.setString(2, world);
-            ps.setDouble(3, x);
-            ps.setDouble(4, y);
-            ps.setDouble(5, z);
-            ps.setFloat(6, yaw);
-            ps.setFloat(7, pitch);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la définition du home de " + playerUuid, e);
-        }
+            ps.setString(1, playerUuid.toString()); ps.setString(2, name); ps.setString(3, world);
+            ps.setDouble(4, x); ps.setDouble(5, y); ps.setDouble(6, z); ps.setFloat(7, yaw); ps.setFloat(8, pitch); ps.executeUpdate();
+        } catch (SQLException e) { plugin.getLogger().log(Level.SEVERE, "Erreur lors de la définition du home de " + playerUuid, e); }
     }
 
     @Override
-    public HomeData getHome(UUID playerUuid) {
-        String sql = "SELECT * FROM homes WHERE player_uuid = ?;";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, playerUuid.toString());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new HomeData(
-                            playerUuid,
-                            rs.getString("world"),
-                            rs.getDouble("x"),
-                            rs.getDouble("y"),
-                            rs.getDouble("z"),
-                            rs.getFloat("yaw"),
-                            rs.getFloat("pitch")
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la lecture du home de " + playerUuid, e);
-        }
+    public HomeData getHome(UUID playerUuid, String name) {
+        String sql = "SELECT h.*, p.name AS owner_name FROM homes h LEFT JOIN players p ON p.uuid=h.player_uuid WHERE h.player_uuid=? AND LOWER(h.name)=LOWER(?);";
+        try (PreparedStatement ps=connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString()); ps.setString(2, name);
+            try (ResultSet rs=ps.executeQuery()) { if(rs.next()) return readHome(rs); }
+        } catch(SQLException e){ plugin.getLogger().log(Level.SEVERE,"Erreur lors de la lecture du home de "+playerUuid,e); }
         return null;
+    }
+
+    @Override
+    public List<HomeData> getHomes(UUID playerUuid) {
+        List<HomeData> list=new ArrayList<>();
+        String sql="SELECT h.*, p.name AS owner_name FROM homes h LEFT JOIN players p ON p.uuid=h.player_uuid WHERE h.player_uuid=? ORDER BY LOWER(h.name);";
+        try(PreparedStatement ps=connection.prepareStatement(sql)){ ps.setString(1,playerUuid.toString()); try(ResultSet rs=ps.executeQuery()){ while(rs.next()) list.add(readHome(rs)); }}
+        catch(SQLException e){ plugin.getLogger().log(Level.SEVERE,"Erreur lors de la lecture des homes de "+playerUuid,e); }
+        return list;
+    }
+
+    @Override
+    public List<HomeData> getAllHomes() {
+        List<HomeData> list=new ArrayList<>();
+        String sql="SELECT h.*, p.name AS owner_name FROM homes h LEFT JOIN players p ON p.uuid=h.player_uuid ORDER BY LOWER(p.name), LOWER(h.name);";
+        try(Statement st=connection.createStatement(); ResultSet rs=st.executeQuery(sql)){ while(rs.next()) list.add(readHome(rs)); }
+        catch(SQLException e){ plugin.getLogger().log(Level.SEVERE,"Erreur lors de la lecture de tous les homes.",e); }
+        return list;
+    }
+
+    private HomeData readHome(ResultSet rs) throws SQLException {
+        return new HomeData(UUID.fromString(rs.getString("player_uuid")), rs.getString("owner_name"), rs.getString("name"), rs.getString("world"), rs.getDouble("x"), rs.getDouble("y"), rs.getDouble("z"), rs.getFloat("yaw"), rs.getFloat("pitch"));
+    }
+
+    @Override
+    public int getHomeSlots(UUID playerUuid) {
+        String sql="SELECT slots FROM home_slots WHERE player_uuid=?;";
+        try(PreparedStatement ps=connection.prepareStatement(sql)){ ps.setString(1,playerUuid.toString()); try(ResultSet rs=ps.executeQuery()){ if(rs.next()) return Math.max(1,rs.getInt("slots")); }}
+        catch(SQLException e){ plugin.getLogger().log(Level.SEVERE,"Erreur lors de la lecture du nombre de homes.",e); }
+        return 1;
+    }
+
+    @Override
+    public void setHomeSlots(UUID playerUuid, int slots) {
+        String sql="INSERT INTO home_slots(player_uuid,slots) VALUES(?,?) ON CONFLICT(player_uuid) DO UPDATE SET slots=excluded.slots;";
+        try(PreparedStatement ps=connection.prepareStatement(sql)){ ps.setString(1,playerUuid.toString()); ps.setInt(2,Math.max(1,slots)); ps.executeUpdate(); }
+        catch(SQLException e){ plugin.getLogger().log(Level.SEVERE,"Erreur lors de la sauvegarde du nombre de homes.",e); }
     }
 
     @Override

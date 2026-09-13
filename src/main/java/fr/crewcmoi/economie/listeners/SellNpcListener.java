@@ -8,17 +8,18 @@ import org.bukkit.event.Listener;
 
 public class SellNpcListener implements Listener {
 
-    private static final int SELL_NPC_ID = 0;
+    private final fr.crewcmoi.Main plugin;
 
     private final SellGuiManager sellGuiManager;
 
-    public SellNpcListener(SellGuiManager sellGuiManager) {
+    public SellNpcListener(fr.crewcmoi.Main plugin, SellGuiManager sellGuiManager) {
+        this.plugin = plugin;
         this.sellGuiManager = sellGuiManager;
     }
 
     @EventHandler
     public void onNpcRightClick(NPCRightClickEvent event) {
-        if (event.getNPC().getId() != SELL_NPC_ID) {
+        if (event.getNPC().getId() != plugin.getConfig().getInt("npcs.sell", 0)) {
             return;
         }
 

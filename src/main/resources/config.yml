@@ -109,19 +109,27 @@ web:
 
   bind-address: "0.0.0.0"
 
+flying-banana:
+  itemsadder-id: "server:flying_banana"
+  effect:
+    level: 25
+    duration-ticks: 20
+
 pets:
 
-  recall-item-id: "server:pet_recall_charm"
+  recall-item-id: "minecraft:stick"
 
   list:
     spookie_spice:
       itemsadder-id: "server:spooky_spice"
       mythic-mob: "Spooky_Spice"
       slot: 0
+    electric_ghoast:
+      itemsadder-id: "server:electric_ghoast"
+      mythic-mob: "Electric_Ghoast"
+      slot: 1
 
 fisherman:
-
-  npc-id: 4
 
   sell-prices:
     COD: 10
@@ -137,3 +145,109 @@ fisherman:
     pufferfish: 30
     fishing-rod: 100
     fishing-rod-luck-of-the-sea-1: 150
+
+homes:
+  base-price: 5000
+  price-increment: 5000
+
+halloween:
+  enabled: true
+  table:
+    price: 10000.0
+    item-name: "&5&lTable maudite"
+
+  messages:
+    challenge-selected: "&dDéfi accepté : &f%challenge%&d !"
+    challenge-completed: "&aDéfi terminé ! Votre récompense vous a été donnée."
+
+  challenges:
+    easy:
+      name: "&aDefi 1"
+      display-name: "&kabcde"
+      material: PAPER
+      difficulty: "&aFacile"
+      type: KILL
+      target: ZOMBIE
+      amount: 10
+      reward:
+        money: 1000.0
+        message: "&aRécompense : &e+1000 "
+        commands: []
+        items: {}
+
+    medium:
+      name: "&6Defi 2"
+      display-name: "&kqwert"
+      material: PAPER
+      difficulty: "&6Moyen"
+      type: KILL
+      target: SKELETON
+      amount: 25
+      reward:
+        money: 2500.0
+        message: "&aRécompense : &e+2500 "
+        commands: []
+        items: {}
+
+    hard:
+      name: "&cDefi 3"
+      display-name: "&kzxcvb"
+      material: PAPER
+      difficulty: "&cDifficile"
+      type: KILL
+      target: WITCH
+      amount: 15
+      reward:
+        money: -1000.0
+        message: "&cMalus : &e-1000 "
+        commands: []
+        items: {}
+
+# Identifiants des NPC Citizens utilisés par CrewCMoi.
+npcs:
+  sell: 0
+  quest-master: 1
+  fisherman: 4
+  halloween: 7 # Temporaire (vends des tables)
+  lootbox: 6  # pas encore la
+
+lootbox:
+  key-itemsadder-id: "server:lootbox_key"
+  gui-title: "&5&lLootbox"
+  gui-header: "&d&lOuverture de la lootbox"
+  gui-footer: "&7Les récompenses arrivent..."
+  messages:
+    no-key: "&cVous avez besoin d'une clé de lootbox."
+    empty-pool: "&cLa pool de récompenses est vide ou mal configurée."
+    won: "&a☘ &fVotre lootbox est ouverte ! &7Vous avez reçu 3 récompenses."
+  animation:
+    duration-ticks: 80
+    interval-ticks: 4
+  # Chaque entrée est un item ItemsAdder. Le poids permet de régler la rareté.
+  # weight: 1 = chance normale, weight: 5 = 5 fois plus fréquent qu'un weight: 1.
+  # amount = quantité donnée pour chaque gain.
+  pool:
+    common_coins:
+      itemsadder-id: "server:coin"
+      amount: 3
+      weight: 3
+    common_item:
+      itemsadder-id: "server:candy_corn"
+      amount: 1
+      weight: 10
+    rare_item:
+      itemsadder-id: "server:pumpkin_sword"
+      amount: 1
+      weight: 3
+    second_rare_item:
+      itemsadder-id: "server:pumpkin_pickaxe"
+      amount: 1
+      weight: 3
+    third_rare_item:
+      itemsadder-id: "server:pumpkin_shield"
+      amount: 1
+      weight: 3
+    legendary_item:
+      itemsadder-id: "server:spooky_spice"
+      amount: 1
+      weight: 1

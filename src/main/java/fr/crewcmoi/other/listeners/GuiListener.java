@@ -25,7 +25,18 @@ import fr.crewcmoi.claims.gui.ClaimShopGuiManager;
 import fr.crewcmoi.claims.gui.ClaimShopHolder;
 import fr.crewcmoi.other.gui.ConfirmationHolder;
 import fr.crewcmoi.economie.gui.SellGuiManager;
+import fr.crewcmoi.economie.gui.QuestMasterHolder;
+import fr.crewcmoi.economie.gui.QuestMasterGuiManager;
 import fr.crewcmoi.economie.gui.SellHolder;
+import fr.crewcmoi.teleport.gui.HomeHolder;
+import fr.crewcmoi.teleport.gui.HomeShopHolder;
+import fr.crewcmoi.teleport.gui.HomeAdminHolder;
+import fr.crewcmoi.teleport.gui.PlayerAdminHolder;
+import fr.crewcmoi.teleport.gui.PlayerAdminDetailHolder;
+import fr.crewcmoi.teleport.gui.HomeGuiManager;
+import fr.crewcmoi.teleport.gui.HomeShopGuiManager;
+import fr.crewcmoi.teleport.gui.HomeAdminGuiManager;
+import fr.crewcmoi.teleport.gui.PlayerAdminGuiManager;
 import fr.crewcmoi.economie.managers.AuctionManager;
 import fr.crewcmoi.pvp.managers.BountyManager;
 import fr.crewcmoi.claims.managers.ClaimManager;
@@ -53,13 +64,20 @@ public class GuiListener implements Listener {
     private final ClaimAuctionGuiManager claimAuctionGuiManager;
     private final ClaimAdminGuiManager claimAdminGuiManager;
     private final FishermanGuiManager fishermanGuiManager;
+    private final HomeGuiManager homeGuiManager;
+    private final HomeShopGuiManager homeShopGuiManager;
+    private final HomeAdminGuiManager homeAdminGuiManager;
+    private final PlayerAdminGuiManager playerAdminGuiManager;
+    private final QuestMasterGuiManager questMasterGuiManager;
 
     public GuiListener(Main plugin, SellGuiManager sellGuiManager, AuctionManager auctionManager,
                         AuctionGuiManager auctionGuiManager, BountyGuiManager bountyGuiManager,
                         ClaimManager claimManager, ClaimSettingsGuiManager claimSettingsGuiManager,
                         ClaimShopGuiManager claimShopGuiManager, BountyReviewGuiManager bountyReviewGuiManager,
                         BountyManager bountyManager, ClaimAuctionGuiManager claimAuctionGuiManager,
-                        ClaimAdminGuiManager claimAdminGuiManager, FishermanGuiManager fishermanGuiManager) {
+                        ClaimAdminGuiManager claimAdminGuiManager, FishermanGuiManager fishermanGuiManager,
+                        HomeGuiManager homeGuiManager, HomeShopGuiManager homeShopGuiManager,
+                        HomeAdminGuiManager homeAdminGuiManager, PlayerAdminGuiManager playerAdminGuiManager) {
         this.plugin = plugin;
         this.sellGuiManager = sellGuiManager;
         this.auctionManager = auctionManager;
@@ -73,6 +91,11 @@ public class GuiListener implements Listener {
         this.claimAuctionGuiManager = claimAuctionGuiManager;
         this.claimAdminGuiManager = claimAdminGuiManager;
         this.fishermanGuiManager = fishermanGuiManager;
+        this.homeGuiManager = homeGuiManager;
+        this.homeShopGuiManager = homeShopGuiManager;
+        this.homeAdminGuiManager = homeAdminGuiManager;
+        this.playerAdminGuiManager = playerAdminGuiManager;
+        this.questMasterGuiManager = new QuestMasterGuiManager(plugin);
     }
 
     @EventHandler
@@ -105,6 +128,19 @@ public class GuiListener implements Listener {
             handleFishermanSellClick(event, fishermanSellHolder);
         } else if (holder instanceof FishermanBuyHolder fishermanBuyHolder) {
             handleFishermanBuyClick(event, fishermanBuyHolder);
+        } else if (holder instanceof HomeHolder homeHolder) {
+            handleHomeClick(event, homeHolder);
+        } else if (holder instanceof HomeShopHolder homeShopHolder) {
+            handleHomeShopClick(event, homeShopHolder);
+        } else if (holder instanceof HomeAdminHolder homeAdminHolder) {
+            handleHomeAdminClick(event, homeAdminHolder);
+        } else if (holder instanceof PlayerAdminHolder playerAdminHolder) {
+            handlePlayerAdminClick(event, playerAdminHolder);
+        } else if (holder instanceof QuestMasterHolder) {
+            handleQuestMasterClick(event);
+        } else if (holder instanceof PlayerAdminDetailHolder detailHolder) {
+            event.setCancelled(true);
+            if (event.getRawSlot() == 49 && event.getWhoClicked() instanceof Player player) playerAdminGuiManager.open(player);
         }
     }
 
@@ -132,6 +168,14 @@ public class GuiListener implements Listener {
                 confirmationHolder.getOnCancel().run();
             }
         }
+    }
+
+    private void handleQuestMasterClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getRawSlot() != 13) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        player.closeInventory();
+        player.performCommand("mvtp quest");
     }
 
     private void handleSellClick(InventoryClickEvent event, SellHolder holder) {
@@ -542,4 +586,23 @@ public class GuiListener implements Listener {
 
         event.setCancelled(true);
     }
+    private void handleHomeClick(InventoryClickEvent event, HomeHolder holder) {
+        event.setCancelled(true); if (!(event.getWhoClicked() instanceof Player p)) return; int slot=event.getRawSlot();
+        if(slot==HomeHolder.PREV){homeGuiManager.open(p,holder.getPage()-1);return;} if(slot==HomeHolder.NEXT){homeGuiManager.open(p,holder.getPage()+1);return;}
+        var home=holder.get(slot); if(home!=null){p.closeInventory(); homeGuiManager.teleport(p,home);}
+    }
+    private void handleHomeShopClick(InventoryClickEvent event, HomeShopHolder holder) {
+        event.setCancelled(true); if (!(event.getWhoClicked() instanceof Player p)) return; if(event.getRawSlot()==22) homeShopGuiManager.buy(p);
+    }
+    private void handleHomeAdminClick(InventoryClickEvent event, HomeAdminHolder holder) {
+        event.setCancelled(true); if (!(event.getWhoClicked() instanceof Player p)) return; int slot=event.getRawSlot();
+        if(slot==HomeAdminHolder.PREV){homeAdminGuiManager.open(p,holder.getPage()-1);return;} if(slot==HomeAdminHolder.NEXT){homeAdminGuiManager.open(p,holder.getPage()+1);return;}
+        var home=holder.get(slot); if(home!=null){p.closeInventory();homeAdminGuiManager.teleport(p,home);}
+    }
+    private void handlePlayerAdminClick(InventoryClickEvent event, PlayerAdminHolder holder) {
+        event.setCancelled(true); if (!(event.getWhoClicked() instanceof Player p)) return; int slot=event.getRawSlot();
+        if(slot==PlayerAdminHolder.PREV){playerAdminGuiManager.open(p,holder.getPage()-1);return;} if(slot==PlayerAdminHolder.NEXT){playerAdminGuiManager.open(p,holder.getPage()+1);return;}
+        var data=holder.get(slot); if(data!=null) playerAdminGuiManager.openDetails(p,data);
+    }
+
 }

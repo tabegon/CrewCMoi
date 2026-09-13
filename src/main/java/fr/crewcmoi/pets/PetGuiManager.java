@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PetGuiManager {
-    public static final String TITLE = "";
+    public static final String TITLE = "§5§lᴘᴇᴛꜱ";
     public static final int SIZE = 54;
 
     private final Main plugin;

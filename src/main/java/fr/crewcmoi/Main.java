@@ -10,6 +10,13 @@ import fr.crewcmoi.claims.listeners.ClaimListener;
 import fr.crewcmoi.claims.managers.ClaimManager;
 import fr.crewcmoi.claims.managers.ClaimVisualizer;
 import fr.crewcmoi.teleport.commands.HomeCommand;
+import fr.crewcmoi.teleport.commands.ShopCommand;
+import fr.crewcmoi.teleport.commands.HomeAdminCommand;
+import fr.crewcmoi.teleport.commands.PlayerAdminCommand;
+import fr.crewcmoi.teleport.gui.HomeGuiManager;
+import fr.crewcmoi.teleport.gui.HomeShopGuiManager;
+import fr.crewcmoi.teleport.gui.HomeAdminGuiManager;
+import fr.crewcmoi.teleport.gui.PlayerAdminGuiManager;
 import fr.crewcmoi.moderation.commands.InfoCommand;
 import fr.crewcmoi.teleport.commands.SetHomeCommand;
 import fr.crewcmoi.teleport.commands.SpawnCommand;
@@ -27,8 +34,16 @@ import fr.crewcmoi.economie.gui.AuctionGuiManager;
 import fr.crewcmoi.economie.gui.SellGuiManager;
 import fr.crewcmoi.economie.gui.FishermanGuiManager;
 import fr.crewcmoi.economie.listeners.CoinItemListener;
+import fr.crewcmoi.economie.listeners.FlyingBananaListener;
 import fr.crewcmoi.economie.listeners.SellNpcListener;
 import fr.crewcmoi.economie.listeners.FishermanNpcListener;
+import fr.crewcmoi.economie.listeners.QuestMasterNpcListener;
+import fr.crewcmoi.economie.listeners.LootboxNpcListener;
+import fr.crewcmoi.economie.managers.LootboxManager;
+import fr.crewcmoi.halloween.managers.HalloweenManager;
+import fr.crewcmoi.halloween.managers.HalloweenGuiManager;
+import fr.crewcmoi.halloween.listeners.HalloweenNpcListener;
+import fr.crewcmoi.halloween.listeners.HalloweenListener;
 import fr.crewcmoi.economie.managers.AuctionManager;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import fr.crewcmoi.economie.managers.PricesManager;
@@ -96,6 +111,9 @@ public class Main extends JavaPlugin {
 
     private static Main instance;
 
+    private HalloweenManager halloweenManager;
+    private HalloweenGuiManager halloweenGuiManager;
+
     private DatabaseManager databaseManager;
     private EconomyManager economyManager;
     private PricesManager pricesManager;
@@ -111,6 +129,10 @@ public class Main extends JavaPlugin {
     private MalusEffectManager malusEffectManager;
     private TeleportManager teleportManager;
     private HomeManager homeManager;
+    private HomeGuiManager homeGuiManager;
+    private HomeShopGuiManager homeShopGuiManager;
+    private HomeAdminGuiManager homeAdminGuiManager;
+    private PlayerAdminGuiManager playerAdminGuiManager;
     private ClaimManager claimManager;
     private ClaimSettingsGuiManager claimSettingsGuiManager;
     private ClaimShopGuiManager claimShopGuiManager;
@@ -133,6 +155,7 @@ public class Main extends JavaPlugin {
     private PetManager petManager;
     private PetGuiManager petGuiManager;
     private FishermanGuiManager fishermanGuiManager;
+    private LootboxManager lootboxManager;
 
     @Override
     public void onEnable() {
@@ -148,6 +171,8 @@ public class Main extends JavaPlugin {
         this.databaseManager.init();
 
         this.economyManager = new EconomyManager(this, databaseManager);
+        this.halloweenManager = new HalloweenManager(this, economyManager);
+        this.halloweenGuiManager = new HalloweenGuiManager(this, halloweenManager);
         this.pricesManager = new PricesManager(this);
         this.sellGuiManager = new SellGuiManager(this, pricesManager, economyManager);
         this.auctionManager = new AuctionManager(this, databaseManager, economyManager);
@@ -165,6 +190,10 @@ public class Main extends JavaPlugin {
         this.bountyReviewGuiManager = new BountyReviewGuiManager(this, bountyManager);
         this.teleportManager = new TeleportManager(this, combatManager);
         this.homeManager = new HomeManager(this, databaseManager);
+        this.homeGuiManager = new HomeGuiManager(this, homeManager);
+        this.homeShopGuiManager = new HomeShopGuiManager(this, homeManager);
+        this.homeAdminGuiManager = new HomeAdminGuiManager(this, homeManager);
+        this.playerAdminGuiManager = new PlayerAdminGuiManager(this);
         this.claimManager = new ClaimManager(this, databaseManager);
         this.claimManager.loadAll();
         this.claimSettingsGuiManager = new ClaimSettingsGuiManager(this, claimManager);
@@ -185,9 +214,12 @@ public class Main extends JavaPlugin {
         this.petManager = new PetManager(this);
         this.petGuiManager = new PetGuiManager(this, petManager);
         this.fishermanGuiManager = new FishermanGuiManager(this, economyManager);
+        this.lootboxManager = new LootboxManager(this);
+        getServer().getPluginManager().registerEvents(this.lootboxManager, this);
 
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer, auctionManager), this);
-        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager, claimAdminGuiManager, fishermanGuiManager), this);
+        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager, claimAdminGuiManager, fishermanGuiManager, homeGuiManager, homeShopGuiManager, homeAdminGuiManager, playerAdminGuiManager), this);
+        getServer().getPluginManager().registerEvents(new HalloweenListener(halloweenManager, halloweenGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager, invisibilityManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
 
@@ -212,8 +244,11 @@ public class Main extends JavaPlugin {
 
         
         if (getServer().getPluginManager().isPluginEnabled("Citizens")) {
-            getServer().getPluginManager().registerEvents(new SellNpcListener(sellGuiManager), this);
+            getServer().getPluginManager().registerEvents(new SellNpcListener(this, sellGuiManager), this);
             getServer().getPluginManager().registerEvents(new FishermanNpcListener(this, fishermanGuiManager), this);
+            getServer().getPluginManager().registerEvents(new QuestMasterNpcListener(this), this);
+            getServer().getPluginManager().registerEvents(new HalloweenNpcListener(this, halloweenGuiManager), this);
+            getServer().getPluginManager().registerEvents(new LootboxNpcListener(this, lootboxManager), this);
         } else {
             getLogger().warning("Citizens n'est pas détecté : l'ouverture de /sell et du pêcheur via clic droit sur les NPC est désactivée.");
         }
@@ -221,6 +256,7 @@ public class Main extends JavaPlugin {
         
         if (getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
             getServer().getPluginManager().registerEvents(new CoinItemListener(this, economyManager), this);
+            getServer().getPluginManager().registerEvents(new FlyingBananaListener(this), this);
         } else {
             getLogger().warning("ItemsAdder n'est pas détecté : la pièce échangeable contre de l'argent est désactivée.");
         }
@@ -267,7 +303,10 @@ public class Main extends JavaPlugin {
         registerCommand("tpahere", new TpaHereCommand(this, teleportManager, combatManager));
         registerCommand("tpaccept", new TpAcceptCommand(this, teleportManager));
         registerCommand("sethome", new SetHomeCommand(this, homeManager));
-        registerCommand("home", new HomeCommand(this, homeManager));
+        registerCommand("home", new HomeCommand(this, homeManager, homeGuiManager));
+        registerCommand("shop", new ShopCommand(homeShopGuiManager));
+        registerCommand("homeadmin", new HomeAdminCommand(homeAdminGuiManager));
+        registerCommand("playeradmin", new PlayerAdminCommand(playerAdminGuiManager));
         ClaimCommand claimCommand = new ClaimCommand(this, claimManager, claimSettingsGuiManager, claimShopGuiManager, claimVisualizer, claimAuctionGuiManager);
         registerCommand("claim", claimCommand);
         registerCommand("claims", claimCommand);
@@ -370,6 +409,8 @@ public class Main extends JavaPlugin {
     public static Main getInstance() {
         return instance;
     }
+
+    public HalloweenManager getHalloweenManager() { return halloweenManager; }
 
     public DatabaseManager getDatabaseManager() {
         return databaseManager;

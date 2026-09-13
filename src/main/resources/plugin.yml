@@ -119,6 +119,20 @@ commands:
     description: Ouvre la collection de pets.
     usage: /pets
     permission: crew.command.pets
+  shop:
+    description: Ouvre les boutiques du serveur.
+    usage: /shop home
+    permission: crew.command.shop
+  homeadmin:
+    description: Affiche tous les homes du serveur.
+    usage: /homeadmin
+    aliases: [homesadmin]
+    permission: crew.home.admin
+  playeradmin:
+    description: Affiche les informations détaillées de tous les joueurs.
+    usage: /playeradmin
+    aliases: [playersadmin]
+    permission: crew.playerinfo.admin
 
 permissions:
 
@@ -190,6 +204,15 @@ permissions:
     description: Permet d'utiliser /pets.
     default: true
 
+  crew.command.shop:
+    description: Permet d'utiliser /shop home.
+    default: true
+  crew.home.admin:
+    description: Permet de consulter et téléporter vers tous les homes.
+    default: false
+  crew.playerinfo.admin:
+    description: Permet de consulter les informations détaillées de tous les joueurs.
+    default: false
   crew.staff:
     description: Permet d'utiliser /staff.
     default: false

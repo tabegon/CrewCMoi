@@ -19,7 +19,7 @@ public class FishermanNpcListener implements Listener {
 
     @EventHandler
     public void onNpcRightClick(NPCRightClickEvent event) {
-        int fishermanNpcId = plugin.getConfig().getInt("fisherman.npc-id", 4);
+        int fishermanNpcId = plugin.getConfig().getInt("npcs.fisherman", 4);
         if (event.getNPC().getId() != fishermanNpcId) {
             return;
         }

@@ -1,0 +1,3 @@
+package fr.crewcmoi.teleport.commands;
+import fr.crewcmoi.teleport.gui.HomeShopGuiManager; import org.bukkit.ChatColor; import org.bukkit.command.*; import org.bukkit.entity.Player;
+public class ShopCommand implements CommandExecutor {private final HomeShopGuiManager gui;public ShopCommand(HomeShopGuiManager g){gui=g;}public boolean onCommand(CommandSender s,Command c,String l,String[] a){if(!(s instanceof Player p)){s.sendMessage(color("&cCette commande doit être exécutée par un joueur."));return true;}if(a.length==1&&a[0].equalsIgnoreCase("home")){gui.open(p);return true;}p.sendMessage(color("&cUsage : /shop home"));return true;}private String color(String s){return ChatColor.translateAlternateColorCodes('&',s);}}

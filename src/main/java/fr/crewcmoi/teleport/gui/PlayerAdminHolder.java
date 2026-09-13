@@ -1,0 +1,3 @@
+package fr.crewcmoi.teleport.gui;
+import fr.crewcmoi.other.database.PlayerData; import org.bukkit.inventory.Inventory; import org.bukkit.inventory.InventoryHolder; import java.util.HashMap; import java.util.Map;
+public class PlayerAdminHolder implements InventoryHolder { public static final int SIZE=54, ITEMS=45, PREV=45, NEXT=53; private Inventory inv; private int page; private final Map<Integer,PlayerData> map=new HashMap<>(); public Inventory getInventory(){return inv;} public void setInventory(Inventory i){inv=i;} public int getPage(){return page;} public void setPage(int p){page=p;} public void map(int s,PlayerData d){map.put(s,d);} public PlayerData get(int s){return map.get(s);} public void clear(){map.clear();} }
