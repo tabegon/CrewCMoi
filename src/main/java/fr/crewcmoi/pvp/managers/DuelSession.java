@@ -22,6 +22,7 @@ public class DuelSession {
     private org.bukkit.Location originLocation2;
 
     private boolean started = false;
+    private int arenaIndex = 1;
 
     public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet, boolean dropHead) {
         this(player1, player2, keepInventory, bet, dropHead, null);
@@ -83,6 +84,14 @@ public class DuelSession {
 
     public void setStarted(boolean started) {
         this.started = started;
+    }
+
+    public int getArenaIndex() {
+        return arenaIndex;
+    }
+
+    public void setArenaIndex(int arenaIndex) {
+        this.arenaIndex = arenaIndex;
     }
 
     public void saveInventory(UUID player, org.bukkit.entity.Player p) {

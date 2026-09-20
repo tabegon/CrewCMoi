@@ -39,12 +39,13 @@ tpa:
 duel:
   expiry-seconds: 60
   countdown-seconds: 5
+  post-duel-recovery-seconds: 30
   bet-step: 100
   max-bet: 0
   kits:
     basic:
       name: "Kit Classique"
-      price: 5000.0
+      price: 2000.0
   arena:
     pos1:
       world: test
@@ -60,6 +61,23 @@ duel:
       z: -42
       yaw: 180.0
       pitch: 0.0
+    # Deuxième arène : utilisée automatiquement lorsque la première est occupée.
+    # Laissez les valeurs par défaut si vous ne souhaitez pas l'activer.
+    second:
+      pos1:
+        world: test
+        x: -43
+        y: -60
+        z: -42
+        yaw: 0.0
+        pitch: 0.0
+      pos2:
+        world: test
+        x: -43
+        y: -60
+        z: -42
+        yaw: 0.0
+        pitch: 0.0
 
   itemsadder-id: "crewcmoi:balance_hud"
   text-id: "balance"
@@ -154,6 +172,9 @@ halloween:
   enabled: true
   table:
     price: 10000.0
+    # Item ItemsAdder donné lors de l'achat et rendu lorsqu'une table est cassée.
+    # Cet item doit être un item plaçable basé sur une table d'enchantement.
+    itemsadder-id: "server:summoning_table"
     item-name: "&5&lTable maudite"
 
   messages:
@@ -208,46 +229,36 @@ npcs:
   sell: 0
   quest-master: 1
   fisherman: 4
-  halloween: 7 # Temporaire (vends des tables)
-  lootbox: 6  # pas encore la
+  halloween: 7 # NPC qui vend la table maudite
 
-lootbox:
-  key-itemsadder-id: "server:lootbox_key"
-  gui-title: "&5&lLootbox"
-  gui-header: "&d&lOuverture de la lootbox"
-  gui-footer: "&7Les récompenses arrivent..."
+lootbox-teleport:
+  # Clé ItemsAdder reconnue uniquement pour déclencher la téléportation.
+  # Le plugin ne consomme pas la clé : sa gestion reste externe.
+  key-itemsadder-id: "server:halloween_crate_key"
+
+  # Les destinations sont testées dans l'ordre : destination1 puis destination2.
+  # Si un joueur se trouve dans le rayon configuré, la destination est considérée occupée.
+  destinations:
+    destination1:
+      name: "Emplacement 1"
+      world: "test"
+      x: -52.0
+      y: -60.0
+      z: 97.0
+      yaw: 0.0
+      pitch: 0.0
+      occupancy-radius: 5.0
+    destination2:
+      name: "Emplacement 2"
+      world: "test"
+      x: -52.0
+      y: -60.0
+      z: 97.0
+      yaw: 0.0
+      pitch: 0.0
+      occupancy-radius: 5.0
+
   messages:
-    no-key: "&cVous avez besoin d'une clé de lootbox."
-    empty-pool: "&cLa pool de récompenses est vide ou mal configurée."
-    won: "&a☘ &fVotre lootbox est ouverte ! &7Vous avez reçu 3 récompenses."
-  animation:
-    duration-ticks: 80
-    interval-ticks: 4
-  # Chaque entrée est un item ItemsAdder. Le poids permet de régler la rareté.
-  # weight: 1 = chance normale, weight: 5 = 5 fois plus fréquent qu'un weight: 1.
-  # amount = quantité donnée pour chaque gain.
-  pool:
-    common_coins:
-      itemsadder-id: "server:coin"
-      amount: 3
-      weight: 3
-    common_item:
-      itemsadder-id: "server:candy_corn"
-      amount: 1
-      weight: 10
-    rare_item:
-      itemsadder-id: "server:pumpkin_sword"
-      amount: 1
-      weight: 3
-    second_rare_item:
-      itemsadder-id: "server:pumpkin_pickaxe"
-      amount: 1
-      weight: 3
-    third_rare_item:
-      itemsadder-id: "server:pumpkin_shield"
-      amount: 1
-      weight: 3
-    legendary_item:
-      itemsadder-id: "server:spooky_spice"
-      amount: 1
-      weight: 1
+    teleported: "&dVous avez été téléporté vers &5%destination%&d."
+    all-occupied: "&cTous les emplacements de lootbox sont actuellement occupés."
+    configuration-error: "&cAucune destination de téléportation de lootbox n'est configurée."

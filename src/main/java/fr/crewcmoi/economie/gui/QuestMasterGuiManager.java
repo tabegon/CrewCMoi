@@ -2,6 +2,7 @@ package fr.crewcmoi.economie.gui;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.other.utils.Messages;
+import fr.crewcmoi.other.utils.GuiItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,6 +21,11 @@ public class QuestMasterGuiManager {
         QuestMasterHolder holder = new QuestMasterHolder();
         Inventory gui = Bukkit.createInventory(holder, 27, Messages.color("&5&lQuest Master"));
         holder.setInventory(gui);
+
+        // Remplit les emplacements vides avec l'item NOTHING.
+        for (int slot = 0; slot < gui.getSize(); slot++) {
+            gui.setItem(slot, GuiItems.nothing(" "));
+        }
 
         ItemStack item = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();

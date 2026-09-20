@@ -38,8 +38,6 @@ import fr.crewcmoi.economie.listeners.FlyingBananaListener;
 import fr.crewcmoi.economie.listeners.SellNpcListener;
 import fr.crewcmoi.economie.listeners.FishermanNpcListener;
 import fr.crewcmoi.economie.listeners.QuestMasterNpcListener;
-import fr.crewcmoi.economie.listeners.LootboxNpcListener;
-import fr.crewcmoi.economie.managers.LootboxManager;
 import fr.crewcmoi.halloween.managers.HalloweenManager;
 import fr.crewcmoi.halloween.managers.HalloweenGuiManager;
 import fr.crewcmoi.halloween.listeners.HalloweenNpcListener;
@@ -155,7 +153,6 @@ public class Main extends JavaPlugin {
     private PetManager petManager;
     private PetGuiManager petGuiManager;
     private FishermanGuiManager fishermanGuiManager;
-    private LootboxManager lootboxManager;
 
     @Override
     public void onEnable() {
@@ -214,9 +211,6 @@ public class Main extends JavaPlugin {
         this.petManager = new PetManager(this);
         this.petGuiManager = new PetGuiManager(this, petManager);
         this.fishermanGuiManager = new FishermanGuiManager(this, economyManager);
-        this.lootboxManager = new LootboxManager(this);
-        getServer().getPluginManager().registerEvents(this.lootboxManager, this);
-
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer, auctionManager), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager, claimAdminGuiManager, fishermanGuiManager, homeGuiManager, homeShopGuiManager, homeAdminGuiManager, playerAdminGuiManager), this);
         getServer().getPluginManager().registerEvents(new HalloweenListener(halloweenManager, halloweenGuiManager), this);
@@ -248,7 +242,6 @@ public class Main extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new FishermanNpcListener(this, fishermanGuiManager), this);
             getServer().getPluginManager().registerEvents(new QuestMasterNpcListener(this), this);
             getServer().getPluginManager().registerEvents(new HalloweenNpcListener(this, halloweenGuiManager), this);
-            getServer().getPluginManager().registerEvents(new LootboxNpcListener(this, lootboxManager), this);
         } else {
             getLogger().warning("Citizens n'est pas détecté : l'ouverture de /sell et du pêcheur via clic droit sur les NPC est désactivée.");
         }
@@ -257,6 +250,7 @@ public class Main extends JavaPlugin {
         if (getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
             getServer().getPluginManager().registerEvents(new CoinItemListener(this, economyManager), this);
             getServer().getPluginManager().registerEvents(new FlyingBananaListener(this), this);
+            getServer().getPluginManager().registerEvents(new fr.crewcmoi.economie.listeners.LootboxKeyTeleportListener(this), this);
         } else {
             getLogger().warning("ItemsAdder n'est pas détecté : la pièce échangeable contre de l'argent est désactivée.");
         }

@@ -1,5 +1,6 @@
 package fr.crewcmoi.halloween.managers;
 
+import dev.lone.itemsadder.api.CustomStack;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.managers.EconomyManager;
 import org.bukkit.*;
@@ -42,12 +43,25 @@ public class HalloweenManager {
     public EconomyManager getEconomy() { return economy; }
 
     public ItemStack createTableItem() {
-        Material material = Material.ENCHANTING_TABLE;
-        ItemStack item = new ItemStack(material);
+        String configuredId = plugin.getConfig().getString("halloween.table.itemsadder-id", "").trim();
+        if (configuredId.isEmpty()) {
+            plugin.getLogger().warning("Halloween : aucun itemsadder-id n'est configuré pour la table maudite.");
+            return null;
+        }
+
+        CustomStack custom = CustomStack.getInstance(configuredId);
+        if (custom == null || custom.getItemStack() == null) {
+            plugin.getLogger().warning("Halloween : item ItemsAdder introuvable pour la table maudite : " + configuredId);
+            return null;
+        }
+
+        ItemStack item = custom.getItemStack().clone();
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(color(plugin.getConfig().getString("halloween.table.item-name", "&5&lTable d'enchantement maudite")));
-            meta.setLore(List.of(color("&7Cette table permet de relever"), color("&7un défi d'Halloween chaque jour.")));
+            String configuredName = plugin.getConfig().getString("halloween.table.item-name", "").trim();
+            if (!configuredName.isEmpty()) {
+                meta.setDisplayName(color(configuredName));
+            }
             meta.getPersistentDataContainer().set(tableKey, PersistentDataType.BYTE, (byte) 1);
             item.setItemMeta(meta);
         }
@@ -55,7 +69,15 @@ public class HalloweenManager {
     }
 
     public boolean isTableItem(ItemStack item) {
-        if (item == null || item.getType() != Material.ENCHANTING_TABLE || !item.hasItemMeta()) return false;
+        if (item == null || item.getType().isAir()) return false;
+
+        String configuredId = plugin.getConfig().getString("halloween.table.itemsadder-id", "").trim();
+        if (!configuredId.isEmpty()) {
+            CustomStack custom = CustomStack.byItemStack(item);
+            if (custom != null && configuredId.equalsIgnoreCase(custom.getNamespacedID())) return true;
+        }
+
+        if (!item.hasItemMeta()) return false;
         Byte value = item.getItemMeta().getPersistentDataContainer().get(tableKey, PersistentDataType.BYTE);
         return value != null && value == (byte) 1;
     }

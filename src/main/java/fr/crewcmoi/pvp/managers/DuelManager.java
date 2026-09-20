@@ -67,6 +67,13 @@ public class DuelManager {
 
     
     private final Map<UUID, DuelSession> activeDuels = new ConcurrentHashMap<>();
+    // Un seul duel à la fois par arène.
+    private final Map<Integer, DuelSession> activeArenaDuels = new ConcurrentHashMap<>();
+
+    // Joueurs protégés après un duel : ils ne peuvent pas accepter un nouveau duel
+    // pendant la phase de récupération des objets.
+    private final Map<UUID, Long> postDuelRecoveryExpiry = new ConcurrentHashMap<>();
+    private final int postDuelRecoverySeconds;
 
     public DuelManager(Main plugin, EconomyManager economyManager, CombatManager combatManager) {
         this.plugin = plugin;
@@ -74,10 +81,45 @@ public class DuelManager {
         this.combatManager = combatManager;
         this.expirySeconds = plugin.getConfig().getInt("duel.expiry-seconds", 60);
         this.countdownSeconds = plugin.getConfig().getInt("duel.countdown-seconds", 5);
+        this.postDuelRecoverySeconds = plugin.getConfig().getInt("duel.post-duel-recovery-seconds", 30);
     }
 
     public boolean isInDuel(UUID uuid) {
         return activeDuels.containsKey(uuid);
+    }
+
+    public boolean isInPostDuelRecovery(UUID uuid) {
+        Long expiry = postDuelRecoveryExpiry.get(uuid);
+        if (expiry == null) {
+            return false;
+        }
+        if (expiry <= System.currentTimeMillis()) {
+            postDuelRecoveryExpiry.remove(uuid, expiry);
+            return false;
+        }
+        return true;
+    }
+
+    public int getPostDuelRecoveryRemainingSeconds(UUID uuid) {
+        Long expiry = postDuelRecoveryExpiry.get(uuid);
+        if (expiry == null) {
+            return 0;
+        }
+        long remaining = expiry - System.currentTimeMillis();
+        if (remaining <= 0) {
+            postDuelRecoveryExpiry.remove(uuid, expiry);
+            return 0;
+        }
+        return (int) Math.ceil(remaining / 1000.0);
+    }
+
+    private void startPostDuelRecovery(UUID uuid) {
+        if (postDuelRecoverySeconds <= 0) {
+            return;
+        }
+        long expiry = System.currentTimeMillis() + postDuelRecoverySeconds * 1000L;
+        postDuelRecoveryExpiry.put(uuid, expiry);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> postDuelRecoveryExpiry.remove(uuid, expiry), postDuelRecoverySeconds * 20L);
     }
 
     public void setDuelArenaManager(DuelArenaManager duelArenaManager) {
@@ -143,10 +185,10 @@ public class DuelManager {
 
     public void accept(Player target) {
         UUID targetUuid = target.getUniqueId();
-        DuelRequest request = pendingRequests.remove(targetUuid);
-        if (request != null && request.expiryTask != null) {
-            request.expiryTask.cancel();
-        }
+        // Ne retirer la demande qu'après toutes les vérifications bloquantes.
+        // Ainsi, une demande reste disponible si l'acceptation est refusée
+        // temporairement (combat / duel / récupération).
+        DuelRequest request = pendingRequests.get(targetUuid);
 
         if (request == null) {
             sendMessage(target, "duel.no-request", null, null);
@@ -168,6 +210,25 @@ public class DuelManager {
             sendMessage(target, "duel.in-combat", null, null);
             sendMessage(requester, "duel.in-combat", null, null);
             return;
+        }
+
+        if (isInPostDuelRecovery(target.getUniqueId()) || isInPostDuelRecovery(requester.getUniqueId())) {
+            int targetRemaining = getPostDuelRecoveryRemainingSeconds(target.getUniqueId());
+            int requesterRemaining = getPostDuelRecoveryRemainingSeconds(requester.getUniqueId());
+            int remaining = Math.max(targetRemaining, requesterRemaining);
+            sendMessage(target, "duel.post-duel-recovery", "{seconds}", String.valueOf(remaining));
+            sendMessage(requester, "duel.post-duel-recovery", "{seconds}", String.valueOf(remaining));
+            return;
+        }
+
+        // Toutes les vérifications sont passées : la demande peut maintenant être consommée.
+        request = pendingRequests.remove(targetUuid);
+        if (request == null) {
+            sendMessage(target, "duel.no-request", null, null);
+            return;
+        }
+        if (request.expiryTask != null) {
+            request.expiryTask.cancel();
         }
 
         double bet = request.getBet();
@@ -209,16 +270,27 @@ public class DuelManager {
             economyManager.withdraw(target.getUniqueId(), bet);
         }
 
-        Location arena1 = getArenaLocation(1);
-        Location arena2 = getArenaLocation(2);
-        if (arena1 == null || arena2 == null) {
-            sendMessage(target, "duel.arena-not-configured", null, null);
-            sendMessage(requester, "duel.arena-not-configured", null, null);
-            
+        // Cherche la première arène configurée et libre.
+        // Arène 1 = duel.arena.pos1 / pos2
+        // Arène 2 = duel.arena.second.pos1 / pos2
+        int arenaIndex = findAvailableArenaIndex();
+        if (arenaIndex == -1) {
+            sendMessage(target, "duel.arena-occupied", null, null);
+            sendMessage(requester, "duel.arena-occupied", null, null);
+            // La mise a déjà été retirée juste avant la recherche d'arène.
+            // On la rend donc immédiatement si aucune arène n'est disponible.
             if (bet > 0) {
                 economyManager.deposit(requester.getUniqueId(), bet);
                 economyManager.deposit(target.getUniqueId(), bet);
             }
+            return;
+        }
+
+        Location arena1 = getArenaLocation(arenaIndex, 1);
+        Location arena2 = getArenaLocation(arenaIndex, 2);
+        if (arena1 == null || arena2 == null) {
+            sendMessage(target, "duel.arena-not-configured", null, null);
+            sendMessage(requester, "duel.arena-not-configured", null, null);
             return;
         }
 
@@ -229,6 +301,8 @@ public class DuelManager {
 
         DuelSession session = new DuelSession(requester.getUniqueId(), target.getUniqueId(),
                 kitId == null && request.isKeepInventory(), bet, request.isDropHead(), kitId);
+        session.setArenaIndex(arenaIndex);
+        activeArenaDuels.put(arenaIndex, session);
         session.setOriginLocation1(requester.getLocation().clone());
         session.setOriginLocation2(target.getLocation().clone());
 
@@ -311,6 +385,12 @@ public class DuelManager {
     private void endSession(DuelSession session, Player winner, Player loser, boolean forfeit) {
         activeDuels.remove(session.getPlayer1());
         activeDuels.remove(session.getPlayer2());
+        activeArenaDuels.remove(session.getArenaIndex(), session);
+
+        // Les deux participants entrent en récupération pendant 30 secondes
+        // (configurable), même si le duel s'est terminé par abandon.
+        startPostDuelRecovery(session.getPlayer1());
+        startPostDuelRecovery(session.getPlayer2());
 
         double pot = session.getBet() * 2;
         if (winner != null && winner.isOnline()) {
@@ -374,12 +454,30 @@ public class DuelManager {
         }
 
         if (duelArenaManager != null) {
-            duelArenaManager.resetArena();
+            // Le gestionnaire historique sait restaurer l'arène principale.
+            // La seconde arène est destinée à être configurée séparément si besoin.
+            if (session.getArenaIndex() == 1) {
+                duelArenaManager.resetArena();
+            }
         }
     }
 
-    private Location getArenaLocation(int index) {
-        String path = "duel.arena.pos" + index;
+    private int findAvailableArenaIndex() {
+        for (int arenaIndex = 1; arenaIndex <= 2; arenaIndex++) {
+            if (activeArenaDuels.containsKey(arenaIndex)) {
+                continue;
+            }
+            if (getArenaLocation(arenaIndex, 1) != null && getArenaLocation(arenaIndex, 2) != null) {
+                return arenaIndex;
+            }
+        }
+        return -1;
+    }
+
+    private Location getArenaLocation(int arenaIndex, int position) {
+        String path = arenaIndex == 1
+                ? "duel.arena.pos" + position
+                : "duel.arena.second.pos" + position;
         String worldName = plugin.getConfig().getString(path + ".world");
         if (worldName == null) {
             return null;

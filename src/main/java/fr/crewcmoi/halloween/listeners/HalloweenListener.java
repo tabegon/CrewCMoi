@@ -27,7 +27,18 @@ public class HalloweenListener implements Listener {
         else if(e.getInventory().getHolder() instanceof HalloweenChallengeHolder){ e.setCancelled(true); int slot=e.getRawSlot(); String id=null; var ids=manager.getChallengeIds(); if(slot==11&&ids.size()>0)id=ids.get(0); if(slot==13&&ids.size()>1)id=ids.get(1); if(slot==15&&ids.size()>2)id=ids.get(2); if(id!=null && manager.chooseChallenge(p,id)) p.closeInventory(); }
     }
     @EventHandler public void dragGui(InventoryDragEvent e){ if(e.getInventory().getHolder() instanceof HalloweenNpcHolder || e.getInventory().getHolder() instanceof HalloweenChallengeHolder) e.setCancelled(true); }
-    private void buy(Player p){ double price=manager.getPlugin().getConfig().getDouble("halloween.table.price",10000); var eco=manager.getEconomy(); if(!eco.has(p.getUniqueId(),price)){p.sendMessage(color("&cVous n'avez pas assez d'argent."));return;} if(!eco.withdraw(p.getUniqueId(),price))return; var leftovers = p.getInventory().addItem(manager.createTableItem()); leftovers.values().forEach(item -> p.getWorld().dropItemNaturally(p.getLocation(), item)); p.sendMessage(color("&aVous avez acheté la table d'enchantement d'Halloween !")); p.closeInventory(); }
+    private void buy(Player p){
+        double price=manager.getPlugin().getConfig().getDouble("halloween.table.price",10000);
+        var eco=manager.getEconomy();
+        if(!eco.has(p.getUniqueId(),price)){p.sendMessage(color("&cVous n'avez pas assez d'argent."));return;}
+        ItemStack table = manager.createTableItem();
+        if(table == null){p.sendMessage(color("&cLa table maudite est mal configurée. Contactez un administrateur."));return;}
+        if(!eco.withdraw(p.getUniqueId(),price))return;
+        var leftovers = p.getInventory().addItem(table);
+        leftovers.values().forEach(item -> p.getWorld().dropItemNaturally(p.getLocation(), item));
+        p.sendMessage(color("&aVous avez acheté la table d'enchantement d'Halloween !"));
+        p.closeInventory();
+    }
     @EventHandler public void place(BlockPlaceEvent e){if(manager.isTableItem(e.getItemInHand())) manager.registerTable(e.getBlockPlaced().getLocation());}
     @EventHandler public void breakTable(BlockBreakEvent e){if(manager.isSpecialTable(e.getBlock().getLocation())){manager.unregisterTable(e.getBlock().getLocation()); e.setDropItems(false); e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(),manager.createTableItem());} manager.handleBreak(e);}
     @EventHandler public void interact(PlayerInteractEvent e){if(e.getAction()!=Action.RIGHT_CLICK_BLOCK)return; Block b=e.getClickedBlock(); if(b!=null&&manager.isSpecialTable(b.getLocation())){e.setCancelled(true);gui.openChallenges(e.getPlayer());}}
