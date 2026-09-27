@@ -23,6 +23,13 @@ public class PetGuiManager {
         this.petManager = petManager;
     }
 
+    public boolean isPetGui(org.bukkit.inventory.InventoryView view) {
+        if (view == null) return false;
+        String configured = plugin.getMessages().getString("gui.pets.title");
+        String title = configured == null ? TITLE : Messages.color(configured);
+        return title.equals(view.getTitle());
+    }
+
     public void open(org.bukkit.entity.Player player) {
         Inventory gui = Bukkit.createInventory(null, SIZE, Messages.color(plugin.getMessages().getString("gui.pets.title")));
         int index = 0;

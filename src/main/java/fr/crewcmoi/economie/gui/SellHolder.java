@@ -12,10 +12,11 @@ public class SellHolder implements InventoryHolder {
 
     public static final int[] ITEM_SLOTS = buildItemSlots();
 
-    public static final int SELL_SLOT = 40;
+    public static final int SELL_SLOT = 47;
     public static final int CONFIRM_SLOT = 33;
 
     public static final int CANCEL_CONFIRM_SLOT = 29;
+    public static final int NPC_SLOT = 24;
 
     private Inventory inventory;
 
@@ -25,15 +26,24 @@ public class SellHolder implements InventoryHolder {
     private List<ItemStack> pendingItems;
 
     private static int[] buildItemSlots() {
-        int[] slots = new int[36];
-        for (int i = 0; i < 36; i++) {
-            slots[i] = i;
-        }
-        return slots;
+        // Slots où le joueur peut déposer les objets à vendre :
+        // 9-12, 18-21, 27-30, 36-39.
+        return new int[] {
+                0, 1, 2, 3,
+                9, 10, 11, 12,
+                18, 19, 20, 21,
+                27, 28, 29, 30,
+                36, 37, 38, 39
+        };
     }
 
     public static boolean isItemSlot(int slot) {
-        return slot >= 0 && slot < 36;
+        for (int itemSlot : ITEM_SLOTS) {
+            if (itemSlot == slot) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

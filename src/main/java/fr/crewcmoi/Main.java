@@ -35,6 +35,7 @@ import fr.crewcmoi.economie.gui.SellGuiManager;
 import fr.crewcmoi.economie.gui.FishermanGuiManager;
 import fr.crewcmoi.economie.listeners.CoinItemListener;
 import fr.crewcmoi.economie.listeners.FlyingBananaListener;
+import fr.crewcmoi.economie.listeners.KnifeListener;
 import fr.crewcmoi.economie.listeners.SellNpcListener;
 import fr.crewcmoi.economie.listeners.FishermanNpcListener;
 import fr.crewcmoi.economie.listeners.QuestMasterNpcListener;
@@ -224,10 +225,13 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new DuelArenaListener(duelArenaManager), this);
 
         getServer().getPluginManager().registerEvents(new InvisibilityListener(invisibilityManager), this);
-        if (getServer().getPluginManager().isPluginEnabled("ItemsAdder") && getServer().getPluginManager().isPluginEnabled("MythicMobs")) {
+        if (getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
+            // ItemsAdder charge ses registries de manière asynchrone. Le PetManager
+            // écoute donc ItemsAdderLoadDataEvent avant d'utiliser ses CustomStack.
+            getServer().getPluginManager().registerEvents(petManager, this);
             getServer().getPluginManager().registerEvents(new PetListener(this, petManager, petGuiManager), this);
         } else {
-            getLogger().warning("Pets désactivés : ItemsAdder et MythicMobs sont nécessaires.");
+            getLogger().warning("Pets désactivés : ItemsAdder est nécessaire.");
         }
 
         getServer().getPluginManager().registerEvents(new TabListListener(tabListManager), this);
@@ -250,6 +254,7 @@ public class Main extends JavaPlugin {
         if (getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
             getServer().getPluginManager().registerEvents(new CoinItemListener(this, economyManager), this);
             getServer().getPluginManager().registerEvents(new FlyingBananaListener(this), this);
+            getServer().getPluginManager().registerEvents(new KnifeListener(this), this);
             getServer().getPluginManager().registerEvents(new fr.crewcmoi.economie.listeners.LootboxKeyTeleportListener(this), this);
         } else {
             getLogger().warning("ItemsAdder n'est pas détecté : la pièce échangeable contre de l'argent est désactivée.");

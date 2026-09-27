@@ -39,8 +39,9 @@ public class LootboxKeyTeleportListener implements Listener {
         }
 
         Player player = event.getPlayer();
-        if (!isConfiguredKey(event.getItem()) && !isConfiguredKey(player.getInventory().getItemInMainHand())
-                && !isConfiguredKey(player.getInventory().getItemInOffHand())) {
+        // On ne traite que l'item réellement utilisé pour ce clic.
+        // Cela évite notamment de consommer une clé de l'autre main.
+        if (!isConfiguredKey(event.getItem())) {
             return;
         }
 
@@ -51,17 +52,49 @@ public class LootboxKeyTeleportListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        recentTeleports.put(player.getUniqueId(), now);
-
         event.setCancelled(true);
-        teleportToAvailableDestination(player);
+
+        // La clé est consommée uniquement après une téléportation réussie.
+        // Ainsi, une erreur de configuration, une destination occupée ou un
+        // échec de téléportation ne fait jamais perdre la clé au joueur.
+        try {
+            if (teleportToAvailableDestination(player)) {
+                consumeKey(event);
+                recentTeleports.put(player.getUniqueId(), now);
+            }
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Lootbox : erreur pendant la téléportation, clé conservée : " + ex.getMessage());
+        }
     }
 
-    private void teleportToAvailableDestination(Player player) {
+
+    private void consumeKey(PlayerInteractEvent event) {
+        org.bukkit.inventory.ItemStack item = event.getItem();
+        if (item == null) return;
+
+        int amount = item.getAmount();
+        if (amount <= 1) {
+            if (event.getHand() == org.bukkit.inventory.EquipmentSlot.OFF_HAND) {
+                event.getPlayer().getInventory().setItemInOffHand(null);
+            } else {
+                event.getPlayer().getInventory().setItemInMainHand(null);
+            }
+            return;
+        }
+
+        item.setAmount(amount - 1);
+        if (event.getHand() == org.bukkit.inventory.EquipmentSlot.OFF_HAND) {
+            event.getPlayer().getInventory().setItemInOffHand(item);
+        } else {
+            event.getPlayer().getInventory().setItemInMainHand(item);
+        }
+    }
+
+    private boolean teleportToAvailableDestination(Player player) {
         ConfigurationSection destinations = plugin.getConfig().getConfigurationSection("lootbox-teleport.destinations");
         if (destinations == null) {
             send(player, "configuration-error", "&cAucune destination de téléportation de lootbox n'est configurée.");
-            return;
+            return false;
         }
 
         for (String id : destinations.getKeys(false)) {
@@ -80,11 +113,12 @@ public class LootboxKeyTeleportListener implements Listener {
                 String name = plugin.getConfig().getString(path + ".name", id);
                 send(player, "teleported", "&dVous avez été téléporté vers &5%destination%&d."
                         .replace("%destination%", name));
-                return;
+                return true;
             }
         }
 
         send(player, "all-occupied", "&cTous les emplacements de lootbox sont actuellement occupés.");
+        return false;
     }
 
     private boolean isOccupied(Location center, Player except, String path) {

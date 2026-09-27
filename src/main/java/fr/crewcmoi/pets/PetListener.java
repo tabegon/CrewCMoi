@@ -16,7 +16,6 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -72,7 +71,7 @@ public class PetListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPetGuiClick(InventoryClickEvent event) {
-        if (!PetGuiManager.TITLE.equals(event.getView().getTitle())) return;
+        if (!guiManager.isPetGui(event.getView())) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
 

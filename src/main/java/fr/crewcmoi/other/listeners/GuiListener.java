@@ -172,7 +172,7 @@ public class GuiListener implements Listener {
 
     private void handleQuestMasterClick(InventoryClickEvent event) {
         event.setCancelled(true);
-        if (event.getRawSlot() != 13) return;
+        if (event.getRawSlot() != 10) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
         player.closeInventory();
         player.performCommand("mvtp quest");
@@ -204,7 +204,10 @@ public class GuiListener implements Listener {
             return;
         }
 
-        if (slot == SellHolder.SELL_SLOT) {
+        if (sellGuiManager.isSearchSlot(slot)) {
+            event.setCancelled(true);
+            sellGuiManager.calculateAndDisplaySearch(gui);
+        } else if (slot == SellHolder.SELL_SLOT) {
             event.setCancelled(true);
             sellGuiManager.askConfirmation(player, gui, holder);
         } else if (!SellHolder.isItemSlot(slot)) {

@@ -1,6 +1,7 @@
 package fr.crewcmoi.economie.gui;
 
 import fr.crewcmoi.other.utils.Messages;
+import fr.crewcmoi.other.utils.ConfigGuiItem;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.managers.EconomyManager;
@@ -14,6 +15,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.configuration.ConfigurationSection;
 
 import fr.crewcmoi.other.utils.MoneyFormat;
 import fr.crewcmoi.other.utils.GuiItems;
@@ -83,14 +85,199 @@ public class SellGuiManager {
 
     private void renderNormalState(Inventory gui) {
         ItemStack filler = createFiller();
-        for (int i = SellHolder.ITEM_SLOTS.length; i < SellHolder.SIZE; i++) {
-            gui.setItem(i, filler);
+
+        // Tous les slots sauf ceux réservés au dépôt et les quatre slots
+        // volontairement vides sont décorés.
+        for (int i = 0; i < SellHolder.SIZE; i++) {
+            if (!SellHolder.isItemSlot(i) && !isIntentionallyEmptySlot(i)) {
+                gui.setItem(i, filler.clone());
+            }
         }
-        gui.setItem(SellHolder.SELL_SLOT, createConfirmButton(gui));
+
+        ConfigurationSection slots = plugin.getConfig().getConfigurationSection("sell-gui.slots");
+        if (slots != null) {
+            for (String key : slots.getKeys(false)) {
+                int slot;
+                try {
+                    slot = Integer.parseInt(key);
+                } catch (NumberFormatException ignored) {
+                    plugin.getLogger().warning("Sell GUI : slot invalide '" + key + "'.");
+                    continue;
+                }
+
+                if (SellHolder.isItemSlot(slot) || slot < 0 || slot >= SellHolder.SIZE) {
+                    // Les slots de dépôt doivent rester libres pour le joueur.
+                    continue;
+                }
+
+                ConfigurationSection section = slots.getConfigurationSection(key);
+                if (section != null) {
+                    gui.setItem(slot, ConfigGuiItem.fromSection(plugin, section, Material.GRAY_STAINED_GLASS_PANE));
+                }
+            }
+        }
+
+        // Bouton NPC fixe (Custom Model Data 33 via GuiItems).
+        gui.setItem(SellHolder.NPC_SLOT, GuiItems.npc("&f"));
+
+        // Bouton vendre fixe : Custom Model Data 18 via GuiItems.
+        gui.setItem(SellHolder.SELL_SLOT, GuiItems.checkmarkButton("&a&lᴠᴇɴᴅʀᴇ"));
+
+        // Bouton Search fixe (Custom Model Data 16 via GuiItems).
+        renderSearchButtons(gui, false);
+    }
+
+    private int[] getSearchSlots() {
+        return new int[] {46};
+    }
+
+    private boolean isIntentionallyEmptySlot(int slot) {
+        return slot == 25 || slot == 32 || slot == 33 || slot == 34;
+    }
+
+    private int[] getSearchItemSlots() {
+        List<Integer> slots = plugin.getConfig().getIntegerList("sell-gui.buttons.search.item-slots");
+        if (slots == null || slots.isEmpty()) {
+            return SellHolder.ITEM_SLOTS.clone();
+        }
+        return slots.stream().filter(SellHolder::isItemSlot).distinct().mapToInt(Integer::intValue).toArray();
+    }
+
+    private double calculateSearchTotal(Inventory gui) {
+        double total = 0.0;
+        for (int slot : getSearchItemSlots()) {
+            ItemStack stack = gui.getItem(slot);
+            if (stack == null || stack.getType() == Material.AIR) {
+                continue;
+            }
+            double unitPrice = getSellPrice(stack);
+            if (unitPrice > 0) {
+                total += unitPrice * stack.getAmount();
+            }
+        }
+        return total;
+    }
+
+    private ItemStack createSearchButton(Inventory gui, boolean calculated) {
+        double total = calculateSearchTotal(gui);
+        ItemStack item = GuiItems.searchButton("&6&lRECHERCHE");
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return item;
+        }
+
+        List<String> lore = new ArrayList<>();
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("sell-gui.buttons.search");
+        if (section != null && section.isList("lore")) {
+            for (String line : section.getStringList("lore")) {
+                lore.add(replaceSearchPlaceholders(line, total, calculated));
+            }
+        } else {
+            lore.add(ChatColor.GRAY + "Cliquez pour calculer le prix total.");
+            lore.add(ChatColor.GRAY + "Prix total : " + ChatColor.GOLD + MoneyFormat.format(total));
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private String replaceSearchPlaceholders(String text, double total, boolean calculated) {
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "");
+        String totalText = MoneyFormat.format(total) + currency;
+        if (calculated) {
+            totalText = ChatColor.GOLD + totalText + ChatColor.RESET;
+        }
+        return ChatColor.translateAlternateColorCodes('&', text)
+                .replace("%total%", totalText)
+                .replace("%search-total%", totalText)
+                .replace("%currency%", currency);
+    }
+
+    private void renderSearchButtons(Inventory gui, boolean calculated) {
+        for (int slot : getSearchSlots()) {
+            if (slot < 0 || slot >= SellHolder.SIZE) {
+                continue;
+            }
+            if (slot == SellHolder.SELL_SLOT || slot == SellHolder.CONFIRM_SLOT || slot == SellHolder.CANCEL_CONFIRM_SLOT) {
+                plugin.getLogger().warning("Sell GUI : le slot search " + slot + " entre en conflit avec un bouton existant.");
+                continue;
+            }
+            gui.setItem(slot, createSearchButton(gui, calculated));
+        }
+    }
+
+    public void calculateAndDisplaySearch(Inventory gui) {
+        renderSearchButtons(gui, true);
+    }
+
+    public boolean isSearchSlot(int slot) {
+        for (int searchSlot : getSearchSlots()) {
+            if (searchSlot == slot) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ItemStack createFiller() {
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("sell-gui.filler");
+        if (section != null) {
+            return ConfigGuiItem.fromSection(plugin, section, Material.GRAY_STAINED_GLASS_PANE);
+        }
         return GuiItems.nothing(" ");
+    }
+
+    private ItemStack createConfiguredButton(String path, Material fallbackMaterial,
+                                             String defaultName, List<String> defaultLore,
+                                             int itemCount, double total) {
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection(path);
+        ItemStack item;
+
+        if (section != null) {
+            item = ConfigGuiItem.fromSection(plugin, section, fallbackMaterial);
+
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                if (section.isList("lore")) {
+                    List<String> lore = new ArrayList<>();
+                    for (String line : section.getStringList("lore")) {
+                        lore.add(replacePlaceholders(line, itemCount, total));
+                    }
+                    meta.setLore(lore);
+                } else if (!defaultLore.isEmpty()) {
+                    List<String> lore = new ArrayList<>();
+                    for (String line : defaultLore) {
+                        lore.add(ChatColor.translateAlternateColorCodes('&',
+                                replacePlaceholders(line, itemCount, total)));
+                    }
+                    meta.setLore(lore);
+                }
+                item.setItemMeta(meta);
+            }
+            return item;
+        }
+
+        ItemStack fallback = new ItemStack(fallbackMaterial);
+        ItemMeta meta = fallback.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', defaultName));
+            List<String> lore = new ArrayList<>();
+            for (String line : defaultLore) {
+                lore.add(ChatColor.translateAlternateColorCodes('&',
+                        replacePlaceholders(line, itemCount, total)));
+            }
+            meta.setLore(lore);
+            fallback.setItemMeta(meta);
+        }
+        return fallback;
+    }
+
+    private String replacePlaceholders(String text, int itemCount, double total) {
+        String currency = plugin.getConfig().getString("economy.currency-symbol", "");
+        return text
+                .replace("%item-count%", String.valueOf(itemCount))
+                .replace("%total%", MoneyFormat.format(total))
+                .replace("%currency%", currency);
     }
 
     private ItemStack createConfirmButton(Inventory gui) {
@@ -113,28 +300,24 @@ public class SellGuiManager {
             itemCount += stack.getAmount();
         }
 
-        ItemStack item = new ItemStack(Material.EMERALD);
-        ItemMeta meta = item.getItemMeta();
+        List<String> defaultLore = new ArrayList<>();
+        defaultLore.add("&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e%item-count%");
+        defaultLore.add("&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a%total%%currency%");
+        if (hasUnsellable) {
+            defaultLore.add("&8(ᴄᴇʀᴛᴀɪɴꜱ ᴏʙᴊᴇᴛꜱ ᴘʟᴀᴄᴇꜱ ɴᴇ ꜱᴏɴᴛ ᴘᴀꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ)");
+        }
+
+        ItemStack sellButton = GuiItems.checkmarkButton("&a&lᴠᴇɴᴅʀᴇ");
+        ItemMeta meta = sellButton.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&a&lᴠᴇɴᴅʀᴇ"));
             List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.translateAlternateColorCodes('&',
-                    "&7ᴘʟᴀᴄᴇᴢ ᴠᴏꜱ ᴏʙᴊᴇᴛꜱ ᴅᴀɴꜱ ʟᴇꜱ ᴇᴍᴘʟᴀᴄᴇᴍᴇɴᴛꜱ"));
-            lore.add(ChatColor.translateAlternateColorCodes('&',
-                    "&7ᴄɪ-ᴅᴇꜱꜱᴜꜱ ᴘᴜɪꜱ ᴄʟɪǫᴜᴇᴢ ɪᴄɪ ᴘᴏᴜʀ ᴠᴇɴᴅʀᴇ."));
-            lore.add("");
-            lore.add(ChatColor.translateAlternateColorCodes('&',
-                    "&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e" + itemCount));
-            lore.add(ChatColor.translateAlternateColorCodes('&',
-                    "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + MoneyFormat.format(total) + currency));
-            if (hasUnsellable) {
-                lore.add(ChatColor.translateAlternateColorCodes('&',
-                        "&8(ᴄᴇʀᴛᴀɪɴꜱ ᴏʙᴊᴇᴛꜱ ᴘʟᴀᴄᴇꜱ ɴᴇ ꜱᴏɴᴛ ᴘᴀꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ)"));
+            for (String line : defaultLore) {
+                lore.add(ChatColor.translateAlternateColorCodes('&', replacePlaceholders(line, itemCount, total)));
             }
             meta.setLore(lore);
-            item.setItemMeta(meta);
+            sellButton.setItemMeta(meta);
         }
-        return item;
+        return sellButton;
     }
 
     public void refreshConfirmButton(Inventory gui) {
@@ -173,16 +356,23 @@ public class SellGuiManager {
         for (int slot : SellHolder.ITEM_SLOTS) {
             gui.setItem(slot, filler);
         }
-        for (int i = SellHolder.ITEM_SLOTS.length; i < SellHolder.SIZE; i++) {
-            gui.setItem(i, filler);
+        for (int i = 0; i < SellHolder.SIZE; i++) {
+            if (!SellHolder.isItemSlot(i) && !isIntentionallyEmptySlot(i)) {
+                gui.setItem(i, filler.clone());
+            }
         }
+
+        List<String> confirmLore = new ArrayList<>();
+        confirmLore.add("&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e%item-count%");
+        confirmLore.add("&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a%total%%currency%");
 
         ItemStack confirmButton = GuiItems.checkmarkButton("&a&lᴄᴏɴꜰɪʀᴍᴇʀ ʟᴀ ᴠᴇɴᴛᴇ");
         ItemMeta confirmMeta = confirmButton.getItemMeta();
         if (confirmMeta != null) {
             List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴏʙᴊᴇᴛꜱ ᴠᴇɴᴅᴀʙʟᴇꜱ : &e" + itemCount));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴠᴏᴜꜱ ᴀʟʟᴇᴢ ɢᴀɢɴᴇʀ : &a" + MoneyFormat.format(total) + currency));
+            for (String line : confirmLore) {
+                lore.add(ChatColor.translateAlternateColorCodes('&', replacePlaceholders(line, itemCount, total)));
+            }
             confirmMeta.setLore(lore);
             confirmButton.setItemMeta(confirmMeta);
         }

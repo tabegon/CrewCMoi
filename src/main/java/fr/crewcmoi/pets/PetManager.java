@@ -2,6 +2,7 @@ package fr.crewcmoi.pets;
 import fr.crewcmoi.other.utils.Messages;
 
 import dev.lone.itemsadder.api.CustomStack;
+import dev.lone.itemsadder.api.Events.ItemsAdderLoadDataEvent;
 import fr.crewcmoi.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -20,7 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class PetManager {
+public class PetManager implements org.bukkit.event.Listener {
 
     private static final double FOLLOW_DISTANCE_SQUARED = 2.25; 
     private static final double TELEPORT_DISTANCE_SQUARED = 400; 
@@ -60,8 +61,12 @@ public class PetManager {
     }
 
     public Set<String> getConfiguredPets() {
-        ConfigurationSectionWrapper wrapper = new ConfigurationSectionWrapper(plugin.getConfig());
-        return wrapper.getKeys();
+        org.bukkit.configuration.ConfigurationSection section = plugin.getConfig().getConfigurationSection("pets.list");
+        if (section == null) {
+            plugin.getLogger().warning("Aucun pet n'est configuré dans pets.list.");
+            return Collections.emptySet();
+        }
+        return section.getKeys(false);
     }
 
     public String getItemId(String petId) {
@@ -109,19 +114,71 @@ public class PetManager {
     }
 
     public ItemStack createPetItem(String petId) {
-        String id = getItemId(petId);
-        if (id.isBlank()) return null;
-        CustomStack custom = CustomStack.getInstance(id);
-        if (custom == null) return null;
-        return custom.getItemStack().clone();
+        String id = normalizeItemsAdderId(getItemId(petId));
+        if (id.isBlank()) {
+            plugin.getLogger().warning("Pet '" + petId + "' : aucun itemsadder-id n'est configuré.");
+            return null;
+        }
+
+        CustomStack custom = findCustomStack(id);
+        if (custom == null) {
+            plugin.getLogger().warning("Pet : impossible de charger l'item ItemsAdder '" + id + "'. Vérifie que cet ID correspond bien à un custom item (et non à un custom entity) et que ItemsAdder a terminé son chargement.");
+            return null;
+        }
+
+        ItemStack item = custom.getItemStack();
+        return item == null ? null : item.clone();
+    }
+
+    /**
+     * Résout un custom item ItemsAdder de façon tolérante.
+     * ItemsAdder accepte normalement directement namespace:id, mais on garde
+     * un second essai sans namespace pour les anciennes configurations.
+     */
+    private CustomStack findCustomStack(String id) {
+        try {
+            CustomStack custom = CustomStack.getInstance(id);
+            if (custom != null) return custom;
+
+            int separator = id.indexOf(':');
+            if (separator > 0 && separator < id.length() - 1) {
+                custom = CustomStack.getInstance(id.substring(separator + 1));
+                if (custom != null) return custom;
+            }
+        } catch (Throwable throwable) {
+            plugin.getLogger().warning("Pet : erreur lors de l'accès à l'API ItemsAdder pour '" + id + "' : " + throwable.getClass().getSimpleName() + " - " + throwable.getMessage());
+        }
+        return null;
+    }
+
+    private String normalizeItemsAdderId(String id) {
+        if (id == null) return "";
+        return id.trim().toLowerCase(Locale.ROOT);
+    }
+
+    @org.bukkit.event.EventHandler
+    public void onItemsAdderLoad(ItemsAdderLoadDataEvent event) {
+        // ItemsAdder charge ses registries de manière asynchrone. On ne tente
+        // pas d'accéder à Bukkit depuis l'événement async : on bascule sur le
+        // thread serveur pour confirmer que les IDs des pets sont disponibles.
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            for (String petId : getConfiguredPets()) {
+                String id = normalizeItemsAdderId(getItemId(petId));
+                if (!id.isBlank() && findCustomStack(id) == null) {
+                    plugin.getLogger().warning("Pet '" + petId + "' : ItemsAdder est chargé, mais l'item '" + id + "' n'est pas présent dans son registre.");
+                }
+            }
+        });
     }
 
     public boolean isPetItem(ItemStack stack, String petId) {
         if (stack == null || stack.getType().isAir()) return false;
-        String id = getItemId(petId);
+        String id = normalizeItemsAdderId(getItemId(petId));
         if (id.isBlank()) return false;
         CustomStack custom = CustomStack.byItemStack(stack);
-        return custom != null && id.equalsIgnoreCase(custom.getNamespacedID());
+        if (custom == null) return false;
+        String actual = normalizeItemsAdderId(custom.getNamespacedID());
+        return id.equals(actual);
     }
 
     public String getRecallItemId() {

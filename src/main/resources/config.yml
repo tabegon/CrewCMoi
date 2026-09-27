@@ -133,17 +133,24 @@ flying-banana:
     level: 25
     duration-ticks: 20
 
+knife:
+  # ID ItemsAdder du couteau.
+  itemsadder-id: "server:hunted_knife"
+  # ID ItemsAdder de l'âme donnée au tueur.
+  soul-itemsadder-id: "server:soul"
+  reward-message: "&5+1 âme &7pour avoir tué &f{victim}&7 avec le couteau !"
+
 pets:
 
   recall-item-id: "minecraft:stick"
 
   list:
     spookie_spice:
-      itemsadder-id: "server:spooky_spice"
+      itemsadder-id: "server:spooky_spice_item"
       mythic-mob: "Spooky_Spice"
       slot: 0
     electric_ghoast:
-      itemsadder-id: "server:electric_ghoast"
+      itemsadder-id: "server:electric_ghoast_item"
       mythic-mob: "Electric_Ghoast"
       slot: 1
 
@@ -164,6 +171,58 @@ fisherman:
     fishing-rod: 100
     fishing-rod-luck-of-the-sea-1: 150
 
+# Configuration de la GUI du Sell Bot.
+#
+# IMPORTANT :
+# - Les slots 0-3, 9-12, 18-21, 27-30 et 36-39 sont réservés aux objets déposés par le joueur.
+# - Les autres slots peuvent être décorés avec n'importe quel item ItemsAdder.
+# - Tous les IDs ItemsAdder sont définis ici, jamais dans le code.
+# - %item-count%, %total% et %currency% sont disponibles dans les lores des boutons.
+sell-gui:
+  # Aucun filler ItemsAdder ici : les éléments fixes utilisent GuiItems.java.
+
+  # Décorations personnalisées. Tous les slots sauf les slots de dépôt sont pris en compte.
+  # Exemple :
+  # slots:
+  #   "36":
+  #     itemsadder-id: "server:gui_item_1"
+  #   "37":
+  #     itemsadder-id: "server:gui_item_2"
+  #     display-name: "&aMon bouton"
+  slots: {}
+
+  buttons:
+    # Les boutons Sell / Confirm / Cancel / NPC / Search utilisent désormais
+    # directement les items de GuiItems.java (Custom Model Data).
+    # Seuls les emplacements et le lore du bouton Search restent configurables.
+    search:
+      slots:
+        - 46
+      item-slots:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 9
+        - 10
+        - 11
+        - 12
+        - 18
+        - 19
+        - 20
+        - 21
+        - 27
+        - 28
+        - 29
+        - 30
+        - 36
+        - 37
+        - 38
+        - 39
+      lore:
+        - "&7Cliquez pour calculer le prix total."
+        - "&7Prix total : %total%"
+
 homes:
   base-price: 5000
   price-increment: 5000
@@ -176,6 +235,66 @@ halloween:
     # Cet item doit être un item plaçable basé sur une table d'enchantement.
     itemsadder-id: "server:summoning_table"
     item-name: "&5&lTable maudite"
+
+  # GUI du NPC marchand Halloween. Les items de cette GUI restent configurables ici.
+  shop:
+    size: 54
+    title: "&5&lHalloween &8• &dMarchand"
+
+    # Le fill_button n'est utilisé que dans fill-slots.
+    filler:
+      itemsadder-id: "server:fill_button"
+      amount: 1
+      display-name: " "
+    fill-slots:
+      - 1
+      - 3
+      - 46
+      - 48
+
+    # Produits achetables. Modifiez les prix selon votre économie.
+    slots:
+      "12":
+        itemsadder-id: "server:pumpkin_furniture"
+        amount: 1
+        price: 1.0
+      "21":
+        itemsadder-id: "server:summoning_table"
+        amount: 1
+        price: 10000.0
+      "30":
+        itemsadder-id: "server:halloween_crate_key"
+        amount: 1
+        price: 1.0
+      "34":
+        itemsadder-id: "server:twillight_terror_item"
+        amount: 1
+        price: 1.0
+      "39":
+        itemsadder-id: "server:pumpkin_trophy"
+        amount: 1
+        price: 1.0
+
+    # Décorations non achetables.
+    decorations:
+      "2":
+        itemsadder-id: "server:button_up"
+        amount: 1
+      "47":
+        itemsadder-id: "server:button_down"
+        amount: 1
+      "10":
+        itemsadder-id: "server:arrow_exchange"
+        amount: 8
+      "19":
+        itemsadder-id: "server:arrow_exchange"
+        amount: 32
+      "28":
+        itemsadder-id: "server:arrow_exchange"
+        amount: 64
+      "37":
+        itemsadder-id: "server:arrow_exchange"
+        amount: 64
 
   messages:
     challenge-selected: "&dDéfi accepté : &f%challenge%&d !"
@@ -233,7 +352,7 @@ npcs:
 
 lootbox-teleport:
   # Clé ItemsAdder reconnue uniquement pour déclencher la téléportation.
-  # Le plugin ne consomme pas la clé : sa gestion reste externe.
+  # La clé ItemsAdder configurée est consommée lors d'un clic droit valide.
   key-itemsadder-id: "server:halloween_crate_key"
 
   # Les destinations sont testées dans l'ordre : destination1 puis destination2.
@@ -259,6 +378,5 @@ lootbox-teleport:
       occupancy-radius: 5.0
 
   messages:
-    teleported: "&dVous avez été téléporté vers &5%destination%&d."
     all-occupied: "&cTous les emplacements de lootbox sont actuellement occupés."
     configuration-error: "&cAucune destination de téléportation de lootbox n'est configurée."

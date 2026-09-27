@@ -12,6 +12,10 @@ public final class GuiItems {
     private static final int CANCEL_MODEL_DATA = 15;
     private static final int CHECKMARK_MODEL_DATA = 18;
     private static final int NOTHING_MODEL_DATA = 20;
+    private static final int NPC_MODEL_DATA = 33;
+    private static final int SEARCH_MODEL_DATA = 16;
+    private static final int GOAT_MODEL_DATA = 34;
+    private static final int LOCK_MODEL_DATA = 35;
 
     private GuiItems() {
     }
@@ -26,6 +30,22 @@ public final class GuiItems {
 
     public static ItemStack nothing(String displayName) {
         return build(NOTHING_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack npc(String displayName) {
+        return build(NPC_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack searchButton(String displayName) {
+        return build(SEARCH_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack goat(String displayName) {
+        return build(GOAT_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack lock(String displayName) {
+        return build(LOCK_MODEL_DATA, displayName);
     }
 
     private static ItemStack build(int customModelData, String displayName) {

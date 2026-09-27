@@ -3,6 +3,7 @@ package fr.crewcmoi.halloween.managers;
 import dev.lone.itemsadder.api.CustomStack;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.economie.managers.EconomyManager;
+import fr.crewcmoi.other.utils.ConfigGuiItem;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -66,6 +67,60 @@ public class HalloweenManager {
             item.setItemMeta(meta);
         }
         return item;
+    }
+
+    /**
+     * Retourne la configuration d'un produit du marchand Halloween.
+     */
+    public ConfigurationSection getShopSlotConfig(int slot) {
+        return plugin.getConfig().getConfigurationSection("halloween.shop.slots." + slot);
+    }
+
+    /**
+     * Crée l'item configuré pour un slot du marchand.
+     *
+     * Si l'ID correspond à la table maudite principale, on conserve le
+     * PersistentDataContainer utilisé pour reconnaître la table placée.
+     */
+    public ItemStack createShopItem(ConfigurationSection section) {
+        if (section == null) return null;
+
+        String configuredId = section.getString("itemsadder-id", "").trim();
+        String tableId = plugin.getConfig().getString("halloween.table.itemsadder-id", "").trim();
+
+        ItemStack item;
+        if (!configuredId.isEmpty() && !tableId.isEmpty()
+                && configuredId.equalsIgnoreCase(tableId)) {
+            item = createTableItem();
+        } else {
+            item = ConfigGuiItem.fromSection(plugin, section, Material.PAPER);
+        }
+
+        if (item == null) return null;
+
+        if (section.contains("display-name") || section.isList("lore")) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                if (section.contains("display-name")) {
+                    meta.setDisplayName(color(section.getString("display-name", "")));
+                }
+                if (section.isList("lore")) {
+                    List<String> lore = new ArrayList<>();
+                    for (String line : section.getStringList("lore")) {
+                        lore.add(color(line));
+                    }
+                    meta.setLore(lore);
+                }
+                item.setItemMeta(meta);
+            }
+        }
+
+        return item;
+    }
+
+    public double getShopPrice(ConfigurationSection section) {
+        if (section == null) return -1.0;
+        return section.getDouble("price", -1.0);
     }
 
     public boolean isTableItem(ItemStack item) {
