@@ -8,11 +8,11 @@ import fr.crewcmoi.other.utils.GuiItems;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,102 +26,65 @@ public class HalloweenGuiManager {
         this.manager = manager;
     }
 
-    /**
-     * Ouvre le marchand de tables d'enchantement.
-     *
-     * Chaque slot peut être configuré dans :
-     * halloween.shop.slots.<slot>
-     *
-     * Le slot peut contenir un item ItemsAdder, un prix, un nom et un lore.
-     */
-    public void openNpc(Player p) {
+    public void openNpc(Player p) { openNpc(p, 1); }
+
+    public void openNpc(Player p, int page) {
         HalloweenNpcHolder holder = new HalloweenNpcHolder();
+        holder.setPage(page);
 
-        int size = Math.max(9, Math.min(54,
-                plugin.getConfig().getInt("halloween.shop.size", 27)));
+        int size = Math.max(9, Math.min(54, plugin.getConfig().getInt("halloween.shop.size", 54)));
         size = (size / 9) * 9;
-
         Inventory inv = Bukkit.createInventory(holder, size,
                 color(plugin.getConfig().getString("halloween.shop.title", "&5&lHalloween &8• &dMarchand")));
         holder.setInventory(inv);
 
-        // `nothing` remplit uniquement les cases réellement vides.
-        // Le `fill_button` ItemsAdder, lui, est réservé aux quatre slots
-        // décoratifs configurés dans halloween.shop.fill-slots.
+        // Design historique : NOTHING partout, avec les cases prévues réellement vides.
         ItemStack nothing = GuiItems.nothing(" ");
-        for (int i = 0; i < size; i++) {
-            inv.setItem(i, nothing.clone());
+        for (int i = 0; i < size; i++) inv.setItem(i, nothing.clone());
+        for (int emptySlot : new int[]{11, 20, 29, 38, 41, 42, 43}) {
+            if (emptySlot < size) inv.setItem(emptySlot, null);
         }
 
-        // Ces trois cases doivent rester réellement vides : elles ne doivent
-        // recevoir ni NOTHING ni aucun bouton de remplissage.
-        for (int emptySlot : new int[]{41, 42, 43}) {
-            if (emptySlot < size) {
-                inv.setItem(emptySlot, null);
-            }
-        }
-
+        // Décoration historique aux quatre coins de navigation.
         ConfigurationSection fillerSection = plugin.getConfig().getConfigurationSection("halloween.shop.filler");
-        ItemStack fillButton = fillerSection == null
-                ? null
+        ItemStack fillButton = fillerSection == null ? null
                 : ConfigGuiItem.fromSection(plugin, fillerSection, Material.GRAY_STAINED_GLASS_PANE);
-
         for (int slot : plugin.getConfig().getIntegerList("halloween.shop.fill-slots")) {
-            if (slot >= 0 && slot < size && fillButton != null) {
-                inv.setItem(slot, fillButton.clone());
-            }
+            if (slot >= 0 && slot < size && fillButton != null) inv.setItem(slot, fillButton.clone());
         }
 
-        ConfigurationSection slots = plugin.getConfig().getConfigurationSection("halloween.shop.slots");
-        if (slots != null) {
-            for (String key : slots.getKeys(false)) {
-                int slot;
-                try {
-                    slot = Integer.parseInt(key);
-                } catch (NumberFormatException ignored) {
-                    plugin.getLogger().warning("Halloween GUI : slot invalide '" + key + "'.");
-                    continue;
+        // Nouveaux boutons : toute la zone 1-2-3 / 46-47-48 est cliquable.
+        ConfigurationSection nav1 = plugin.getConfig().getConfigurationSection("halloween.shop.navigation." + "first");
+        ConfigurationSection nav2 = plugin.getConfig().getConfigurationSection("halloween.shop.navigation." + "second");
+        ItemStack navItem1 = ConfigGuiItem.fromSection(plugin, nav1, Material.ARROW);
+        ItemStack navItem2 = ConfigGuiItem.fromSection(plugin, nav2, Material.ARROW);
+        inv.setItem(2, navItem1);
+        inv.setItem(47, navItem2);
+
+        // Les produits restent aux anciens emplacements 12/21/30/39.
+        ConfigurationSection trades = plugin.getConfig().getConfigurationSection(
+                "halloween.shop.pages.page-" + page + ".trades");
+        if (trades != null) {
+            for (String key : trades.getKeys(false)) {
+                ConfigurationSection trade = trades.getConfigurationSection(key);
+                if (trade == null) continue;
+                int productSlot = trade.getInt("product-slot", -1);
+                int cost = trade.getInt("cost", 0);
+                String id = trade.getString("itemsadder-id", "").trim();
+                if (productSlot < 0 || productSlot >= size || id.isEmpty()) continue;
+
+                ItemStack item = manager.createShopItem(trade);
+                if (item != null) inv.setItem(productSlot, item);
+
+                // Arrow Exchange : 10 + 9n, soit exactement deux slots avant le produit.
+                int arrowSlot = productSlot - 2;
+                if (arrowSlot >= 0 && arrowSlot < size) {
+                    ConfigurationSection arrow = new org.bukkit.configuration.file.YamlConfiguration();
+                    arrow.set("itemsadder-id", "server:arrow_exchange");
+                    arrow.set("amount", cost);
+                    ItemStack arrowItem = ConfigGuiItem.fromSection(plugin, arrow, Material.ARROW);
+                    if (arrowItem != null) inv.setItem(arrowSlot, arrowItem);
                 }
-
-                if (slot < 0 || slot >= size) {
-                    plugin.getLogger().warning("Halloween GUI : le slot " + slot + " dépasse la taille de la GUI.");
-                    continue;
-                }
-
-                ConfigurationSection slotSection = slots.getConfigurationSection(key);
-                ItemStack item = manager.createShopItem(slotSection);
-                if (item != null) {
-                    inv.setItem(slot, item);
-                }
-            }
-        }
-
-        // Compatibilité avec l'ancienne configuration :
-        // si aucun slot n'est défini, le produit historique reste au slot 13.
-        if (slots == null || slots.getKeys(false).isEmpty()) {
-            ConfigurationSection legacy = plugin.getConfig().getConfigurationSection("halloween.table");
-            ItemStack table = manager.createTableItem();
-            if (table != null) {
-                applyConfiguredLore(table, legacy);
-                inv.setItem(Math.min(13, size - 1), table);
-            }
-        }
-
-        // Permet de définir directement des décorations par slot.
-        ConfigurationSection decorations = plugin.getConfig().getConfigurationSection("halloween.shop.decorations");
-        if (decorations != null) {
-            for (String key : decorations.getKeys(false)) {
-                int slot;
-                try {
-                    slot = Integer.parseInt(key);
-                } catch (NumberFormatException ignored) {
-                    continue;
-                }
-                if (slot < 0 || slot >= size) continue;
-
-                ConfigurationSection section = decorations.getConfigurationSection(key);
-                ItemStack item = ConfigGuiItem.fromSection(plugin, section, Material.PAPER);
-                inv.setItem(slot, item);
             }
         }
 
@@ -158,27 +121,5 @@ public class HalloweenGuiManager {
         p.openInventory(inv);
     }
 
-    private void applyConfiguredLore(ItemStack item, ConfigurationSection section) {
-        if (item == null || section == null) return;
-        if (!section.isList("lore") && !section.contains("display-name")) return;
-
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return;
-
-        if (section.contains("display-name")) {
-            meta.setDisplayName(color(section.getString("display-name", "")));
-        }
-        if (section.isList("lore")) {
-            List<String> lore = new ArrayList<>();
-            for (String line : section.getStringList("lore")) {
-                lore.add(color(line));
-            }
-            meta.setLore(lore);
-        }
-        item.setItemMeta(meta);
-    }
-
-    private String color(String s){
-        return ChatColor.translateAlternateColorCodes('&',s==null?"":s);
-    }
+    private String color(String s){ return ChatColor.translateAlternateColorCodes('&',s==null?"":s); }
 }

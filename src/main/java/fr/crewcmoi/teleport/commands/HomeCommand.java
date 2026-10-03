@@ -1,3 +1,54 @@
 package fr.crewcmoi.teleport.commands;
-import fr.crewcmoi.Main; import fr.crewcmoi.other.utils.Messages; import fr.crewcmoi.teleport.database.HomeData; import fr.crewcmoi.teleport.gui.HomeGuiManager; import fr.crewcmoi.teleport.managers.HomeManager; import org.bukkit.*; import org.bukkit.command.*; import org.bukkit.entity.Player; import java.util.*;
-public class HomeCommand implements CommandExecutor, TabCompleter { private final Main plugin; private final HomeManager manager; private final HomeGuiManager gui; public HomeCommand(Main p,HomeManager m,HomeGuiManager g){plugin=p;manager=m;gui=g;} public boolean onCommand(CommandSender s,Command c,String l,String[] a){if(!(s instanceof Player p)){Messages.send(s,"teleport.home.player-only");return true;}if(a.length==0){gui.open(p);return true;}if(a.length>1){p.sendMessage(color("&cUsage : /home [nom]"));return true;}manager.getHome(p,a[0],h->{if(h==null){p.sendMessage(color("&cHome introuvable : &f"+a[0]));return;}World w=Bukkit.getWorld(h.getWorld());if(w==null){p.sendMessage(color("&cLe monde de ce home est introuvable."));return;}p.teleport(new Location(w,h.getX(),h.getY(),h.getZ(),h.getYaw(),h.getPitch()));p.sendMessage(color("&aTéléportation vers le home &f"+h.getName()+" &a!"));});return true;}public List<String> onTabComplete(CommandSender s,Command c,String l,String[] a){if(!(s instanceof Player p)||a.length!=1)return Collections.emptyList();List<String> out=new ArrayList<>();for(HomeData h:manager.getHomes(p.getUniqueId()))if(h.getName().toLowerCase().startsWith(a[0].toLowerCase()))out.add(h.getName());return out;}private String color(String x){return ChatColor.translateAlternateColorCodes('&',x);}}
+import fr.crewcmoi.Main;
+import fr.crewcmoi.other.utils.Messages;
+import fr.crewcmoi.teleport.database.HomeData;
+import fr.crewcmoi.teleport.gui.HomeGuiManager;
+import fr.crewcmoi.teleport.managers.HomeManager;
+import org.bukkit.*;
+import org.bukkit.command.*;
+import org.bukkit.entity.Player;
+import java.util.*;
+public class HomeCommand implements CommandExecutor, TabCompleter {
+    private final Main plugin;
+    private final HomeManager manager;
+    private final HomeGuiManager gui;
+    public HomeCommand(Main p,HomeManager m,HomeGuiManager g) {
+        plugin=p;
+        manager=m;
+        gui=g;
+    }
+    public boolean onCommand(CommandSender s,Command c,String l,String[] a) {
+        if(!(s instanceof Player p)) {
+            Messages.send(s,"teleport.home.player-only");
+            return true;
+        }
+        if(a.length==0) {
+            gui.open(p);
+            return true;
+        }
+        if(a.length>1) {
+            p.sendMessage(color("&cUsage : /home [nom]"));
+            return true;
+        }
+        manager.getHome(p,a[0],h-> {
+            if(h==null) {
+                p.sendMessage(color("&cHome introuvable : &f"+a[0]));return;
+            }
+            World w=Bukkit.getWorld(h.getWorld());if(w==null) {
+                p.sendMessage(color("&cLe monde de ce home est introuvable."));return;
+            }
+            p.teleport(new Location(w,h.getX(),h.getY(),h.getZ(),h.getYaw(),h.getPitch()));p.sendMessage(color("&aTéléportation vers le home &f"+h.getName()+" &a!"));
+        }
+);
+        return true;
+    }
+    public List<String> onTabComplete(CommandSender s,Command c,String l,String[] a) {
+        if(!(s instanceof Player p)||a.length!=1)return Collections.emptyList();
+        List<String> out=new ArrayList<>();
+        for(HomeData h:manager.getHomes(p.getUniqueId()))if(h.getName().toLowerCase().startsWith(a[0].toLowerCase()))out.add(h.getName());
+        return out;
+    }
+    private String color(String x) {
+        return ChatColor.translateAlternateColorCodes('&',x);
+    }
+}

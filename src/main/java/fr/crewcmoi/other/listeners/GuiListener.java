@@ -40,6 +40,7 @@ import fr.crewcmoi.teleport.gui.PlayerAdminGuiManager;
 import fr.crewcmoi.economie.managers.AuctionManager;
 import fr.crewcmoi.pvp.managers.BountyManager;
 import fr.crewcmoi.claims.managers.ClaimManager;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -172,10 +173,30 @@ public class GuiListener implements Listener {
 
     private void handleQuestMasterClick(InventoryClickEvent event) {
         event.setCancelled(true);
-        if (event.getRawSlot() != 10) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        player.closeInventory();
-        player.performCommand("mvtp quest");
+
+        if (event.getRawSlot() == 10) {
+            plugin.getQuestManager().startQuest(player);
+            return;
+        }
+
+        if (event.getRawSlot() == 11) {
+            if (!plugin.getQuestManager().isCompleted(player)) {
+                return;
+            }
+            plugin.getQuestManager().startQuest2(player);
+            return;
+        }
+
+        if (event.getRawSlot() == 22) {
+            player.closeInventory();
+            var location = plugin.getQuestWorldManager().getRandomLocation();
+            if (location == null) {
+                player.sendMessage(ChatColor.RED + "Le monde quest n'est pas disponible.");
+                return;
+            }
+            player.teleport(location);
+        }
     }
 
     private void handleSellClick(InventoryClickEvent event, SellHolder holder) {

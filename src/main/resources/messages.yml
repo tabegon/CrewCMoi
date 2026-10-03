@@ -26,7 +26,7 @@ pay:
   usage: '&cᴜꜱᴀɢᴇ : /ᴘᴀʏ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>'
   invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.'
   self: '&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴅᴇ ᴠᴏᴜꜱ ᴘᴀʏᴇʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.'
-  not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ.'
   sent: '&aᴇɴᴠᴏʏᴇ &e{amount}&a ᴀ &e{player}&a.'
   received: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e{amount}&a ᴅᴇ &e{player}&a !'
 ah:
@@ -38,7 +38,7 @@ ah:
   listed: '&aᴍɪꜱ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{amount}&a !'
   bought: '&aᴀᴄʜᴀᴛ ʀᴇᴜꜱꜱɪ !'
   cancelled: '&aᴀɴɴᴏɴᴄᴇ ʀᴇᴛɪʀᴇᴇ.'
-  not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ.'
   inventory-full: '&cɪɴᴠᴇɴᴛᴀɪʀᴇ ᴘʟᴇɪɴ.'
   own-item: '&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴀᴄʜᴇᴛᴇʀ ᴠᴏᴛʀᴇ ᴀɴɴᴏɴᴄᴇ.'
   not-found: '&cᴀɴɴᴏɴᴄᴇ ɪɴᴅɪꜱᴘᴏɴɪʙʟᴇ.'
@@ -67,7 +67,7 @@ bounty:
   invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}'
   placed: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&a ꜱᴜʀ &e{player}&a !'
   received: '&c{player} ᴀ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&c ꜱᴜʀ ᴠᴏᴜꜱ !{reason}'
-  not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴘʟᴀᴄᴇʀ &e{amount}&c.'
+  not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ ᴘᴏᴜʀ &e{amount}&c.'
   malus:
     removed: '&aʟᴇ ᴍᴀʟᴜꜱ ᴅᴇ ᴘʀɪᴍᴇ ᴀ ᴇᴛᴇ ʀᴇᴛɪʀᴇ.'
     health-reduced: '&cᴠᴏᴛʀᴇ ᴠɪᴇ ᴍᴀxɪᴍᴀʟᴇ ᴀ ᴇᴛᴇ ʀᴇᴅᴜɪᴛᴇ ᴇɴ ʀᴀɪꜱᴏɴ ᴅᴜ ᴍᴀʟᴜꜱ ᴅᴇ ᴘʀɪᴍᴇ.'
@@ -106,12 +106,12 @@ duel:
   requester-offline: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ɴ''ᴇꜱᴛ ᴘʟᴜꜱ ᴇɴ ʟɪɢɴᴇ.'
   already-in-duel: '&cᴄᴇ ᴊᴏᴜᴇᴜʀ ᴇꜱᴛ ᴅᴇᴊᴀ ᴇɴ ᴅᴜᴇʟ.'
   in-combat: '&cɪᴍᴘᴏꜱꜱɪʙʟᴇ, ᴜɴ ᴅᴇꜱ ᴅᴇᴜx ᴊᴏᴜᴇᴜʀꜱ ᴇꜱᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ.'
-  post-duel-recovery: '&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴅ''ᴀᴄᴄᴇᴘᴛᴇʀ ᴜɴ ᴅᴜᴇʟ ᴘᴇɴᴅᴀɴᴛ ʟᴀ ʀᴇᴄᴜᴘᴇʀᴀᴛɪᴏɴ. ɪʟ ʀᴇꜱᴛᴇ &e{seconds}s&c.'
-  requester-not-enough-money: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ.'
-  self-not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ.'
-  target-not-enough-money: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ.'
-  arena-not-configured: '&cʟ''ᴀʀᴇɴᴇ ᴅᴇ ᴅᴜᴇʟ ɴ''ᴇꜱᴛ ᴘᴀꜱ ᴄᴏɴꜰɪɢᴜʀᴇᴇ (ᴄᴏɴꜰɪɢ.ʏᴍʟ).'
-  arena-occupied: '&cᴛᴏᴜᴛᴇꜱ ʟᴇꜱ ᴀʀᴇɴᴇꜱ ᴅᴇ ᴅᴜᴇʟ ꜱᴏɴᴛ ᴏᴄᴄᴜᴘᴇᴇꜱ. ᴠᴇᴜɪʟʟᴇᴢ ʀᴇᴇꜱꜱᴀʏᴇʀ ᴘʟᴜꜱ ᴛᴀʀᴅ.'
+  post-duel-recovery: '&cᴅᴜᴇʟ ɪɴᴅɪꜱᴘᴏɴɪʙʟᴇ ᴘᴇɴᴅᴀɴᴛ ʟᴀ ʀᴇᴄᴜᴘᴇʀᴀᴛɪᴏɴ. ʀᴇꜱᴛᴇ &e{seconds}s&c.'
+  requester-not-enough-money: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱᴇᴢ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ.'
+  self-not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ.'
+  target-not-enough-money: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱᴇᴢ ᴘᴏᴜʀ ᴄᴇᴛᴛᴇ ᴍɪꜱᴇ.'
+  arena-not-configured: '&cᴀʀᴇɴᴇ ᴅᴇ ᴅᴜᴇʟ ɴᴏɴ ᴄᴏɴꜰɪɢᴜʀᴇᴇ.'
+  arena-occupied: '&cᴀʀᴇɴᴇꜱ ᴅᴇ ᴅᴜᴇʟ ᴏᴄᴄᴜᴘᴇᴇꜱ. ʀᴇᴇꜱꜱᴀʏᴇᴢ ᴘʟᴜꜱ ᴛᴀʀᴅ.'
   accepted-requester: '&e{player} &aᴀ ᴀᴄᴄᴇᴘᴛᴇ ʟᴇ ᴅᴜᴇʟ !'
   accepted-target: '&aᴠᴏᴜꜱ ᴀꜰꜰʀʀᴏɴᴛʀᴇᴢ &e{player}&a.'
   denied-target: '&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇꜰᴜꜱᴇ ʟᴇ ᴅᴜᴇʟ.'
@@ -123,19 +123,19 @@ duel:
   won: '&a&lᴠɪᴄᴛᴏɪʀᴇ ! &7ᴠᴏᴜꜱ ᴀᴠᴇᴢ ʙᴀᴛᴛᴜ &e{player}&7.'
   won-forfeit: '&a&lᴠɪᴄᴛᴏɪʀᴇ ᴘᴀʀ ꜰᴏʀꜰᴀɪᴛ ! &7{player} ꜱ''ᴇꜱᴛ ᴅᴇᴄᴏɴɴᴇᴄᴛᴇ.'
   won-pot: '&aᴠᴏᴜꜱ ʀᴇᴍᴘᴏʀᴛᴇᴢ &e{amount}&a ᴅᴇ ʟᴀ ᴍɪꜱᴇ.'
-  won-loot-time: '&7ᴠᴏᴜꜱ ᴀᴠᴇᴢ &e30 ꜱᴇᴄᴏɴᴅᴇꜱ &7ᴘᴏᴜʀ ʀᴀᴍᴀꜱꜱᴇʀ ʟᴇ ꜱᴛᴜꜰꜰ.'
+  won-loot-time: '&7ᴠᴏᴜꜱ ᴀᴠᴇᴢ &e30 ꜱ&7 ᴘᴏᴜʀ ʀᴀᴍᴀꜱꜱᴇʀ ʟᴇ ꜱᴛᴜꜰꜰ.'
   won-loot-teleport: '&7ᴛᴇᴍᴘꜱ ᴇᴄᴏᴜʟᴇ.'
   lost: '&c&lᴅᴇꜰᴀɪᴛᴇ... &7{player} ᴠᴏᴜꜱ ᴀ ʙᴀᴛᴛᴜ.'
-  invalid-kit: '&cʟᴇ ᴋɪᴛ ᴅᴇ ᴅᴜᴇʟ ᴇꜱᴛ ɪɴᴠᴀʟɪᴅᴇ.'
+  invalid-kit: '&cᴋɪᴛ ᴅᴇ ᴅᴜᴇʟ ɪɴᴠᴀʟɪᴅᴇ.'
   command:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
   accept:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
   kits:
     basic:
-      name: Kit Classique
-  accept-hover: Cliquez pour accepter
-  deny-hover: Cliquez pour refuser
+      name: ᴋɪᴛ ᴄʟᴀꜱꜱɪǫᴜᴇ
+  accept-hover: ᴄʟɪǫᴜᴇᴢ ᴘᴏᴜʀ ᴀᴄᴄᴇᴘᴛᴇʀ
+  deny-hover: ᴄʟɪǫᴜᴇᴢ ᴘᴏᴜʀ ʀᴇꜰᴜꜱᴇʀ
 home:
   set-success: '&aʜᴏᴍᴇ ᴅᴇꜰɪɴɪ.'
   no-home: '&cᴀᴜᴄᴜɴ ʜᴏᴍᴇ. ᴜᴛɪʟɪꜱᴇᴢ /ꜱᴇᴛʜᴏᴍᴇ.'
@@ -157,7 +157,7 @@ claim:
   see-enabled: '&aᴀꜰꜰɪᴄʜᴀɢᴇ ᴅᴇꜱ ᴄʟᴀɪᴍꜱ ᴀᴄᴛɪᴠᴇ.'
   see-disabled: '&7ᴀꜰꜰɪᴄʜᴀɢᴇ ᴅᴇꜱ ᴄʟᴀɪᴍꜱ ᴅᴇꜱᴀᴄᴛɪᴠᴇ.'
   shop-success: '&aᴄʟᴀɪᴍ ꜱᴜᴘᴘʟᴇᴍᴇɴᴛᴀɪʀᴇ ᴀᴄʜᴇᴛᴇ !'
-  shop-not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  shop-not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ.'
   shop-limit-reached: '&cʟɪᴍɪᴛᴇ ᴅᴇ ᴄʟᴀɪᴍꜱ ᴀᴄʜᴇᴛᴀʙʟᴇꜱ ᴀᴛᴛᴇɪɴᴛᴇ.'
   sale-started: '&aᴄʟᴀɪᴍ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{price}&a.'
   sale-cancelled: '&aᴄʟᴀɪᴍ ʀᴇᴛɪʀᴇ ᴅᴇ ʟᴀ ᴠᴇɴᴛᴇ.'
@@ -165,9 +165,9 @@ claim:
   invalid-price: '&cᴘʀɪx ɪɴᴠᴀʟɪᴅᴇ.'
   buy-success: '&aᴄʟᴀɪᴍ ᴀᴄʜᴇᴛᴇ.'
   own-claim: '&cᴠᴏᴜꜱ ᴘᴏꜱꜱᴇᴅᴇᴢ ᴅᴇᴊᴀ ᴄᴇ ᴄʟᴀɪᴍ.'
-  not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
+  not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ.'
   limit-reached-buy: '&cʟɪᴍɪᴛᴇ ᴅᴇ ᴄʟᴀɪᴍꜱ ᴀᴛᴛᴇɪɴᴛᴇ (&e{max}&c).'
-  nearby-own-claim-hint: '&7ᴠᴏᴜꜱ ᴘᴏꜱꜱᴇᴅᴇᴢ ᴜɴ ᴄʟᴀɪᴍ ᴊᴜꜱᴛᴇ ᴀ ᴄᴏᴛᴇ : ᴠᴏᴜꜱ ɴ''ᴇᴛᴇꜱ ᴘʟᴜꜱ ᴇxᴀᴄᴛᴇᴍᴇɴᴛ ᴅᴇꜱꜱᴜꜱ. ꜰᴀɪᴛᴇꜱ /ᴄʟᴀɪᴍ ꜱᴇᴇ ᴘᴏᴜʀ ᴠᴏɪʀ ꜱᴇꜱ ʟɪᴍɪᴛᴇꜱ.'
+  nearby-own-claim-hint: '&7ᴜɴ ᴄʟᴀɪᴍ ᴇꜱᴛ ᴊᴜꜱᴛᴇ ᴀ ᴄᴏᴛᴇ. ꜰᴀɪᴛᴇꜱ /ᴄʟᴀɪᴍ ꜱᴇᴇ ᴘᴏᴜʀ ᴠᴏɪʀ ꜱᴇꜱ ʟɪᴍɪᴛᴇꜱ.'
 pets:
   unlocked: '&aᴘᴇᴛ &e{pet}&a ᴅᴇʙʟᴏǫᴜᴇ !'
   already-owned: '&cᴠᴏᴜꜱ ᴘᴏꜱꜱᴇᴅᴇᴢ ᴅᴇᴊᴀ ᴄᴇ ᴘᴇᴛ.'
@@ -182,11 +182,11 @@ pets:
   recall-item-id: ''
 economy:
   balancetop:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
   sell:
     no-permission: '&cᴛᴜ ɴ''ᴀꜱ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
     prices-reloaded: '&aᴘʀɪᴄᴇꜱ.ʏᴍʟ ʀᴇᴄʜᴀʀɢé, ʟᴇꜱ ᴘʀɪx ᴅᴇ ᴠᴇɴᴛᴇ ꜱᴏɴᴛ à ᴊᴏᴜʀ.'
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
     disabled: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴇꜱᴛ ᴅéꜱᴀᴄᴛɪᴠéᴇ. ʀᴇɴᴅᴇᴢ-ᴠᴏᴜꜱ ᴄʜᴇᴢ ʟᴇ ᴘɴᴊ ᴅéᴅɪé ᴇᴛ faites un clic droit dessus pour vendre vos objets.'
     gui-no-sellable-items: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴀᴜᴄᴜɴ ᴏʙᴊᴇᴛ ᴠᴇɴᴅᴀʙʟᴇ ᴅᴀɴꜱ ʟᴀ ɢᴜɪ.'
     gui-sold: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&aᴠᴇɴᴛᴇ ᴇꜰꜰᴇᴄᴛᴜᴇᴇ : &e{count} ᴏʙᴊᴇᴛ(ꜱ)&a ᴘᴏᴜʀ &e{amount}&a.'
@@ -196,19 +196,19 @@ economy:
     positive-amount: '&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.'
     self: '&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴠᴏᴜꜱ ᴘᴀʏᴇʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.'
     invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}'
-    not-enough-money: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ ᴘᴏᴜʀ ᴇɴᴠᴏʏᴇʀ &e{amount}&c.'
-    sent: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴇɴᴠᴏʏᴇ &e{amount}&a ᴀ &e{player}&a.'
+    not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ ᴘᴏᴜʀ &e{amount}&c.'
+    sent: '&aᴇɴᴠᴏʏᴇ &e{amount}&a ᴀ &e{player}&a.'
     received: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e{amount}&a ᴅᴇ ʟᴀ ᴘᴀʀᴛ ᴅᴇ &e{player}&a !'
   money:
-    no-permission: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
+    no-permission: '&cᴘᴇʀᴍɪꜱꜱɪᴏɴ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛᴇ.'
     usage: '&cᴜꜱᴀɢᴇ : /ᴍᴏɴᴇʏ <ᴀᴅᴅ|ʀᴇᴍᴏᴠᴇ|ꜱᴇᴛ> <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>'
     positive-amount: '&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴘᴏꜱɪᴛɪꜰ.'
     unknown-action: '&cᴀᴄᴛɪᴏɴ ɪɴᴄᴏɴɴᴜᴇ. ᴜᴛɪʟɪꜱᴇᴢ ᴀᴅᴅ, ʀᴇᴍᴏᴠᴇ ᴏᴜ ꜱᴇᴛ.'
     invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}'
-    add-success: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴀᴊᴏᴜᴛᴇ &e{amount}&a ᴀ &e{player}&a.'
+    add-success: '&aᴀᴊᴏᴜᴛᴇ &e{amount}&a ᴀ &e{player}&a.'
     remove-not-enough: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
-    remove-success: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴛɪʀᴇ &e{amount}&a ᴀ &e{player}&a.'
-    set-success: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴅᴇꜰɪɴɪ ʟᴇ ꜱᴏʟᴅᴇ ᴅᴇ &e{player}&a ᴀ &e{amount}&a.'
+    remove-success: '&aʀᴇᴛɪʀᴇ &e{amount}&a ᴀ &e{player}&a.'
+    set-success: '&aꜱᴏʟᴅᴇ ᴅᴇ &e{player}&a : &e{amount}&a.'
   balance:
     usage: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ, ᴏᴜ ᴘʀᴇᴄɪꜱᴇᴢ ᴜɴ ᴘꜱᴇᴜᴅᴏ : /ʙᴀʟᴀɴᴄᴇ <ᴊᴏᴜᴇᴜʀ>'
     self: '&7ᴠᴏᴛʀᴇ ꜱᴏʟᴅᴇ : &a{amount}'
@@ -219,7 +219,7 @@ economy:
     invalid-price: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.'
     no-item: '&cᴠᴏᴜꜱ ᴅᴇᴠᴇᴢ ᴛᴇɴɪʀ ᴜɴ ᴏʙᴊᴇᴛ ᴇɴ ᴍᴀɪɴ ᴘᴏᴜʀ ʟᴇ ᴍᴇᴛᴛʀᴇ ᴇɴ ᴠᴇɴᴛᴇ.'
     list-failed: '&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ, ʟ''ᴏʙᴊᴇᴛ ᴠᴏᴜꜱ ᴀ ᴇᴛᴇ ʀᴇɴᴅᴜ.'
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
     max-slots: '&cᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴀᴛᴛᴇɪɴᴛ ʟᴀ ʟɪᴍɪᴛᴇ ᴅᴇ &e{max}&c ᴀɴɴᴏɴᴄᴇꜱ ᴇɴ ᴠᴇɴᴛᴇ.'
     expired-returned: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&cᴠᴏᴛʀᴇ ᴀɴɴᴏɴᴄᴇ ᴀ ᴇxᴘɪʀé ᴀᴜ ʙᴏᴜᴛ ᴅᴇ &e{days}&c ᴊᴏᴜʀꜱ.'
     expired-returned-offline: '&8[&6ᴄʀᴇᴡᴄᴍᴏɪ&8] &r&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜᴘéʀé &e{count}&a ᴏʙᴊᴇᴛ(ꜱ) ᴅ''ᴀɴᴄɪᴇɴɴᴇꜱ ᴀɴɴᴏɴᴄᴇꜱ ᴇxᴘɪʀéᴇꜱ.'
@@ -246,13 +246,13 @@ moderation:
     max-health: '&7ᴠɪᴇ ᴍᴀx ᴀᴄᴛᴜᴇʟʟᴇ : &e{current} &7♥ &8(ꜱᴜʀ {base})'
     unluck-tier: '&7ᴘᴀʟɪᴇʀ ᴅᴇ ᴍᴀʟᴄʜᴀɴᴄᴇ (ᴜɴʟᴜᴄᴋ) : {tier}{reduction}'
   vanish:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ɴ''ᴇꜱᴛ ᴜᴛɪʟɪꜱᴀʙʟᴇ ǫᴜ''ᴇɴ ᴊᴇᴜ.'
-    staff-required: '&cᴛᴜ ᴅᴏɪꜱ êᴛʀᴇ ᴇɴ ᴍᴏᴅᴇ ꜱᴛᴀꜰꜰ (/ꜱᴛᴀꜰꜰ) ᴘᴏᴜʀ ᴜᴛɪʟɪꜱᴇʀ /ᴠᴀɴɪꜱʜ.'
-    enabled: '&6ᴠᴀɴɪꜱʜ ᴀᴄᴛɪᴠé : ᴛᴜ ᴇꜱ ᴛᴏᴛᴀʟᴇᴍᴇɴᴛ ɪɴᴠɪꜱɪʙʟᴇ ᴇᴛ ᴀʙꜱᴇɴᴛ ᴅᴜ ᴛᴀʙ.'
-    disabled: '&aᴠᴀɴɪꜱʜ ᴅéꜱᴀᴄᴛɪᴠé : ᴛᴜ ᴇꜱ ᴅᴇ ɴᴏᴜᴠᴇᴀᴜ ᴠɪꜱɪʙʟᴇ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
+    staff-required: '&cᴍᴏᴅᴇ ꜱᴛᴀꜰꜰ ʀᴇǫᴜɪꜱ ᴘᴏᴜʀ /ᴠᴀɴɪꜱʜ.'
+    enabled: '&6ᴠᴀɴɪꜱʜ ᴀᴄᴛɪᴠé : ᴛᴜ ᴇꜱ ɪɴᴠɪꜱɪʙʟᴇ ᴇᴛ ʜᴏʀꜱ ᴅᴜ ᴛᴀʙ.'
+    disabled: '&aᴠᴀɴɪꜱʜ ᴅéꜱᴀᴄᴛɪᴠé : ᴛᴜ ᴇꜱ ᴠɪꜱɪʙʟᴇ.'
   staff:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ɴ''ᴇꜱᴛ ᴜᴛɪʟɪꜱᴀʙʟᴇ ǫᴜ''ᴇɴ ᴊᴇᴜ.'
-    staff-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴇꜱᴛ ʀéꜱᴇʀᴠéᴇ ᴀᴜ ꜱᴛᴀꜰꜰ (ꜰᴏɴᴅᴀ/ᴀᴅᴍɪɴ/ᴅᴇᴠ/ᴍᴏᴅ).'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
+    staff-only: '&cʀéꜱᴇʀᴠé ᴀᴜ ꜱᴛᴀꜰꜰ.'
     enabled: '&6ᴍᴏᴅᴇ ꜱᴛᴀꜰꜰ ᴀᴄᴛɪᴠé'
     disabled: '&aᴍᴏᴅᴇ ꜱᴛᴀꜰꜰ ᴅéꜱᴀᴄᴛɪᴠé'
     no-permission: '&cᴛᴜ ɴ''ᴀꜱ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
@@ -263,7 +263,7 @@ moderation:
     info-mode: '&7ᴍᴏᴅᴇ ꜱᴛᴀꜰꜰ : {status}'
     info-vanish: '&7ᴠᴀɴɪꜱʜ : {status}'
   duelarena:
-    no-permission: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
+    no-permission: '&cᴘᴇʀᴍɪꜱꜱɪᴏɴ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛᴇ.'
     usage: '&cᴜꜱᴀɢᴇ : /ᴅᴜᴇʟᴀʀᴇɴᴀ <ᴄᴏʀɴᴇʀ1|ᴄᴏʀɴᴇʀ2|ꜱᴀᴠᴇ|ʀᴇꜱᴇᴛ>'
     player-only: '&cꜱᴇᴜʟ ᴜɴ ᴊᴏᴜᴇᴜʀ ᴘᴇᴜᴛ ᴘᴏꜱᴇʀ ᴜɴ ᴄᴏɪɴ.'
     corner-set: '&aᴄᴏɪɴ {index} ᴅᴇ ʟ''ᴀʀᴇɴᴇ ᴘᴏꜱᴇ ᴀ ᴛᴀ ᴘᴏꜱɪᴛɪᴏɴ.'
@@ -274,24 +274,24 @@ moderation:
     world-not-loaded: '&cʟᴇ ᴍᴏɴᴅᴇ ᴅᴇ ʟ''ᴀʀᴇɴᴇ (&e{world}&c) ɴ''ᴇꜱᴛ ᴘᴀꜱ ᴄʜᴀʀɢᴇ.'
     saved: '&aᴀʀᴇɴᴇ ꜱᴀᴜᴠᴇɢᴀʀᴅᴇᴇ (&e{blocks}&a ʙʟᴏᴄꜱ). ᴇʟʟᴇ ꜱᴇʀᴀ ʀᴇꜱᴛᴀᴜʀᴇᴇ ᴀᴘʀᴇꜱ ᴄʜᴀǫᴜᴇ ᴅᴜᴇʟ.'
   vanish-list:
-    no-permission: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
+    no-permission: '&cᴘᴇʀᴍɪꜱꜱɪᴏɴ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛᴇ.'
     separator: '&8&m-----------------------------'
     header: '&e&lᴊᴏᴜᴇᴜʀꜱ ᴇɴ ᴠᴀɴɪꜱʜ &7({count})'
     empty: '&7ᴀᴜᴄᴜɴ ᴊᴏᴜᴇᴜʀ ɴ''ᴇꜱᴛ ᴀᴄᴛᴜᴇʟʟᴇᴍᴇɴᴛ ᴇɴ ᴠᴀɴɪꜱʜ.'
     players: '&f• &a{players}'
 teleport:
   tpahere:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
   tpaccept:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
   tpa:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
   sethome:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
   home:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
   spawn:
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
     world-not-found: '&cʟᴇ ᴍᴏɴᴅᴇ ᴅᴜ ꜱᴘᴀᴡɴ ("{world}") ᴇꜱᴛ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ.'
     teleported: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ éᴛé ᴛéʟéᴘᴏʀᴛé ᴀᴜ ꜱᴘᴀᴡɴ.'
 claims:
@@ -300,7 +300,7 @@ claims:
     untrust-usage: '&cᴜꜱᴀɢᴇ: /ᴄʟᴀɪᴍ ᴜɴᴛʀᴜꜱᴛ <ᴊᴏᴜᴇᴜʀ>'
     usage: '&cᴜꜱᴀɢᴇ: /ᴄʟᴀɪᴍ [ᴜɴᴄʟᴀɪᴍ|ᴛʀᴜꜱᴛ <ᴊᴏᴜᴇᴜʀ>|ᴜɴᴛʀᴜꜱᴛ <ᴊᴏᴜᴇᴜʀ>|ɪɴꜰᴏ|ꜱᴇᴛᴛɪɴɢꜱ|ꜱᴇᴇ|ꜱʜᴏᴘ|ꜱᴇʟʟ <prix>|buy|ah]'
     sell-usage: '&cᴜꜱᴀɢᴇ: /ᴄʟᴀɪᴍ ꜱᴇʟʟ <ᴘʀɪx>|ᴄᴀɴᴄᴇʟ'
-    player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ êᴛʀᴇ ᴇxéᴄᴜᴛéᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
     info-owner: '&7ᴄᴇ ᴄʜᴜɴᴋ ᴀᴘᴘᴀʀᴛɪᴇɴᴛ à &e{owner}&7.'
     info-trusted: '&7ᴊᴏᴜᴇᴜʀꜱ ᴅᴇ ᴄᴏɴꜰɪᴀɴᴄᴇ : &e{count} ᴊᴏᴜᴇᴜʀ(ꜱ).'
     info-for-sale: '&7ᴄᴇ ᴄʟᴀɪᴍ ᴇꜱᴛ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{price}&7.'
@@ -353,7 +353,7 @@ teams:
 roles:
   command:
     player-usage: '&cᴘʀéᴄɪꜱᴇᴢ ᴜɴ ᴊᴏᴜᴇᴜʀ : /ʀᴀɴᴋ <ᴊᴏᴜᴇᴜʀ>'
-    no-permission: '&cᴠᴏᴜꜱ ɴ''ᴀᴠᴇᴢ ᴘᴀꜱ ʟᴀ ᴘᴇʀᴍɪꜱꜱɪᴏɴ ᴅ''ᴜᴛɪʟɪꜱᴇʀ ᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ.'
+    no-permission: '&cᴘᴇʀᴍɪꜱꜱɪᴏɴ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛᴇ.'
   list:
     header: '&7ʀôʟᴇꜱ ᴅɪꜱᴘᴏɴɪʙʟᴇꜱ :'
   clear:

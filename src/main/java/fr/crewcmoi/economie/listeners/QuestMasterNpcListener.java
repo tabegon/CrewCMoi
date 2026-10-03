@@ -21,7 +21,15 @@ public class QuestMasterNpcListener implements Listener {
     public void onNpcRightClick(NPCRightClickEvent event) {
         if (event.getNPC().getId() != plugin.getConfig().getInt("npcs.quest-master", 1)) return;
         Player player = event.getClicker();
-        player.sendMessage("J'aimerais que vous me trouviez mon ami dans ce monde");
+        if (plugin.getQuestManager().turnInHorn(player)) {
+            return;
+        }
+        if (plugin.getQuestManager().turnInQuest2Item(player)) {
+            return;
+        }
+        if (!plugin.getQuestManager().isCompleted(player)) {
+            player.sendMessage("J'aimerais que vous me trouviez mon ami dans ce monde");
+        }
         guiManager.open(player);
     }
 }

@@ -7,6 +7,7 @@ import fr.crewcmoi.pvp.managers.DuelManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -15,6 +16,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -165,6 +167,23 @@ public class DuelListener implements Listener {
         player.openInventory(holder.getInventory());
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        Player player = event.getPlayer();
+        var session = duelManager.getSession(player.getUniqueId());
+        if (session == null) {
+            return;
+        }
+        if (session.hasKit()) {
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    plugin.getConfig().getString("duel.messages.kit-no-drop", "&cVous ne pouvez pas jeter d'objets pendant un duel avec un kit.")));
+            return;
+        }
+        Item item = event.getItemDrop();
+        duelManager.registerDroppedItem(player, item);
+    }
+
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player victim = event.getEntity();
@@ -187,6 +206,12 @@ public class DuelListener implements Listener {
             if (head != null) {
                 victim.getWorld().dropItemNaturally(victim.getLocation(), head);
             }
+        }
+
+        var deathSession = session;
+        if (!deathSession.hasKit()) {
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    duelManager.captureNearbyDroppedItems(deathSession, victim.getLocation(), 8.0));
         }
 
         duelManager.handleDeath(victim);

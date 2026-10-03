@@ -13,9 +13,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Deque;
 import java.util.UUID;
 
 /**
@@ -27,14 +30,24 @@ import java.util.UUID;
 public class LootboxKeyTeleportListener implements Listener {
     private final Main plugin;
     private final Map<UUID, Long> recentTeleports = new HashMap<>();
+    private final Deque<UUID> waitingQueue = new ArrayDeque<>();
 
     public LootboxKeyTeleportListener(Main plugin) {
         this.plugin = plugin;
+        long interval = Math.max(1L, plugin.getConfig().getLong("lootbox-teleport.queue-check-ticks", 10L));
+        Bukkit.getScheduler().runTaskTimer(plugin, this::processWaitingQueue, interval, interval);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        waitingQueue.remove(event.getPlayer().getUniqueId());
+        recentTeleports.remove(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onRightClick(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+        Action action = event.getAction();
+        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
 
@@ -117,8 +130,104 @@ public class LootboxKeyTeleportListener implements Listener {
             }
         }
 
-        send(player, "all-occupied", "&cTous les emplacements de lootbox sont actuellement occupés.");
+        UUID uuid = player.getUniqueId();
+        if (!waitingQueue.contains(uuid)) {
+            waitingQueue.addLast(uuid);
+        }
+
+        int position = 1;
+        for (UUID queued : waitingQueue) {
+            if (queued.equals(uuid)) break;
+            position++;
+        }
+
+        String message = plugin.getConfig().getString(
+                "lootbox-teleport.messages.queued",
+                "&eLes deux salles sont occupées. &7Vous êtes ajouté à la file d'attente (&f#%position%&7)."
+        ).replace("%position%", String.valueOf(position));
+        player.sendMessage(Messages.color(message));
         return false;
+    }
+
+    private void processWaitingQueue() {
+        while (!waitingQueue.isEmpty()) {
+            UUID uuid = waitingQueue.peekFirst();
+            Player player = Bukkit.getPlayer(uuid);
+
+            if (player == null || !player.isOnline()) {
+                waitingQueue.removeFirst();
+                continue;
+            }
+
+            Location destination = findAvailableDestination(player);
+            if (destination == null) {
+                return;
+            }
+
+            if (!hasConfiguredKey(player)) {
+                waitingQueue.removeFirst();
+                send(player, "queue-no-key", "&cVous n'avez plus la clé de lootbox, vous avez été retiré de la file d'attente.");
+                continue;
+            }
+
+            if (!player.teleport(destination)) {
+                return;
+            }
+
+            waitingQueue.removeFirst();
+            consumeConfiguredKey(player);
+
+            String destinationName = findDestinationName(destination);
+            send(player, "teleported-from-queue", "&dUne salle de lootbox vient de se libérer ! &7Vous êtes téléporté vers &5%destination%&7."
+                    .replace("%destination%", destinationName));
+        }
+    }
+
+    private Location findAvailableDestination(Player player) {
+        ConfigurationSection destinations = plugin.getConfig().getConfigurationSection("lootbox-teleport.destinations");
+        if (destinations == null) return null;
+
+        for (String id : destinations.getKeys(false)) {
+            String path = "lootbox-teleport.destinations." + id;
+            Location destination = getLocation(path);
+            if (destination == null) continue;
+            if (!isOccupied(destination, player, path)) return destination;
+        }
+        return null;
+    }
+
+    private String findDestinationName(Location destination) {
+        ConfigurationSection destinations = plugin.getConfig().getConfigurationSection("lootbox-teleport.destinations");
+        if (destinations == null) return "la salle de lootbox";
+        for (String id : destinations.getKeys(false)) {
+            String path = "lootbox-teleport.destinations." + id;
+            Location configured = getLocation(path);
+            if (configured != null && configured.getWorld() != null && destination.getWorld() != null
+                    && configured.getWorld().getUID().equals(destination.getWorld().getUID())
+                    && configured.distanceSquared(destination) < 0.01D) {
+                return plugin.getConfig().getString(path + ".name", id);
+            }
+        }
+        return "la salle de lootbox";
+    }
+
+    private boolean hasConfiguredKey(Player player) {
+        for (org.bukkit.inventory.ItemStack item : player.getInventory().getContents()) {
+            if (isConfiguredKey(item)) return true;
+        }
+        return false;
+    }
+
+    private void consumeConfiguredKey(Player player) {
+        org.bukkit.inventory.PlayerInventory inventory = player.getInventory();
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            org.bukkit.inventory.ItemStack item = inventory.getItem(slot);
+            if (!isConfiguredKey(item)) continue;
+            int amount = item.getAmount();
+            if (amount <= 1) inventory.setItem(slot, null);
+            else item.setAmount(amount - 1);
+            return;
+        }
     }
 
     private boolean isOccupied(Location center, Player except, String path) {

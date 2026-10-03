@@ -70,7 +70,11 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            roleManager.setRole(target.getUniqueId(), role);
+            boolean changed = roleManager.setRole(target.getUniqueId(), role);
+            if (!changed) {
+                sender.sendMessage(ChatColor.RED + "Impossible de modifier le groupe LuckPerms de ce joueur.");
+                return true;
+            }
             Messages.send(sender, "roles.set", java.util.Map.of("player", target.getName(), "role", roleManager.getPrefix(role)), true);
 
             if (target.isOnline()) {
@@ -89,7 +93,11 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-            roleManager.clearRole(target.getUniqueId());
+            boolean changed = roleManager.clearRole(target.getUniqueId());
+            if (!changed) {
+                sender.sendMessage(ChatColor.RED + "Impossible de réinitialiser le groupe LuckPerms de ce joueur.");
+                return true;
+            }
             Messages.send(sender, "roles.cleared", java.util.Map.of("player", target.getName()), true);
 
             if (target.isOnline()) {

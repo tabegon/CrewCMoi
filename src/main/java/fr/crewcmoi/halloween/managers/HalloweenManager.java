@@ -72,8 +72,18 @@ public class HalloweenManager {
     /**
      * Retourne la configuration d'un produit du marchand Halloween.
      */
+    public ConfigurationSection getShopSlotConfig(int page, int slot) {
+        ConfigurationSection trades = plugin.getConfig().getConfigurationSection("halloween.shop.pages.page-" + page + ".trades");
+        if (trades == null) return null;
+        for (String key : trades.getKeys(false)) {
+            ConfigurationSection trade = trades.getConfigurationSection(key);
+            if (trade != null && trade.getInt("product-slot", -1) == slot) return trade;
+        }
+        return null;
+    }
+
     public ConfigurationSection getShopSlotConfig(int slot) {
-        return plugin.getConfig().getConfigurationSection("halloween.shop.slots." + slot);
+        return getShopSlotConfig(1, slot);
     }
 
     /**
@@ -116,6 +126,61 @@ public class HalloweenManager {
         }
 
         return item;
+    }
+
+    /**
+     * Retourne le coût en Candy Corn d'un produit : il correspond à la quantité
+     * de l'Arrow Exchange située exactement deux slots avant le produit.
+     */
+    public int getCandyCornCost(int page, int productSlot) {
+        ConfigurationSection trade = getShopSlotConfig(page, productSlot);
+        return trade == null ? -1 : Math.max(0, trade.getInt("cost", 0));
+    }
+
+    public int getCandyCornCost(int productSlot) {
+        return getCandyCornCost(1, productSlot);
+    }
+
+    /** Vérifie combien de Candy Corn ItemsAdder sont présents dans l'inventaire. */
+    public int countCandyCorn(Player player) {
+        int total = 0;
+        String candyId = plugin.getConfig().getString("halloween.candy-corn-itemsadder-id", "server:candy_corn").trim();
+        if (candyId.isEmpty()) return 0;
+
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (stack == null || stack.getType().isAir()) continue;
+            CustomStack custom = CustomStack.byItemStack(stack);
+            if (custom != null && candyId.equalsIgnoreCase(custom.getNamespacedID())) {
+                total += stack.getAmount();
+            }
+        }
+        return total;
+    }
+
+    /** Retire exactement amount de Candy Corn. À appeler uniquement après validation de l'achat. */
+    public boolean removeCandyCorn(Player player, int amount) {
+        if (amount <= 0) return true;
+        String candyId = plugin.getConfig().getString("halloween.candy-corn-itemsadder-id", "server:candy_corn").trim();
+        if (candyId.isEmpty() || countCandyCorn(player) < amount) return false;
+
+        int remaining = amount;
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length && remaining > 0; i++) {
+            ItemStack stack = contents[i];
+            if (stack == null || stack.getType().isAir()) continue;
+            CustomStack custom = CustomStack.byItemStack(stack);
+            if (custom == null || !candyId.equalsIgnoreCase(custom.getNamespacedID())) continue;
+
+            int take = Math.min(remaining, stack.getAmount());
+            int left = stack.getAmount() - take;
+            if (left <= 0) player.getInventory().setItem(i, null);
+            else {
+                stack.setAmount(left);
+                player.getInventory().setItem(i, stack);
+            }
+            remaining -= take;
+        }
+        return remaining == 0;
     }
 
     public double getShopPrice(ConfigurationSection section) {

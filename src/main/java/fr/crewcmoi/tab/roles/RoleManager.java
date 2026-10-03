@@ -2,7 +2,8 @@ package fr.crewcmoi.tab.roles;
 
 import fr.crewcmoi.Main;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
@@ -42,21 +43,10 @@ public class RoleManager {
         rolesConfig = YamlConfiguration.loadConfiguration(rolesFile);
         manualRoles.clear();
 
-        ConfigurationSection section = rolesConfig.getConfigurationSection("players");
-        if (section == null) {
-            return;
-        }
-        for (String uuidStr : section.getKeys(false)) {
-            Role role = Role.fromId(section.getString(uuidStr));
-            if (role == null) {
-                continue;
-            }
-            try {
-                manualRoles.put(UUID.fromString(uuidStr), role);
-            } catch (IllegalArgumentException ignored) {
-                
-            }
-        }
+        // Les rangs sont désormais gérés par LuckPerms.
+        // L'ancien système players: de roles.yml est volontairement ignoré
+        // afin qu'un ancien rang manuel ne puisse plus écraser le groupe LuckPerms.
+        manualRoles.clear();
     }
 
     private void save() {
@@ -70,16 +60,27 @@ public class RoleManager {
         }
     }
 
-    public void setRole(UUID uuid, Role role) {
-        manualRoles.put(uuid, role);
+    public boolean setRole(UUID uuid, Role role) {
+        if (role == null) return false;
+        OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+        String name = player.getName();
+        if (name == null || name.isBlank()) return false;
+        manualRoles.remove(uuid);
+        rolesConfig.set("players." + uuid, null);
         save();
+        String group = plugin.getConfig().getString("roles." + role.getId() + ".luckperms-group", role.getId());
+        return Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + name + " parent set " + group);
     }
 
-    public void clearRole(UUID uuid) {
-        if (manualRoles.remove(uuid) != null) {
-            rolesConfig.set("players." + uuid, null);
-            save();
-        }
+    public boolean clearRole(UUID uuid) {
+        boolean hadManual = manualRoles.remove(uuid) != null;
+        rolesConfig.set("players." + uuid, null);
+        save();
+        OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+        String name = player.getName();
+        if (name == null || name.isBlank()) return hadManual;
+        String group = plugin.getConfig().getString("roles.player.luckperms-group", "player");
+        return Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + name + " parent set " + group);
     }
 
     public Role getManualRole(UUID uuid) {

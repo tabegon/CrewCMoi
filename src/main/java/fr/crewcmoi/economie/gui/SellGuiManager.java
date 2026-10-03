@@ -86,12 +86,17 @@ public class SellGuiManager {
     private void renderNormalState(Inventory gui) {
         ItemStack filler = createFiller();
 
-        // Tous les slots sauf ceux réservés au dépôt et les quatre slots
-        // volontairement vides sont décorés.
+        // Tous les slots sauf ceux réservés au dépôt sont décorés.
+        // Les slots 25, 32, 33 et 34 doivent être réellement vides dans
+        // l'écran de vente normal (ils ne doivent notamment pas conserver
+        // le bouton de confirmation après un retour depuis la confirmation).
         for (int i = 0; i < SellHolder.SIZE; i++) {
-            if (!SellHolder.isItemSlot(i) && !isIntentionallyEmptySlot(i)) {
+            if (!SellHolder.isItemSlot(i)) {
                 gui.setItem(i, filler.clone());
             }
+        }
+        for (int emptySlot : new int[]{25, 32, 33, 34}) {
+            gui.setItem(emptySlot, null);
         }
 
         ConfigurationSection slots = plugin.getConfig().getConfigurationSection("sell-gui.slots");
@@ -356,8 +361,11 @@ public class SellGuiManager {
         for (int slot : SellHolder.ITEM_SLOTS) {
             gui.setItem(slot, filler);
         }
+        // En confirmation, les anciens slots volontairement vides du Sell Bot
+        // redeviennent des NOTHING comme le reste du fond. Le slot 33 sera
+        // ensuite remplacé par le checkmark de confirmation.
         for (int i = 0; i < SellHolder.SIZE; i++) {
-            if (!SellHolder.isItemSlot(i) && !isIntentionallyEmptySlot(i)) {
+            if (!SellHolder.isItemSlot(i)) {
                 gui.setItem(i, filler.clone());
             }
         }

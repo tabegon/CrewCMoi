@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -144,6 +145,23 @@ public class PvpRulesListener implements Listener {
     
 
     
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEnderPearlCrossWorld(PlayerTeleportEvent event) {
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
+            return;
+        }
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        if (to == null || from.getWorld() == null || to.getWorld() == null) {
+            return;
+        }
+        if (!from.getWorld().equals(to.getWorld())) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(org.bukkit.ChatColor.RED +
+                    "Vous ne pouvez pas vous téléporter entre les mondes avec une perle de l'Ender.");
+        }
+    }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEnderPearlThrow(ProjectileLaunchEvent event) {

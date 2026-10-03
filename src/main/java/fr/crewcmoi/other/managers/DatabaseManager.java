@@ -118,5 +118,6 @@ public interface DatabaseManager {
 
     void setClaimSalePrice(String world, int chunkX, int chunkZ, double price);
 
+
     void transferClaim(String world, int chunkX, int chunkZ, UUID newOwnerUuid, String newOwnerName);
 }

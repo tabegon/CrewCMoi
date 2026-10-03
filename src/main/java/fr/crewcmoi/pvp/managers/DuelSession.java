@@ -1,6 +1,9 @@
 package fr.crewcmoi.pvp.managers;
 
 import java.util.UUID;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import org.bukkit.entity.Item;
 
 public class DuelSession {
 
@@ -22,6 +25,7 @@ public class DuelSession {
     private org.bukkit.Location originLocation2;
 
     private boolean started = false;
+    private final Set<UUID> droppedItemEntities = ConcurrentHashMap.newKeySet();
     private int arenaIndex = 1;
 
     public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet, boolean dropHead) {
@@ -76,6 +80,16 @@ public class DuelSession {
 
     public boolean isDropHead() {
         return dropHead;
+    }
+
+    public void registerDroppedItem(Item item) {
+        if (item != null) {
+            droppedItemEntities.add(item.getUniqueId());
+        }
+    }
+
+    public Set<UUID> getDroppedItemEntities() {
+        return droppedItemEntities;
     }
 
     public boolean isStarted() {

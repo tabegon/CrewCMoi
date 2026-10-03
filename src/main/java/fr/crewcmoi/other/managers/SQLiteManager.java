@@ -180,6 +180,7 @@ public class SQLiteManager implements DatabaseManager {
             statement.execute(claimsSql);
             statement.execute(claimBonusSql);
 
+
             try {
                 statement.execute("ALTER TABLE claims ADD COLUMN flags TEXT NOT NULL DEFAULT '';");
             } catch (SQLException ignored) {

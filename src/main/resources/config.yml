@@ -1,3 +1,8 @@
+tab:
+  # Texte affiché en haut au centre de la liste des joueurs.
+  header: "\n    \n"
+  footer: ""
+
 database:
   type: sqlite
 
@@ -15,21 +20,21 @@ combat-log:
 
 player-head-drop:
   enabled: true
-  price: 250.0
+  price: 500.0
 
 bounty:
   server-bounty-amount: 50.0
   server-malus-amount: 50.0
-  server-bounty-max-per-day: 1000
+  server-bounty-max-per-day: 5
 
 team:
   max-members: 8
 
 spawn:
   world: world
-  x: 0.5
-  y: 100.0
-  z: 0.5
+  x: -38.50
+  y: 72.00
+  z: -88.50
   yaw: 0.0
   pitch: 0.0
 
@@ -39,7 +44,11 @@ tpa:
 duel:
   expiry-seconds: 60
   countdown-seconds: 5
-  post-duel-recovery-seconds: 30
+  post-duel-recovery-seconds: 15
+  # Les objets jetés pendant un duel sans kit disparaissent après cette durée.
+  dropped-items-cleanup-seconds: 15
+  messages:
+    kit-no-drop: "&cVous ne pouvez pas jeter d'objets pendant un duel avec un kit."
   bet-step: 100
   max-bet: 0
   kits:
@@ -96,66 +105,55 @@ claims:
     base-price: 5000
     price-increment: 2500
     max-extra: 10
-
 coin-item:
   enabled: true
-  itemsadder-id: "server:ccoin"
+  itemsadder-id: server:ccoin
   value: 50.0
-
 roles:
   fonda:
-    prefix: "§f "
-    permission: "crew.role.fonda"
+    luckperms-group: fonda
+    prefix: '§f '
+    permission: crew.role.fonda
   dev:
-    prefix: "§f "
-    permission: "crew.role.dev"
+    luckperms-group: dev
+    prefix: '§f '
+    permission: crew.role.dev
   mod:
-    prefix: "§f "
-    permission: "crew.role.mod"
+    luckperms-group: mod
+    prefix: '§f '
+    permission: crew.role.mod
   vip:
-    prefix: "§f "
-    permission: "crew.role.vip"
+    luckperms-group: vip
+    prefix: '§f '
+    permission: crew.role.vip
   player:
-    prefix: "§f "
-    permission: "crew.role.player"
-
+    luckperms-group: player
+    prefix: '§f '
+    permission: crew.role.player
 web:
-
   enabled: true
-
   port: 48961
-
-  bind-address: "0.0.0.0"
-
+  bind-address: 0.0.0.0
 flying-banana:
-  itemsadder-id: "server:flying_banana"
+  itemsadder-id: server:flying_banana
   effect:
     level: 25
     duration-ticks: 20
-
 knife:
-  # ID ItemsAdder du couteau.
-  itemsadder-id: "server:hunted_knife"
-  # ID ItemsAdder de l'âme donnée au tueur.
-  soul-itemsadder-id: "server:soul"
-  reward-message: "&5+1 âme &7pour avoir tué &f{victim}&7 avec le couteau !"
-
+  itemsadder-id: server:hunted_knife
+  soul-itemsadder-id: server:soul
 pets:
-
-  recall-item-id: "minecraft:stick"
-
+  recall-item-id: minecraft:stick
   list:
     spookie_spice:
-      itemsadder-id: "server:spooky_spice_item"
-      mythic-mob: "Spooky_Spice"
+      itemsadder-id: server:spooky_spice_item
+      mythic-mob: Spooky_Spice
       slot: 0
     electric_ghoast:
-      itemsadder-id: "server:electric_ghoast_item"
-      mythic-mob: "Electric_Ghoast"
+      itemsadder-id: server:electric_ghoast_item
+      mythic-mob: Electric_Ghoast
       slot: 1
-
 fisherman:
-
   sell-prices:
     COD: 10
     SALMON: 10
@@ -163,138 +161,131 @@ fisherman:
     COOKED_SALMON: 15
     PUFFERFISH: 30
     FISHING_ROD: 50
-
   buy-prices:
     cooked-cod: 20
     cooked-salmon: 20
     pufferfish: 30
     fishing-rod: 100
     fishing-rod-luck-of-the-sea-1: 150
-
-# Configuration de la GUI du Sell Bot.
-#
-# IMPORTANT :
-# - Les slots 0-3, 9-12, 18-21, 27-30 et 36-39 sont réservés aux objets déposés par le joueur.
-# - Les autres slots peuvent être décorés avec n'importe quel item ItemsAdder.
-# - Tous les IDs ItemsAdder sont définis ici, jamais dans le code.
-# - %item-count%, %total% et %currency% sont disponibles dans les lores des boutons.
 sell-gui:
-  # Aucun filler ItemsAdder ici : les éléments fixes utilisent GuiItems.java.
-
-  # Décorations personnalisées. Tous les slots sauf les slots de dépôt sont pris en compte.
-  # Exemple :
-  # slots:
-  #   "36":
-  #     itemsadder-id: "server:gui_item_1"
-  #   "37":
-  #     itemsadder-id: "server:gui_item_2"
-  #     display-name: "&aMon bouton"
   slots: {}
-
   buttons:
-    # Les boutons Sell / Confirm / Cancel / NPC / Search utilisent désormais
-    # directement les items de GuiItems.java (Custom Model Data).
-    # Seuls les emplacements et le lore du bouton Search restent configurables.
     search:
       slots:
-        - 46
+      - 46
       item-slots:
-        - 0
-        - 1
-        - 2
-        - 3
-        - 9
-        - 10
-        - 11
-        - 12
-        - 18
-        - 19
-        - 20
-        - 21
-        - 27
-        - 28
-        - 29
-        - 30
-        - 36
-        - 37
-        - 38
-        - 39
+      - 0
+      - 1
+      - 2
+      - 3
+      - 9
+      - 10
+      - 11
+      - 12
+      - 18
+      - 19
+      - 20
+      - 21
+      - 27
+      - 28
+      - 29
+      - 30
+      - 36
+      - 37
+      - 38
+      - 39
       lore:
-        - "&7Cliquez pour calculer le prix total."
-        - "&7Prix total : %total%"
-
+      - '&7Cliquez pour calculer le prix total.'
+      - '&7Prix total : %total%'
 homes:
   base-price: 5000
   price-increment: 5000
-
 halloween:
   enabled: true
   table:
     price: 10000.0
-    # Item ItemsAdder donné lors de l'achat et rendu lorsqu'une table est cassée.
-    # Cet item doit être un item plaçable basé sur une table d'enchantement.
-    itemsadder-id: "server:summoning_table"
-    item-name: "&5&lTable maudite"
-
-  # GUI du NPC marchand Halloween. Les items de cette GUI restent configurables ici.
+    itemsadder-id: server:summoning_table
+    item-name: '&5&lᴛᴀʙʟᴇ ᴍᴀᴜᴅɪᴛᴇ'
+  candy-corn-itemsadder-id: server:candy_corn
   shop:
     size: 54
-    title: "&5&lHalloween &8• &dMarchand"
+    title: '&5&lʜᴀʟʟᴏᴡᴇᴇɴ &8• &dᴍᴀʀᴄʜᴀɴᴅ'
 
-    # Le fill_button n'est utilisé que dans fill-slots.
     filler:
-      itemsadder-id: "server:fill_button"
+      itemsadder-id: server:fill_button
       amount: 1
-      display-name: " "
+      display-name: ' '
     fill-slots:
       - 1
       - 3
       - 46
       - 48
 
-    # Produits achetables. Modifiez les prix selon votre économie.
-    slots:
-      "12":
-        itemsadder-id: "server:pumpkin_furniture"
+    navigation:
+      first:
+        itemsadder-id: server:button_up
         amount: 1
-        price: 1.0
-      "21":
-        itemsadder-id: "server:summoning_table"
+        display-name: ' ' 
+      second:
+        itemsadder-id: server:button_down
         amount: 1
-        price: 10000.0
-      "30":
-        itemsadder-id: "server:halloween_crate_key"
-        amount: 1
-        price: 1.0
-      "34":
-        itemsadder-id: "server:twillight_terror_item"
-        amount: 1
-        price: 1.0
-      "39":
-        itemsadder-id: "server:pumpkin_trophy"
-        amount: 1
-        price: 1.0
+        display-name: ' '
 
-    # Décorations non achetables.
-    decorations:
-      "2":
-        itemsadder-id: "server:button_up"
-        amount: 1
-      "47":
-        itemsadder-id: "server:button_down"
-        amount: 1
-      "10":
-        itemsadder-id: "server:arrow_exchange"
-        amount: 8
-      "19":
-        itemsadder-id: "server:arrow_exchange"
-        amount: 32
-      "28":
-        itemsadder-id: "server:arrow_exchange"
-        amount: 64
-      "37":
-        itemsadder-id: "server:arrow_exchange"
-        amount: 64
+    pages:
+      page-1:
+        trades:
+          autumn:
+            product-slot: 12
+            cost: 4
+            itemsadder-id: server:autumn_leaves
+            amount: 1
+          pumpkin:
+            product-slot: 21
+            cost: 8
+            itemsadder-id: server:pumpkin_furniture
+            amount: 1
+          knife:
+            product-slot: 30
+            cost: 16
+            itemsadder-id: server:hunted_knife
+            amount: 1
+          table:
+            product-slot: 39
+            cost: 32
+            itemsadder-id: server:summoning_table
+            amount: 1
+          34:
+            product-slot: 34
+            cost: -1
+            itemsadder-id: server:twillight_terror_item
+            amount: 1
+      page-2:
+        trades:
+          knife:
+            product-slot: 12
+            cost: 16
+            itemsadder-id: server:hunted_knife
+            amount: 1
+          table:
+            product-slot: 21
+            cost: 32
+            itemsadder-id: server:summoning_table
+            amount: 1
+          crate-key:
+            product-slot: 30
+            cost: 64
+            itemsadder-id: server:halloween_crate_key
+            amount: 1
+          trophy:
+            product-slot: 39
+            cost: 64
+            itemsadder-id: server:pumpkin_trophy
+            amount: 1
+          34:
+            product-slot: 34
+            cost: -1
+            itemsadder-id: server:twillight_terror_item
+            amount: 1
 
   messages:
     challenge-selected: "&dDéfi accepté : &f%challenge%&d !"
@@ -343,9 +334,148 @@ halloween:
         commands: []
         items: {}
 
+quest-master:
+  title: "&5&lQuest Master"
+  random-teleport:
+    # Étoile temporaire. Remplaçable plus tard par un item custom ItemsAdder.
+    material: "NETHER_STAR"
+    display-name: "&d&lTéléportation aléatoire"
+    lore:
+      - "&7Téléporte-toi aléatoirement"
+      - "&7dans le monde &equest&7."
+  # Première quête : trouver l'Electric Goat, récupérer sa corne puis la rapporter.
+  quest-1:
+    mythic-mob: "Electric_Goat"
+    compass-update-ticks: 10
+    horn:
+      # Item présenté au Quest Master pour terminer la quête.
+      # Prioritaire sur material si renseigné.
+      itemsadder-id: ""
+      material: "GOAT_HORN"
+    messages:
+      started: "&eLa traque de l'Electric Goat commence ! &7Suis ta boussole."
+      horn-obtained: "&aTu as récupéré la corne de l'Electric Goat ! &7Retourne voir le Quest Master."
+      completed: "&aQuête terminée ! &7Le SellBot est maintenant accessible."
+      already-completed: "&aTu as déjà terminé cette quête."
+      wrong-killer: "&cTu dois battre toi-même l'Electric Goat pour obtenir sa corne."
+  # Deuxième quête : le plugin gère uniquement le départ, la validation de l'objet
+  # final et les récompenses. L'énigme elle-même est librement gérée par le serveur.
+  quest-2:
+    reward:
+      # Prioritaire sur material si renseigné.
+      itemsadder-id: ""
+      material: "PAPER"
+    messages:
+      locked: "&cTu dois terminer la première quête avant de commencer celle-ci."
+      started: "&eLa deuxième quête commence ! &7Résous l'énigme et rapporte l'objet au Quest Master."
+      completed: "&aQuête terminée ! &7Le NPC des cosmétiques est maintenant accessible."
+      already-completed: "&aTu as déjà terminé cette quête."
+      world-unavailable: "&cLe monde quest n'est pas disponible."
+    first-cosmetic:
+      # ID exact du cosmétique déclaré dans CosmeticsCore.
+      # CosmeticsCore utilise les permissions pour déterminer les cosmétiques possédés.
+      id: ""
+      # Débloque automatiquement le cosmétique ci-dessus avec LuckPerms.
+      grant-permissions: true
+      # %player% = pseudo, %uuid% = UUID, %cosmetic% = ID CosmeticsCore.
+      # Ces commandes sont exécutées par la console.
+      permission-commands:
+        - "lp user %player% permission set cosmeticscore.user.cosmetics.seeingui.%cosmetic% true"
+        - "lp user %player% permission set cosmeticscore.user.cosmetics.wear.%cosmetic% true"
+      # Commandes supplémentaires optionnelles exécutées après le déblocage.
+      commands: []
+
+  slots:
+    "10":
+      display-name: "&a&lElectric Goat"
+      lore:
+        - "&7Partez à la recherche de l'Electric Goat."
+        - "&7Battez-le et rapportez sa corne."
+      completed:
+        display-name: "&a&lElectric Goat &2✓"
+        lore:
+          - "&aQuête terminée !"
+          - "&7Le SellBot est désormais accessible."
+    "11":
+      # Affichage avant la fin de la quête 1.
+      display-name: "&c&lLocked Boss"
+      lore:
+        - "ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ"
+        - "ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ"
+      # Affichage après la quête 1. L'item peut être vanilla ou ItemsAdder.
+      unlocked:
+        itemsadder-id: ""
+        material: "PAPER"
+        custom-model-data: 0
+        display-name: "&b&lÉnigme"
+        lore:
+          - "&7Résous l'énigme dans le monde quest."
+          - "&7Rapporte ensuite l'objet au Quest Master."
+    "12":
+      display-name: "&c&lLocked Boss"
+      lore:
+        - "ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ"
+        - "ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ"
+    "13":
+      display-name: "&c&lLocked Boss"
+      lore:
+        - "ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ"
+        - "ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ"
+    "14":
+      display-name: "&c&lLocked Boss"
+      lore:
+        - "ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ"
+        - "ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ"
+    "15":
+      display-name: "&c&lLocked Boss"
+      lore:
+        - "ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ"
+        - "ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ"
+    "16":
+      display-name: "&c&lLocked Boss"
+      lore:
+        - "ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ"
+        - "ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ"
+
+# Monde quest : chaque seed possède une liste de montagnes préalablement validées.
+# Lorsqu'un monde quest n'existe pas encore, une seed de cette pool est choisie
+# aléatoirement pour créer le monde. Si le monde existe déjà, sa seed réelle est utilisée.
+quest-world:
+  name: "quest"
+  border:
+    center-x: 0
+    center-z: 0
+    size: 2000
+  seed-pool:
+    seed-1:
+      seed: 1698939616
+      mountains:
+        - x: 0
+          y: 251
+          z: 0
+    seed-2:
+      seed: 53149100
+      mountains:
+        - x: 10
+          y: 167
+          z: 10
+    seed-3:
+      seed: 23901624190
+      mountains:
+        - x: 0
+          y: 119
+          z: 0
+        - x: -266
+          y: 141
+          z: -71
+        - x: -649
+          y: 90
+          z: -319
+
 # Identifiants des NPC Citizens utilisés par CrewCMoi.
 npcs:
-  sell: 0
+  sell: 16
+  cosmetics: 12
   quest-master: 1
   fisherman: 4
   halloween: 7 # NPC qui vend la table maudite
@@ -357,6 +487,8 @@ lootbox-teleport:
 
   # Les destinations sont testées dans l'ordre : destination1 puis destination2.
   # Si un joueur se trouve dans le rayon configuré, la destination est considérée occupée.
+  # Lorsque toutes les salles sont prises, les joueurs sont placés dans une file FIFO.
+  queue-check-ticks: 10
   destinations:
     destination1:
       name: "Emplacement 1"
@@ -379,4 +511,7 @@ lootbox-teleport:
 
   messages:
     all-occupied: "&cTous les emplacements de lootbox sont actuellement occupés."
+    queued: "&eLes deux salles sont occupées. &7Vous êtes ajouté à la file d'attente (&f#%position%&7)."
+    teleported-from-queue: "&dUne salle de lootbox vient de se libérer ! &7Vous êtes téléporté vers &5%destination%&7."
+    queue-no-key: "&cVous n'avez plus la clé de lootbox, vous avez été retiré de la file d'attente."
     configuration-error: "&cAucune destination de téléportation de lootbox n'est configurée."

@@ -10,6 +10,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Map;
@@ -74,6 +76,7 @@ public class DuelManager {
     // pendant la phase de récupération des objets.
     private final Map<UUID, Long> postDuelRecoveryExpiry = new ConcurrentHashMap<>();
     private final int postDuelRecoverySeconds;
+    private final int droppedItemsCleanupSeconds;
 
     public DuelManager(Main plugin, EconomyManager economyManager, CombatManager combatManager) {
         this.plugin = plugin;
@@ -82,6 +85,7 @@ public class DuelManager {
         this.expirySeconds = plugin.getConfig().getInt("duel.expiry-seconds", 60);
         this.countdownSeconds = plugin.getConfig().getInt("duel.countdown-seconds", 5);
         this.postDuelRecoverySeconds = plugin.getConfig().getInt("duel.post-duel-recovery-seconds", 30);
+        this.droppedItemsCleanupSeconds = plugin.getConfig().getInt("duel.dropped-items-cleanup-seconds", 30);
     }
 
     public boolean isInDuel(UUID uuid) {
@@ -132,6 +136,80 @@ public class DuelManager {
 
     public DuelSession getSession(UUID uuid) {
         return activeDuels.get(uuid);
+    }
+
+    public void registerDroppedItem(Player player, Item item) {
+        if (player == null || item == null) return;
+        DuelSession session = activeDuels.get(player.getUniqueId());
+        if (session == null || session.hasKit()) return;
+        session.registerDroppedItem(item);
+    }
+
+    private void scheduleDroppedItemCleanup(DuelSession session) {
+        if (droppedItemsCleanupSeconds <= 0 || session.hasKit()) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // On ne se limite pas aux UUID enregistrés : les drops de mort peuvent
+            // être créés juste après PlayerDeathEvent. On nettoie donc aussi tous
+            // les ItemEntity présents dans la zone de l'arène concernée.
+            for (UUID itemUuid : session.getDroppedItemEntities()) {
+                removeItemEntity(itemUuid);
+            }
+            session.getDroppedItemEntities().clear();
+
+            Location arenaPos1 = getArenaLocation(session.getArenaIndex(), 1);
+            Location arenaPos2 = getArenaLocation(session.getArenaIndex(), 2);
+            if (arenaPos1 == null || arenaPos2 == null
+                    || arenaPos1.getWorld() == null
+                    || !arenaPos1.getWorld().equals(arenaPos2.getWorld())) {
+                return;
+            }
+
+            World world = arenaPos1.getWorld();
+            double minX = Math.min(arenaPos1.getX(), arenaPos2.getX()) - 8.0;
+            double maxX = Math.max(arenaPos1.getX(), arenaPos2.getX()) + 8.0;
+            double minY = Math.min(arenaPos1.getY(), arenaPos2.getY()) - 8.0;
+            double maxY = Math.max(arenaPos1.getY(), arenaPos2.getY()) + 8.0;
+            double minZ = Math.min(arenaPos1.getZ(), arenaPos2.getZ()) - 8.0;
+            double maxZ = Math.max(arenaPos1.getZ(), arenaPos2.getZ()) + 8.0;
+
+            for (Entity entity : world.getEntities()) {
+                if (!(entity instanceof Item item)) {
+                    continue;
+                }
+                Location location = item.getLocation();
+                if (location.getX() >= minX && location.getX() <= maxX
+                        && location.getY() >= minY && location.getY() <= maxY
+                        && location.getZ() >= minZ && location.getZ() <= maxZ) {
+                    item.remove();
+                }
+            }
+        }, droppedItemsCleanupSeconds * 20L);
+    }
+
+    private void removeItemEntity(UUID itemUuid) {
+        if (itemUuid == null) {
+            return;
+        }
+        for (World world : Bukkit.getWorlds()) {
+            Entity entity = world.getEntity(itemUuid);
+            if (entity instanceof Item item && !item.isDead()) {
+                item.remove();
+                return;
+            }
+        }
+    }
+
+    public void captureNearbyDroppedItems(DuelSession session, Location location, double radius) {
+        if (session == null || session.hasKit() || location == null || location.getWorld() == null) return;
+        double radiusSquared = radius * radius;
+        for (var entity : location.getWorld().getNearbyEntities(location, radius, radius, radius)) {
+            if (entity instanceof Item item && item.getLocation().distanceSquared(location) <= radiusSquared) {
+                session.registerDroppedItem(item);
+            }
+        }
     }
 
     public void createRequest(Player requester, Player target, boolean keepInventory, double bet, boolean dropHead, String kitId) {
@@ -460,6 +538,8 @@ public class DuelManager {
                 duelArenaManager.resetArena();
             }
         }
+
+        scheduleDroppedItemCleanup(session);
     }
 
     private int findAvailableArenaIndex() {

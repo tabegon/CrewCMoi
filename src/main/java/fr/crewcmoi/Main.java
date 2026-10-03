@@ -45,6 +45,11 @@ import fr.crewcmoi.halloween.listeners.HalloweenNpcListener;
 import fr.crewcmoi.halloween.listeners.HalloweenListener;
 import fr.crewcmoi.economie.managers.AuctionManager;
 import fr.crewcmoi.economie.managers.EconomyManager;
+import fr.crewcmoi.economie.managers.QuestWorldManager;
+import fr.crewcmoi.economie.managers.QuestManager;
+import fr.crewcmoi.economie.listeners.QuestListener;
+import fr.crewcmoi.economie.listeners.QuestCommandListener;
+import fr.crewcmoi.economie.listeners.CosmeticsNpcListener;
 import fr.crewcmoi.economie.managers.PricesManager;
 import fr.crewcmoi.economie.vault.VaultEconomyProvider;
 import fr.crewcmoi.other.listeners.GuiListener;
@@ -84,6 +89,7 @@ import fr.crewcmoi.moderation.managers.StaffModeManager;
 import fr.crewcmoi.moderation.managers.VanishManager;
 import fr.crewcmoi.tab.commands.RoleCommand;
 import fr.crewcmoi.tab.listeners.TabListListener;
+import fr.crewcmoi.tab.listeners.ChatRoleListener;
 import fr.crewcmoi.tab.managers.PlayerTeamManager;
 import fr.crewcmoi.tab.managers.TabListManager;
 import fr.crewcmoi.tab.roles.RoleManager;
@@ -115,6 +121,7 @@ public class Main extends JavaPlugin {
 
     private DatabaseManager databaseManager;
     private EconomyManager economyManager;
+    private QuestWorldManager questWorldManager;
     private PricesManager pricesManager;
     private SellGuiManager sellGuiManager;
     private AuctionManager auctionManager;
@@ -154,6 +161,7 @@ public class Main extends JavaPlugin {
     private PetManager petManager;
     private PetGuiManager petGuiManager;
     private FishermanGuiManager fishermanGuiManager;
+    private QuestManager questManager;
 
     @Override
     public void onEnable() {
@@ -167,6 +175,10 @@ public class Main extends JavaPlugin {
         this.databaseManager = new SQLiteManager(this);
         this.databaseManager.connect();
         this.databaseManager.init();
+
+        this.questWorldManager = new QuestWorldManager(this);
+        this.questWorldManager.initialize();
+        this.questManager = new QuestManager(this);
 
         this.economyManager = new EconomyManager(this, databaseManager);
         this.halloweenManager = new HalloweenManager(this, economyManager);
@@ -235,6 +247,9 @@ public class Main extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new TabListListener(tabListManager), this);
+        getServer().getPluginManager().registerEvents(new ChatRoleListener(roleManager), this);
+        getServer().getPluginManager().registerEvents(new QuestListener(this, questManager), this);
+        getServer().getPluginManager().registerEvents(new QuestCommandListener(), this);
 
         getServer().getPluginManager().registerEvents(new StaffModeListener(staffModeManager, roleManager), this);
         
@@ -243,6 +258,7 @@ public class Main extends JavaPlugin {
         
         if (getServer().getPluginManager().isPluginEnabled("Citizens")) {
             getServer().getPluginManager().registerEvents(new SellNpcListener(this, sellGuiManager), this);
+            getServer().getPluginManager().registerEvents(new CosmeticsNpcListener(this), this);
             getServer().getPluginManager().registerEvents(new FishermanNpcListener(this, fishermanGuiManager), this);
             getServer().getPluginManager().registerEvents(new QuestMasterNpcListener(this), this);
             getServer().getPluginManager().registerEvents(new HalloweenNpcListener(this, halloweenGuiManager), this);
@@ -329,6 +345,9 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (questManager != null) {
+            questManager.shutdown();
+        }
         if (petManager != null) {
             petManager.shutdown();
         }
@@ -345,6 +364,14 @@ public class Main extends JavaPlugin {
             databaseManager.disconnect();
         }
         getLogger().info("EconomyPlugin désactivé.");
+    }
+
+    public QuestWorldManager getQuestWorldManager() {
+        return questWorldManager;
+    }
+
+    public QuestManager getQuestManager() {
+        return questManager;
     }
 
     private void registerCommand(String name, org.bukkit.command.CommandExecutor executor) {
@@ -410,6 +437,7 @@ public class Main extends JavaPlugin {
     }
 
     public HalloweenManager getHalloweenManager() { return halloweenManager; }
+
 
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
