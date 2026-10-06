@@ -24,7 +24,8 @@ public class SellNpcListener implements Listener {
         }
 
         Player player = event.getClicker();
-        if (!plugin.getQuestManager().isCompleted(player)) {
+        boolean requireQuest = plugin.getConfig().getBoolean("sellbot.require-quest", true);
+        if (requireQuest && !plugin.getQuestManager().isCompleted(player)) {
             event.setCancelled(true);
             player.sendMessage("§cTu dois terminer la première quête du Quest Master avant d'utiliser le SellBot.");
             return;

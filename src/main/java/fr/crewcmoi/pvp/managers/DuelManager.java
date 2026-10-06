@@ -465,8 +465,8 @@ public class DuelManager {
         activeDuels.remove(session.getPlayer2());
         activeArenaDuels.remove(session.getArenaIndex(), session);
 
-        // Les deux participants entrent en récupération pendant 30 secondes
-        // (configurable), même si le duel s'est terminé par abandon.
+        // Les deux participants passent toujours par la même récupération après le duel.
+        // La durée est définie par duel.post-duel-recovery-seconds (15s par défaut).
         startPostDuelRecovery(session.getPlayer1());
         startPostDuelRecovery(session.getPlayer2());
 
@@ -480,23 +480,6 @@ public class DuelManager {
             if (pot > 0) {
                 sendMessage(winner, "duel.won-pot", "{amount}", MoneyFormat.format(pot));
             }
-
-            Location origin = session.getOriginLocation(winner.getUniqueId());
-            if (origin != null) {
-                if (session.isKeepInventory() || forfeit) {
-
-                    winner.teleport(origin);
-                } else {
-
-                    sendMessage(winner, "duel.won-loot-time", null, null);
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                        if (winner.isOnline()) {
-                            winner.teleport(origin);
-                            sendMessage(winner, "duel.won-loot-teleport", null, null);
-                        }
-                    }, 30L * 20L);
-                }
-            }
         }
 
         if (session.hasKit()) {
@@ -504,29 +487,23 @@ public class DuelManager {
                 session.restoreInventory(winner.getUniqueId(), winner);
             }
             if (loser != null && loser.isOnline()) {
-
-                
                 session.restoreInventory(loser.getUniqueId(), loser);
             }
         }
 
-        
-        if (loser != null && loser.isOnline() && !forfeit) {
-            Location origin = session.getOriginLocation(loser.getUniqueId());
-            if (origin != null) {
+        // Les deux joueurs sont renvoyés à leur position d'origine après exactement
+        // la même durée de récupération. Cela évite notamment que le joueur ayant
+        // perdu soit téléporté avant la fin de son respawn.
+        scheduleReturnAfterRecovery(session, session.getPlayer1());
+        scheduleReturnAfterRecovery(session, session.getPlayer2());
 
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    if (loser.isOnline()) {
-                        loser.teleport(origin);
-                    }
-                }, 5L);
-            }
-            if (winner != null) {
-                sendMessage(loser, "duel.lost", "{player}", winner.getName());
-            }
+        if (loser != null && loser.isOnline() && !forfeit && winner != null) {
+            sendMessage(loser, "duel.lost", "{player}", winner.getName());
         }
 
-        combatManager.clearCombat(loser);
+        if (loser != null) {
+            combatManager.clearCombat(loser);
+        }
         if (winner != null) {
             combatManager.clearCombat(winner);
         }
@@ -540,6 +517,28 @@ public class DuelManager {
         }
 
         scheduleDroppedItemCleanup(session);
+    }
+
+    private void scheduleReturnAfterRecovery(DuelSession session, UUID playerUuid) {
+        Location origin = session.getOriginLocation(playerUuid);
+        if (origin == null || postDuelRecoverySeconds <= 0) {
+            return;
+        }
+
+        Player player = Bukkit.getPlayer(playerUuid);
+        if (player != null && player.isOnline()) {
+            sendMessage(player, "duel.recovery-time", "{seconds}", String.valueOf(postDuelRecoverySeconds));
+        }
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Player onlinePlayer = Bukkit.getPlayer(playerUuid);
+            if (onlinePlayer == null || !onlinePlayer.isOnline()) {
+                return;
+            }
+
+            onlinePlayer.teleport(origin);
+            sendMessage(onlinePlayer, "duel.recovery-teleport", null, null);
+        }, postDuelRecoverySeconds * 20L);
     }
 
     private int findAvailableArenaIndex() {

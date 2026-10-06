@@ -123,8 +123,8 @@ duel:
   won: '&a&lᴠɪᴄᴛᴏɪʀᴇ ! &7ᴠᴏᴜꜱ ᴀᴠᴇᴢ ʙᴀᴛᴛᴜ &e{player}&7.'
   won-forfeit: '&a&lᴠɪᴄᴛᴏɪʀᴇ ᴘᴀʀ ꜰᴏʀꜰᴀɪᴛ ! &7{player} ꜱ''ᴇꜱᴛ ᴅᴇᴄᴏɴɴᴇᴄᴛᴇ.'
   won-pot: '&aᴠᴏᴜꜱ ʀᴇᴍᴘᴏʀᴛᴇᴢ &e{amount}&a ᴅᴇ ʟᴀ ᴍɪꜱᴇ.'
-  won-loot-time: '&7ᴠᴏᴜꜱ ᴀᴠᴇᴢ &e30 ꜱ&7 ᴘᴏᴜʀ ʀᴀᴍᴀꜱꜱᴇʀ ʟᴇ ꜱᴛᴜꜰꜰ.'
-  won-loot-teleport: '&7ᴛᴇᴍᴘꜱ ᴇᴄᴏᴜʟᴇ.'
+  recovery-time: '&7ʀᴇᴛᴏᴜʀ ᴅᴀɴꜱ &e{seconds} ꜱ&7. ʀᴇꜱᴛᴇᴢ ᴇɴ ʀᴇᴄᴜᴘᴇʀᴀᴛɪᴏɴ.'
+  recovery-teleport: '&7ʀᴇᴛᴏᴜʀ ᴀᴜ ᴘᴏɪɴᴛ ᴅᴇ ᴅᴇᴘᴀʀᴛ.'
   lost: '&c&lᴅᴇꜰᴀɪᴛᴇ... &7{player} ᴠᴏᴜꜱ ᴀ ʙᴀᴛᴛᴜ.'
   invalid-kit: '&cᴋɪᴛ ᴅᴇ ᴅᴜᴇʟ ɪɴᴠᴀʟɪᴅᴇ.'
   command:
@@ -290,6 +290,11 @@ teleport:
     player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
   home:
     player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
+  delhome:
+    player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
+    usage: '&cᴜꜱᴀɢᴇ : /ᴅᴇʟʜᴏᴍᴇ <ɴᴏᴍ>'
+    success: '&aʜᴏᴍᴇ &f{name} &aꜱᴜᴘᴘʀɪᴍᴇ.'
+    not-found: '&cʜᴏᴍᴇ &f{name} &cɪɴᴛʀᴏᴜᴠᴀʙʟᴇ.'
   spawn:
     player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
     world-not-found: '&cʟᴇ ᴍᴏɴᴅᴇ ᴅᴜ ꜱᴘᴀᴡɴ ("{world}") ᴇꜱᴛ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ.'

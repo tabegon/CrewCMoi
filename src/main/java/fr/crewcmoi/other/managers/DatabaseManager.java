@@ -86,6 +86,7 @@ public interface DatabaseManager {
     
 
     void setHome(UUID playerUuid, String name, String world, double x, double y, double z, float yaw, float pitch);
+    boolean deleteHome(UUID playerUuid, String name);
     HomeData getHome(UUID playerUuid, String name);
     List<HomeData> getHomes(UUID playerUuid);
     List<HomeData> getAllHomes();

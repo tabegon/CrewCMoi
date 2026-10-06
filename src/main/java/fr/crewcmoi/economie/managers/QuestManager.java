@@ -332,7 +332,8 @@ public final class QuestManager {
     }
 
     public void refreshSellBotVisibility(Player player) {
-        refreshNpcVisibility(player, "sell", isCompleted(player));
+        boolean requireQuest = plugin.getConfig().getBoolean("sellbot.require-quest", true);
+        refreshNpcVisibility(player, "sell", !requireQuest || isCompleted(player));
     }
 
     public void refreshCosmeticsNpcVisibility(Player player) {

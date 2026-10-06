@@ -32,6 +32,13 @@ public class HomeManager {
         });
     }
 
+    public void deleteHome(Player player, String name, Consumer<Boolean> callback) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            boolean deleted = databaseManager.deleteHome(player.getUniqueId(), name);
+            Bukkit.getScheduler().runTask(plugin, () -> callback.accept(deleted));
+        });
+    }
+
     public void getHome(Player player, String name, Consumer<HomeData> callback) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin,()->{ HomeData h=databaseManager.getHome(player.getUniqueId(),name); Bukkit.getScheduler().runTask(plugin,()->callback.accept(h)); });
     }

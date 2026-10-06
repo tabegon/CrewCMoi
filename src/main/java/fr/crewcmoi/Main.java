@@ -19,6 +19,7 @@ import fr.crewcmoi.teleport.gui.HomeAdminGuiManager;
 import fr.crewcmoi.teleport.gui.PlayerAdminGuiManager;
 import fr.crewcmoi.moderation.commands.InfoCommand;
 import fr.crewcmoi.teleport.commands.SetHomeCommand;
+import fr.crewcmoi.teleport.commands.DelHomeCommand;
 import fr.crewcmoi.teleport.commands.SpawnCommand;
 import fr.crewcmoi.pvp.commands.TeamCommand;
 import fr.crewcmoi.teleport.commands.TpAcceptCommand;
@@ -319,6 +320,7 @@ public class Main extends JavaPlugin {
         registerCommand("tpaccept", new TpAcceptCommand(this, teleportManager));
         registerCommand("sethome", new SetHomeCommand(this, homeManager));
         registerCommand("home", new HomeCommand(this, homeManager, homeGuiManager));
+        registerCommand("delhome", new DelHomeCommand(homeManager));
         registerCommand("shop", new ShopCommand(homeShopGuiManager));
         registerCommand("homeadmin", new HomeAdminCommand(homeAdminGuiManager));
         registerCommand("playeradmin", new PlayerAdminCommand(playerAdminGuiManager));

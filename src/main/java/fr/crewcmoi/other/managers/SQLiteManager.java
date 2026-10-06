@@ -782,6 +782,20 @@ public class SQLiteManager implements DatabaseManager {
     }
 
     @Override
+    public boolean deleteHome(UUID playerUuid, String name) {
+        String sql = "DELETE FROM homes WHERE player_uuid=? AND LOWER(name)=LOWER(?);";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, playerUuid.toString());
+            ps.setString(2, name);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la suppression du home de " + playerUuid, e);
+            return false;
+        }
+    }
+
+
+    @Override
     public HomeData getHome(UUID playerUuid, String name) {
         String sql = "SELECT h.*, p.name AS owner_name FROM homes h LEFT JOIN players p ON p.uuid=h.player_uuid WHERE h.player_uuid=? AND LOWER(h.name)=LOWER(?);";
         try (PreparedStatement ps=connection.prepareStatement(sql)) {

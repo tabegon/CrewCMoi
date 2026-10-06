@@ -31,10 +31,10 @@ team:
   max-members: 8
 
 spawn:
-  world: world
-  x: -38.50
-  y: 72.00
-  z: -88.50
+  world: worldbeta
+  x: -105.0
+  y: 70.00
+  z: -112.50
   yaw: 0.0
   pitch: 0.0
 
@@ -473,6 +473,10 @@ quest-world:
           z: -319
 
 # Identifiants des NPC Citizens utilisés par CrewCMoi.
+sellbot:
+  # true = la quête 1 est nécessaire ; false = tout le monde peut utiliser le SellBot.
+  require-quest: false
+
 npcs:
   sell: 16
   cosmetics: 12

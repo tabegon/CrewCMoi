@@ -62,6 +62,10 @@ commands:
     description: Teleportation vers votre home
     usage: /home
     permission: crew.command.home
+  delhome:
+    description: Supprime un home
+    usage: /delhome <home>
+    permission: crew.command.delhome
   tpa:
     description: Teleportation vers un autre joueur apres confirmation
     usage: /tpa <joueur>
@@ -181,6 +185,9 @@ permissions:
     default: true
   crew.command.home:
     description: Permet d'utiliser /home.
+    default: true
+  crew.command.delhome:
+    description: Permet d'utiliser /delhome.
     default: true
   crew.command.tpa:
     description: Permet d'utiliser /tpa.
