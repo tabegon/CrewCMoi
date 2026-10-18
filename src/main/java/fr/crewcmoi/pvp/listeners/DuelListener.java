@@ -16,6 +16,8 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -40,6 +42,22 @@ public class DuelListener implements Listener {
     }
 
     @EventHandler
+    public void onDuelFall(PlayerMoveEvent event) {
+        if (event.getTo() == null || event.getTo().getY() > -60.0) return;
+        if (event.getFrom().getY() <= -60.0) return;
+
+        Player player = event.getPlayer();
+        var session = duelManager.getSession(player.getUniqueId());
+        if (session == null || !session.isStarted()) return;
+
+        org.bukkit.Location start = duelManager.getFightStartLocation(session, player.getUniqueId());
+        if (start != null) {
+            player.teleport(start);
+            player.setFallDistance(0.0F);
+        }
+    }
+
+    @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         InventoryHolder rawHolder = event.getInventory().getHolder();
         if (!(rawHolder instanceof DuelConfigHolder holder)) {
@@ -58,6 +76,9 @@ public class DuelListener implements Listener {
         }
 
         if (slot == DuelConfigHolder.KEEPINVENTORY_SLOT) {
+            if (holder.getKitId() != null) {
+                return;
+            }
             holder.setKeepInventory(!holder.isKeepInventory());
             duelConfigGuiManager.render(holder);
         } else if (slot == DuelConfigHolder.KIT_SLOT) {
@@ -69,6 +90,9 @@ public class DuelListener implements Listener {
             duelConfigGuiManager.render(holder);
         } else if (slot == DuelConfigHolder.DROPHEAD_SLOT) {
             holder.setDropHead(!holder.isDropHead());
+            duelConfigGuiManager.render(holder);
+        } else if (slot == DuelConfigHolder.ELYTRA_SLOT) {
+            holder.setAllowElytra(!holder.isAllowElytra());
             duelConfigGuiManager.render(holder);
         } else if (slot == DuelConfigHolder.BET_SLOT) {
             if (event.getClick() == ClickType.MIDDLE) {
@@ -112,7 +136,17 @@ public class DuelListener implements Listener {
                 return;
             }
 
-            duelManager.createRequest(player, target, holder.isKeepInventory(), holder.getBet(), holder.isDropHead(), holder.getKitId());
+            duelManager.createRequest(player, target, holder.isKeepInventory(), holder.getBet(), holder.isDropHead(), holder.getKitId(), holder.isAllowElytra());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onDuelGlide(org.bukkit.event.entity.EntityToggleGlideEvent event) {
+        if (!(event.getEntity() instanceof Player player) || !event.isGliding()) return;
+        var session = duelManager.getSession(player.getUniqueId());
+        if (session != null && !session.isAllowElytra()) {
+            event.setCancelled(true);
+            player.setGliding(false);
         }
     }
 
@@ -222,4 +256,9 @@ public class DuelListener implements Listener {
         awaitingBetInput.remove(event.getPlayer().getUniqueId());
         duelManager.handleQuit(event.getPlayer());
     }
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST)
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        duelManager.applyPendingRespawnReturn(event);
+    }
+
 }

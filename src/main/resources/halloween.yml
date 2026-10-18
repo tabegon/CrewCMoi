@@ -1,0 +1,126 @@
+halloween:
+  enabled: true
+  table:
+    price: 10000.0
+    itemsadder-id: server:summoning_table
+    item-name: '&8&lᴛᴀʙʟᴇ ᴍᴀᴜᴅɪᴛᴇ'
+  candy-corn-itemsadder-id: server:candy_corn
+  shop:
+    size: 54
+    title: '&8&lʜᴀʟʟᴏᴡᴇᴇɴ &8• &7ᴍᴀʀᴄʜᴀɴᴅ'
+    filler:
+      itemsadder-id: server:fill_button
+      amount: 1
+      display-name: ' '
+    fill-slots:
+    - 1
+    - 3
+    - 46
+    - 48
+    navigation:
+      first:
+        itemsadder-id: server:button_up
+        amount: 1
+        display-name: ' '
+      second:
+        itemsadder-id: server:button_down
+        amount: 1
+        display-name: ' '
+    pages:
+      page-1:
+        trades:
+          autumn:
+            product-slot: 12
+            cost: 4
+            itemsadder-id: server:autumn_leaves
+            amount: 1
+          pumpkin:
+            product-slot: 21
+            cost: 8
+            itemsadder-id: server:pumpkin_furniture
+            amount: 1
+          knife:
+            product-slot: 30
+            cost: 16
+            itemsadder-id: server:hunted_knife
+            amount: 1
+          table:
+            product-slot: 39
+            cost: 32
+            itemsadder-id: server:summoning_table
+            amount: 1
+          34:
+            product-slot: 34
+            cost: -1
+            itemsadder-id: server:twillight_terror_item
+            amount: 1
+      page-2:
+        trades:
+          knife:
+            product-slot: 12
+            cost: 16
+            itemsadder-id: server:hunted_knife
+            amount: 1
+          table:
+            product-slot: 21
+            cost: 32
+            itemsadder-id: server:summoning_table
+            amount: 1
+          crate-key:
+            product-slot: 30
+            cost: 64
+            itemsadder-id: server:halloween_crate_key
+            amount: 1
+          trophy:
+            product-slot: 39
+            cost: 64
+            itemsadder-id: server:pumpkin_trophy
+            amount: 1
+          34:
+            product-slot: 34
+            cost: -1
+            itemsadder-id: server:twillight_terror_item
+            amount: 1
+  messages:
+    challenge-selected: '&dDéfi accepté : &f%challenge%&d !'
+    challenge-completed: '&aDéfi terminé ! Votre récompense vous a été donnée.'
+  challenges:
+    easy:
+      name: '&aDefi 1'
+      display-name: '&kabcde'
+      material: PAPER
+      difficulty: '&aFacile'
+      type: KILL
+      target: ZOMBIE
+      amount: 10
+      reward:
+        money: 1000.0
+        message: '&aRécompense : &e+1000 '
+        commands: []
+        items: {}
+    medium:
+      name: '&6Defi 2'
+      display-name: '&kqwert'
+      material: PAPER
+      difficulty: '&6Moyen'
+      type: KILL
+      target: SKELETON
+      amount: 25
+      reward:
+        money: 2500.0
+        message: '&aRécompense : &e+2500 '
+        commands: []
+        items: {}
+    hard:
+      name: '&cDefi 3'
+      display-name: '&kzxcvb'
+      material: PAPER
+      difficulty: '&cDifficile'
+      type: KILL
+      target: WITCH
+      amount: 15
+      reward:
+        money: -1000.0
+        message: '&cMalus : &e-1000 '
+        commands: []
+        items: {}

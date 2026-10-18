@@ -1,0 +1,14 @@
+claims:
+  stealable-items:
+  - MACE
+  - DRAGON_EGG
+  - ELYTRA
+  max-per-player: 3
+  see-radius: 5
+  see-duration: 10
+  shop:
+    base-price: 5000
+    price-increment: 2500
+    max-extra: 10
+# Zones interdites aux claims, définies par coordonnées.
+  blocked-zones: []

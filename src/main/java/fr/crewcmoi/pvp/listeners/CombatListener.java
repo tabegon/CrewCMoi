@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -43,22 +44,32 @@ public class CombatListener implements Listener {
 
         
         event.setDamage(malusEffectManager.applyReduction(attacker, event.getDamage()));
+    }
 
-        combatManager.registerAttack(victim, attacker);
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onActualPlayerDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) return;
+        Player attacker = resolveAttacker(event.getDamager());
+        if (attacker == null || attacker.getUniqueId().equals(victim.getUniqueId())) return;
+        if (event.getFinalDamage() <= 0.0) return;
+        double healthBeforeDamage = victim.getHealth() + victim.getAbsorptionAmount();
+        boolean couldBeLethal = healthBeforeDamage <= event.getFinalDamage();
 
-        
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!victim.isOnline() || victim.isDead() || !attacker.isOnline() || attacker.isDead()) return;
+            double healthAfterDamage = victim.getHealth() + victim.getAbsorptionAmount();
+            if (healthBeforeDamage - healthAfterDamage <= 0.0001) return;
 
-        
-        InvisibilityManager invisibilityManager = plugin.getInvisibilityManager();
-        PlayerTeamManager playerTeamManager = plugin.getPlayerTeamManager();
-        if (invisibilityManager != null
-                && playerTeamManager != null
-                && invisibilityManager.isAnonymous(attacker)
-                && victim.getHealth() + victim.getAbsorptionAmount() <= event.getFinalDamage()) {
-            playerTeamManager.setTabFormattingHidden(attacker.getUniqueId(), true);
-            Bukkit.getScheduler().runTask(plugin, () ->
-                    playerTeamManager.setTabFormattingHidden(attacker.getUniqueId(), false));
-        }
+            combatManager.registerAttack(victim, attacker);
+            InvisibilityManager invisibilityManager = plugin.getInvisibilityManager();
+            PlayerTeamManager playerTeamManager = plugin.getPlayerTeamManager();
+            if (couldBeLethal && invisibilityManager != null && playerTeamManager != null
+                    && invisibilityManager.isAnonymous(attacker)) {
+                playerTeamManager.setTabFormattingHidden(attacker.getUniqueId(), true);
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        playerTeamManager.setTabFormattingHidden(attacker.getUniqueId(), false));
+            }
+        });
     }
 
     private Player resolveAttacker(org.bukkit.entity.Entity damager) {
@@ -97,8 +108,26 @@ public class CombatListener implements Listener {
             return;
         }
         if (event.isGliding() && combatManager.isInCombat(player)) {
+            fr.crewcmoi.pvp.managers.DuelManager duels = plugin.getDuelManager();
+            fr.crewcmoi.pvp.managers.DuelSession session = duels == null ? null : duels.getSession(player.getUniqueId());
+            if (session != null && session.isAllowElytra()) return;
             event.setCancelled(true);
             sendActionBlocked(player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player victim = event.getEntity();
+        UUID opponentId = combatManager.getOpponent(victim);
+        combatManager.clearCombat(victim);
+        malusEffectManager.clearVolatileState(victim);
+        if (opponentId != null) {
+            Player opponent = Bukkit.getPlayer(opponentId);
+            if (opponent != null) {
+                combatManager.clearCombat(opponent);
+                malusEffectManager.clearVolatileState(opponent);
+            }
         }
     }
 

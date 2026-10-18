@@ -76,7 +76,7 @@ public class BountyReviewGuiManager {
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&7ʀᴀɪꜱᴏɴ : &f" + entry.getReason()));
                 lore.add("");
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&aᴄʟɪᴄ ɢᴀᴜᴄʜᴇ &7: ᴀᴘᴘʀᴏᴜᴠᴇʀ"));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&cᴄʟɪᴄ ᴅʀᴏɪᴛ &7: ʀᴇꜰᴜꜱᴇʀ (ʀᴇᴍʙᴏᴜʀꜱᴇ)"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&cᴄʟɪᴄ ᴅʀᴏɪᴛ &7: ʀᴇꜰᴜꜱᴇʀ (ꜱᴀɴꜱ ʀᴇᴍʙᴏᴜʀꜱᴇ)"));
 
                 skullMeta.setLore(lore);
                 head.setItemMeta(skullMeta);

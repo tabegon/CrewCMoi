@@ -39,7 +39,7 @@ public class AuctionManager {
     }
 
     public int getMaxSlots() {
-        return Math.max(1, plugin.getConfig().getInt("economy.auction-max-slots", 27));
+        return Math.min(14, Math.max(1, plugin.getConfig().getInt("economy.auction-max-slots", 14)));
     }
 
     public int getExpireDays() {
@@ -60,13 +60,21 @@ public class AuctionManager {
 
     public void refreshCache(Runnable callback) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            List<AuctionItem> fresh = databaseManager.getActiveAuctions();
-            synchronized (cache) {
-                cache.clear();
-                cache.addAll(fresh);
-            }
-            if (callback != null) {
-                Bukkit.getScheduler().runTask(plugin, callback);
+            try {
+                List<AuctionItem> fresh = databaseManager.getActiveAuctions();
+                if (fresh != null) {
+                    synchronized (cache) {
+                        cache.clear();
+                        cache.addAll(fresh);
+                    }
+                }
+            } catch (RuntimeException error) {
+                plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                        "Erreur pendant l'actualisation des annonces. Le cache existant est conservé.", error);
+            } finally {
+                if (callback != null) {
+                    Bukkit.getScheduler().runTask(plugin, callback);
+                }
             }
         });
     }

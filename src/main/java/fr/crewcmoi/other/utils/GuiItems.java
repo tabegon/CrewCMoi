@@ -16,8 +16,30 @@ public final class GuiItems {
     private static final int SEARCH_MODEL_DATA = 16;
     private static final int GOAT_MODEL_DATA = 34;
     private static final int LOCK_MODEL_DATA = 35;
+    private static final int MONEY_MODEL_DATA = 17;
+    private static final int CHEST_MODEL_DATA = 37;
+    private static final int DUEL_MODEL_DATA = 39;
+    private static final int ELYTRA_OFF_MODEL_DATA = 40;
+    private static final int ELYTRA_ON_MODEL_DATA = 41;
+    private static final int KEEPINVENTORY_OFF_MODEL_DATA = 42;
+    private static final int NO_KIT_MODEL_DATA = 43;
+    private static final int KIT_MODEL_DATA = 44;
+    private static final int HEAD_DROP_OFF_MODEL_DATA = 45;
+    private static final int HEAD_DROP_ON_MODEL_DATA = 46;
+    private static final int BARRIERE_MODEL_DATA = 19;
 
     private GuiItems() {
+    }
+
+
+    public static ItemStack arrowButton(String displayName) {
+        ItemStack item = new ItemStack(Material.ARROW);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', displayName));
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     public static ItemStack cancelButton(String displayName) {
@@ -46,6 +68,38 @@ public final class GuiItems {
 
     public static ItemStack lock(String displayName) {
         return build(LOCK_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack moneyButton(String displayName) {
+        return build(MONEY_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack chestButton(String displayName) {
+        return build(CHEST_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack duelButton(String displayName) {
+        return build(DUEL_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack elytra(boolean enabled, String displayName) {
+        return build(enabled ? ELYTRA_ON_MODEL_DATA : ELYTRA_OFF_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack keepInventory(boolean enabled, String displayName) {
+        return build(enabled ? CHEST_MODEL_DATA : KEEPINVENTORY_OFF_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack kit(boolean enabled, String displayName) {
+        return build(enabled ? KIT_MODEL_DATA : NO_KIT_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack headDrop(boolean enabled, String displayName) {
+        return build(enabled ? HEAD_DROP_ON_MODEL_DATA : HEAD_DROP_OFF_MODEL_DATA, displayName);
+    }
+
+    public static ItemStack barrier(String displayName) {
+        return build(BARRIERE_MODEL_DATA, displayName);
     }
 
     private static ItemStack build(int customModelData, String displayName) {

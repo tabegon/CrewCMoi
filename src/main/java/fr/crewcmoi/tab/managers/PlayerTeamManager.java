@@ -221,7 +221,8 @@ public class PlayerTeamManager {
 
     private String teamName(UUID uuid, int weight) {
         String compact = uuid.toString().replace("-", "");
-        String weightPart = String.format("%02d", Math.max(0, Math.min(99, weight)));
+        int sortOrder = Math.max(0, Math.min(99, (1000 - weight) / 10));
+        String weightPart = String.format("%02d", sortOrder);
         String prefix = TEAM_PREFIX + weightPart + "_";
         int available = 16 - prefix.length();
         return prefix + compact.substring(0, Math.min(Math.max(available, 0), compact.length()));

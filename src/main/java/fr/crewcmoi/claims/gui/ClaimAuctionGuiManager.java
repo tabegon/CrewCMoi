@@ -30,7 +30,7 @@ public class ClaimAuctionGuiManager {
     public void open(Player viewer, int page) {
         ClaimAuctionHolder holder = new ClaimAuctionHolder();
         Inventory gui = Bukkit.createInventory(holder, ClaimAuctionHolder.SIZE,
-                ChatColor.translateAlternateColorCodes('&', "&5&lHôtel des ventes des claims"));
+                ChatColor.translateAlternateColorCodes('&', "&8&lHôtel des ventes des claims"));
         holder.setInventory(gui);
         holder.setPage(page);
 
@@ -119,7 +119,7 @@ public class ClaimAuctionGuiManager {
         ItemStack item = new ItemStack(Material.BOOK);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&5&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ ᴅᴇꜱ ᴄʟᴀɪᴍꜱ"));
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&8&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ ᴅᴇꜱ ᴄʟᴀɪᴍꜱ"));
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴘᴀɢᴇ &e" + currentPage + "&7/&e" + totalPages));
             lore.add(ChatColor.translateAlternateColorCodes('&', "&7ᴄʟᴀɪᴍꜱ ᴇɴ ᴠᴇɴᴛᴇ : &e" + totalEntries));

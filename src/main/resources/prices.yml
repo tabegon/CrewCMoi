@@ -1171,3 +1171,16 @@ prices:
   YELLOW_STAINED_GLASS_PANE: 1
   YELLOW_TERRACOTTA: 1
   YELLOW_WOOL: 1
+
+custom-prices:
+  server:chiseled_stone: 2
+  server:crab_claw: 20
+  server:elevator_dungeon: 6
+  server:oak_chair: 5
+  server:oak_table: 4
+  server:pile_of_books: 5
+  server:stone_column: 2
+  server:wall_tarp: 3
+  server:ccoin_bag: 0
+  server:cooked_crab_claw: 0
+

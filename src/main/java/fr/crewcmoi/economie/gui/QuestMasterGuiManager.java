@@ -25,7 +25,7 @@ public class QuestMasterGuiManager {
 
     public void open(Player player) {
         QuestMasterHolder holder = new QuestMasterHolder();
-        String title = plugin.getConfig().getString("quest-master.title", "&5&lQuest Master");
+        String title = plugin.getConfig().getString("quest-master.title", "&8&lQuest Master");
         Inventory gui = Bukkit.createInventory(holder, 27, Messages.color(title));
         holder.setInventory(gui);
 
@@ -42,12 +42,16 @@ public class QuestMasterGuiManager {
 
             ItemStack item;
             if (slot == 10) {
-                item = createQuestItem(section, player);
+                ConfigurationSection riddle = plugin.getConfig().getConfigurationSection("quest-master.slots.11.unlocked");
+                ConfigurationSection riddleCompleted = plugin.getConfig().getConfigurationSection("quest-master.slots.11.completed");
+                if (plugin.getQuestManager().isCompleted(player)) {
+                    item = createConfiguredItem(riddleCompleted, createConfiguredItem(riddle, GuiItems.lock("&b&lÉnigme")));
+                } else {
+                    item = createConfiguredItem(riddle, GuiItems.lock("&b&lÉnigme"));
+                }
+                applyLore(item, plugin.getQuestManager().isCompleted(player) && riddleCompleted != null ? riddleCompleted : riddle);
             } else if (slot == 11 && plugin.getQuestManager().isCompleted(player)) {
-                ConfigurationSection unlocked = plugin.getConfig()
-                        .getConfigurationSection("quest-master.slots.11.unlocked");
-                item = createConfiguredItem(unlocked, GuiItems.lock(getDisplayName(section, "&c&lVERROUILLÉ")));
-                applyLore(item, unlocked);
+                item = createQuestItem(section, player);
             } else {
                 item = GuiItems.lock(getDisplayName(section, "&c&lVERROUILLÉ"));
                 applyLore(item, section);
@@ -62,7 +66,7 @@ public class QuestMasterGuiManager {
                 plugin.getConfig().getString("quest-master.random-teleport.material", "NETHER_STAR")));
         ItemMeta randomMeta = randomTpItem.getItemMeta();
         if (randomMeta != null) {
-            randomMeta.setDisplayName(getDisplayName(randomTp, "&d&lTéléportation aléatoire"));
+            randomMeta.setDisplayName(getDisplayName(randomTp, "&7&lTéléportation aléatoire"));
             applyLore(randomTpItem, randomTp);
         }
         gui.setItem(22, randomTpItem);
@@ -72,7 +76,7 @@ public class QuestMasterGuiManager {
 
     private ItemStack createQuestItem(ConfigurationSection section, Player player) {
         ConfigurationSection displaySection = section;
-        if (plugin.getQuestManager().isCompleted(player)) {
+        if (plugin.getQuestManager().isQuest2Completed(player)) {
             ConfigurationSection completed = plugin.getConfig()
                     .getConfigurationSection("quest-master.slots.10.completed");
             if (completed != null) {

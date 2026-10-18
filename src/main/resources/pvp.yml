@@ -1,0 +1,87 @@
+combat-log:
+  duration-seconds: 30
+player-head-drop:
+  enabled: true
+  price: 500.0
+  max-per-day: 3
+bounty:
+  server-bounty-amount: 50.0
+  server-malus-amount: 50.0
+  server-bounty-max-per-day: 5
+team:
+  max-members: 8
+duel:
+  expiry-seconds: 60
+  countdown-seconds: 5
+  post-duel-recovery-seconds: 15
+  dropped-items-cleanup-seconds: 15
+  messages:
+    kit-no-drop: '&cVous ne pouvez pas jeter d''objets pendant un duel avec un kit.'
+  bet-step: 100
+  max-bet: 0
+  kits:
+    basic:
+      name: Kit Classique
+      price: 2000.0
+  arena:
+    pos1:
+      world: structure
+      x: 54.5
+      y: -59
+      z: 89.5
+      yaw: 0.0
+      pitch: 0.0
+    pos2:
+      world: structure
+      x: 140.5
+      y: -59
+      z: 89.5
+      yaw: 180.0
+      pitch: 0.0
+    wait:
+      pos1:
+        world: structure
+        x: 49.5
+        y: -59
+        z: 89.5
+        yaw: 0.0
+        pitch: 0.0
+      pos2:
+        world: structure
+        x: 145.5
+        y: -59
+        z: 89.5
+        yaw: 180.0
+        pitch: 0.0
+    second:
+      pos1:
+        world: structure
+        x: 54.5
+        y: -59
+        z: 260.5
+        yaw: 0.0
+        pitch: 0.0
+      pos2:
+        world: structure
+        x: 140.5
+        y: -59
+        z: 260.5
+        yaw: 180.0
+        pitch: 0.0
+      wait:
+        pos1:
+          world: structure
+          x: 49.5
+          y: -59
+          z: 260.5
+          yaw: 0.0
+          pitch: 0.0
+        pos2:
+          world: structure
+          x: 145.5
+          y: -59
+          z: 260.5
+          yaw: 180.0
+          pitch: 0.0
+  itemsadder-id: crewcmoi:balance_hud
+  text-id: balance

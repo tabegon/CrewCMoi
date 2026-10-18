@@ -12,6 +12,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Entity;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Map;
@@ -26,14 +27,16 @@ public class DuelManager {
         private final double bet;
         private final boolean dropHead;
         private final String kitId;
+        private final boolean allowElytra;
         private final BukkitTask expiryTask;
 
-        public DuelRequest(UUID requesterUuid, boolean keepInventory, double bet, boolean dropHead, String kitId, BukkitTask expiryTask) {
+        public DuelRequest(UUID requesterUuid, boolean keepInventory, double bet, boolean dropHead, String kitId, boolean allowElytra, BukkitTask expiryTask) {
             this.requesterUuid = requesterUuid;
             this.keepInventory = keepInventory;
             this.bet = bet;
             this.dropHead = dropHead;
             this.kitId = kitId;
+            this.allowElytra = allowElytra;
             this.expiryTask = expiryTask;
         }
 
@@ -56,6 +59,10 @@ public class DuelManager {
         public String getKitId() {
             return kitId;
         }
+
+        public boolean isAllowElytra() {
+            return allowElytra;
+        }
     }
 
     private final Main plugin;
@@ -75,6 +82,7 @@ public class DuelManager {
     // Joueurs protégés après un duel : ils ne peuvent pas accepter un nouveau duel
     // pendant la phase de récupération des objets.
     private final Map<UUID, Long> postDuelRecoveryExpiry = new ConcurrentHashMap<>();
+    private final Map<UUID, Location> pendingRespawnReturns = new ConcurrentHashMap<>();
     private final int postDuelRecoverySeconds;
     private final int droppedItemsCleanupSeconds;
 
@@ -212,7 +220,7 @@ public class DuelManager {
         }
     }
 
-    public void createRequest(Player requester, Player target, boolean keepInventory, double bet, boolean dropHead, String kitId) {
+    public void createRequest(Player requester, Player target, boolean keepInventory, double bet, boolean dropHead, String kitId, boolean allowElytra) {
         UUID targetUuid = target.getUniqueId();
         cancelRequest(targetUuid);
 
@@ -231,7 +239,7 @@ public class DuelManager {
             }
         }, expirySeconds * 20L);
 
-        pendingRequests.put(targetUuid, new DuelRequest(requester.getUniqueId(), keepInventory, bet, dropHead, kitId, expiryTask));
+        pendingRequests.put(targetUuid, new DuelRequest(requester.getUniqueId(), keepInventory, bet, dropHead, kitId, allowElytra, expiryTask));
 
         String betText = bet > 0 ? MoneyFormat.format(bet) : plugin.getMessages().getString("duel.no-bet");
         sendMessage(requester, "duel.sent", "{player}", target.getName());
@@ -366,9 +374,15 @@ public class DuelManager {
 
         Location arena1 = getArenaLocation(arenaIndex, 1);
         Location arena2 = getArenaLocation(arenaIndex, 2);
-        if (arena1 == null || arena2 == null) {
+        Location waiting1 = getArenaWaitingLocation(arenaIndex, 1);
+        Location waiting2 = getArenaWaitingLocation(arenaIndex, 2);
+        if (arena1 == null || arena2 == null || waiting1 == null || waiting2 == null) {
             sendMessage(target, "duel.arena-not-configured", null, null);
             sendMessage(requester, "duel.arena-not-configured", null, null);
+            if (bet > 0) {
+                economyManager.deposit(requester.getUniqueId(), bet);
+                economyManager.deposit(target.getUniqueId(), bet);
+            }
             return;
         }
 
@@ -378,7 +392,7 @@ public class DuelManager {
         }
 
         DuelSession session = new DuelSession(requester.getUniqueId(), target.getUniqueId(),
-                kitId == null && request.isKeepInventory(), bet, request.isDropHead(), kitId);
+                kitId == null && request.isKeepInventory(), bet, request.isDropHead(), kitId, request.isAllowElytra());
         session.setArenaIndex(arenaIndex);
         activeArenaDuels.put(arenaIndex, session);
         session.setOriginLocation1(requester.getLocation().clone());
@@ -394,8 +408,8 @@ public class DuelManager {
         activeDuels.put(requester.getUniqueId(), session);
         activeDuels.put(target.getUniqueId(), session);
 
-        requester.teleport(arena1);
-        target.teleport(arena2);
+        requester.teleport(waiting1);
+        target.teleport(waiting2);
 
         requester.setHealth(requester.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue());
         requester.setFoodLevel(20);
@@ -422,6 +436,15 @@ public class DuelManager {
             }
 
             if (remaining[0] <= 0) {
+                Location fight1 = getArenaLocation(session.getArenaIndex(), 1);
+                Location fight2 = getArenaLocation(session.getArenaIndex(), 2);
+                if (fight1 == null || fight2 == null) {
+                    taskHolder[0].cancel();
+                    endSession(session, null, null, true);
+                    return;
+                }
+                player1.teleport(fight1);
+                player2.teleport(fight2);
                 session.setStarted(true);
                 sendMessage(player1, "duel.fight", null, null);
                 sendMessage(player2, "duel.fight", null, null);
@@ -494,8 +517,15 @@ public class DuelManager {
         // Les deux joueurs sont renvoyés à leur position d'origine après exactement
         // la même durée de récupération. Cela évite notamment que le joueur ayant
         // perdu soit téléporté avant la fin de son respawn.
-        scheduleReturnAfterRecovery(session, session.getPlayer1());
-        scheduleReturnAfterRecovery(session, session.getPlayer2());
+        if (loser != null && !forfeit) {
+            Location loserOrigin = session.getOriginLocation(loser.getUniqueId());
+            if (loserOrigin != null) pendingRespawnReturns.put(loser.getUniqueId(), loserOrigin.clone());
+            UUID winnerUuid = winner == null ? null : winner.getUniqueId();
+            if (winnerUuid != null) scheduleReturnAfterRecovery(session, winnerUuid);
+        } else {
+            scheduleReturnAfterRecovery(session, session.getPlayer1());
+            scheduleReturnAfterRecovery(session, session.getPlayer2());
+        }
 
         if (loser != null && loser.isOnline() && !forfeit && winner != null) {
             sendMessage(loser, "duel.lost", "{player}", winner.getName());
@@ -509,14 +539,30 @@ public class DuelManager {
         }
 
         if (duelArenaManager != null) {
-            // Le gestionnaire historique sait restaurer l'arène principale.
-            // La seconde arène est destinée à être configurée séparément si besoin.
-            if (session.getArenaIndex() == 1) {
-                duelArenaManager.resetArena();
-            }
+            duelArenaManager.resetArena(session.getArenaIndex());
         }
 
         scheduleDroppedItemCleanup(session);
+    }
+
+    public void applyPendingRespawnReturn(PlayerRespawnEvent event) {
+        Location origin = pendingRespawnReturns.remove(event.getPlayer().getUniqueId());
+        if (origin != null && origin.getWorld() != null) event.setRespawnLocation(origin);
+    }
+
+    private Location getArenaWaitingLocation(int arenaIndex, int position) {
+        String path = arenaIndex == 1
+                ? "duel.arena.wait.pos" + position
+                : "duel.arena.second.wait.pos" + position;
+        String worldName = plugin.getConfig().getString(path + ".world", "structure");
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) return null;
+        double x = plugin.getConfig().getDouble(path + ".x");
+        double y = plugin.getConfig().getDouble(path + ".y");
+        double z = plugin.getConfig().getDouble(path + ".z");
+        float yaw = (float) plugin.getConfig().getDouble(path + ".yaw", 0.0);
+        float pitch = (float) plugin.getConfig().getDouble(path + ".pitch", 0.0);
+        return new Location(world, x, y, z, yaw, pitch);
     }
 
     private void scheduleReturnAfterRecovery(DuelSession session, UUID playerUuid) {
@@ -551,6 +597,13 @@ public class DuelManager {
             }
         }
         return -1;
+    }
+
+    public Location getFightStartLocation(DuelSession session, UUID playerId) {
+        if (session == null || playerId == null || !session.involves(playerId)) return null;
+        int position = session.getPlayer1().equals(playerId) ? 1 : 2;
+        Location location = getArenaLocation(session.getArenaIndex(), position);
+        return location == null ? null : location.clone();
     }
 
     private Location getArenaLocation(int arenaIndex, int position) {

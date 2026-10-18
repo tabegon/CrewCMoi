@@ -1,14 +1,16 @@
 package fr.crewcmoi.pvp.managers;
-import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
+import fr.crewcmoi.other.utils.Messages;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,209 +19,139 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DuelArenaManager {
-
-    
     private static final int BLOCKS_PER_TICK = 4000;
-
     private final Main plugin;
-    private final Path snapshotFile;
+    private final File arenasFile;
+    private final Arena[] arenas = {null, new Arena(1), new Arena(2)};
+    private int activeArena = 1;
 
-    private String worldName;
-    private int minX, minY, minZ, maxX, maxY, maxZ;
-    private String[] savedBlocks; 
+    private static final class Arena {
+        final int id;
+        String worldName;
+        int minX, minY, minZ, maxX, maxY, maxZ;
+        String[] savedBlocks;
+        Location corner1, corner2;
+        Arena(int id) {
+            this.id = id;
+        }
+    }
 
     public DuelArenaManager(Main plugin) {
         this.plugin = plugin;
-        this.snapshotFile = plugin.getDataFolder().toPath().resolve("duel-arena.snapshot");
-        loadCorners();
-        loadSnapshotFromDisk();
+        this.arenasFile = new File(plugin.getDataFolder(), "arenas.yml");
+        Path legacy = plugin.getDataFolder().toPath().resolve("duel-arena.snapshot");
+        Path first = snapshotPath(arenas[1]);
+        if (Files.exists(legacy) && !Files.exists(first)) {
+            try { Files.copy(legacy, first); }
+            catch (IOException exception) { plugin.getLogger().warning("Impossible de migrer l'ancienne sauvegarde de l'arène : " + exception.getMessage()); }
+        }
+        loadArena(arenas[1]);
+        loadArena(arenas[2]);
     }
 
-    
+    public void setActiveArena(int id) { if (id == 1 || id == 2) activeArena = id; }
+    public int getActiveArena() { return activeArena; }
+    private Arena active() { return arenas[activeArena]; }
 
-    private void loadCorners() {
-        this.worldName = plugin.getConfig().getString("duel.arena.region.world");
-        this.minX = plugin.getConfig().getInt("duel.arena.region.minX");
-        this.minY = plugin.getConfig().getInt("duel.arena.region.minY");
-        this.minZ = plugin.getConfig().getInt("duel.arena.region.minZ");
-        this.maxX = plugin.getConfig().getInt("duel.arena.region.maxX");
-        this.maxY = plugin.getConfig().getInt("duel.arena.region.maxY");
-        this.maxZ = plugin.getConfig().getInt("duel.arena.region.maxZ");
+    private void loadArena(Arena arena) {
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(arenasFile);
+        String base = "arenas." + arena.id;
+        if (yaml.contains(base + ".world")) {
+            arena.worldName = yaml.getString(base + ".world");
+            arena.minX = yaml.getInt(base + ".min-x"); arena.minY = yaml.getInt(base + ".min-y"); arena.minZ = yaml.getInt(base + ".min-z");
+            arena.maxX = yaml.getInt(base + ".max-x"); arena.maxY = yaml.getInt(base + ".max-y"); arena.maxZ = yaml.getInt(base + ".max-z");
+        } else if (arena.id == 1 && plugin.getConfig().contains("duel.arena.region.world")) {
+            arena.worldName = plugin.getConfig().getString("duel.arena.region.world");
+            arena.minX = plugin.getConfig().getInt("duel.arena.region.minX"); arena.minY = plugin.getConfig().getInt("duel.arena.region.minY"); arena.minZ = plugin.getConfig().getInt("duel.arena.region.minZ");
+            arena.maxX = plugin.getConfig().getInt("duel.arena.region.maxX"); arena.maxY = plugin.getConfig().getInt("duel.arena.region.maxY"); arena.maxZ = plugin.getConfig().getInt("duel.arena.region.maxZ");
+        }
+        loadSnapshot(arena);
     }
-
-    private Location corner1;
-    private Location corner2;
 
     public void setCorner(int index, Location location) {
-        if (index == 1) {
-            corner1 = location.getBlock().getLocation();
-        } else {
-            corner2 = location.getBlock().getLocation();
-        }
-
-        if (corner1 == null || corner2 == null) {
-            return;
-        }
-        if (corner1.getWorld() == null || !corner1.getWorld().equals(corner2.getWorld())) {
-            return;
-        }
-
-        this.worldName = corner1.getWorld().getName();
-        this.minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
-        this.minY = Math.min(corner1.getBlockY(), corner2.getBlockY());
-        this.minZ = Math.min(corner1.getBlockZ(), corner2.getBlockZ());
-        this.maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
-        this.maxY = Math.max(corner1.getBlockY(), corner2.getBlockY());
-        this.maxZ = Math.max(corner1.getBlockZ(), corner2.getBlockZ());
-
-        plugin.getConfig().set("duel.arena.region.world", worldName);
-        plugin.getConfig().set("duel.arena.region.minX", minX);
-        plugin.getConfig().set("duel.arena.region.minY", minY);
-        plugin.getConfig().set("duel.arena.region.minZ", minZ);
-        plugin.getConfig().set("duel.arena.region.maxX", maxX);
-        plugin.getConfig().set("duel.arena.region.maxY", maxY);
-        plugin.getConfig().set("duel.arena.region.maxZ", maxZ);
-        plugin.saveConfig();
-
-        savedBlocks = null;
-        try {
-            Files.deleteIfExists(snapshotFile);
-        } catch (IOException ignored) {
-            
-        }
+        Arena arena = active();
+        if (index == 1) arena.corner1 = location.getBlock().getLocation(); else arena.corner2 = location.getBlock().getLocation();
+        if (arena.corner1 == null || arena.corner2 == null || arena.corner1.getWorld() == null || !arena.corner1.getWorld().equals(arena.corner2.getWorld())) return;
+        arena.worldName = arena.corner1.getWorld().getName();
+        arena.minX = Math.min(arena.corner1.getBlockX(), arena.corner2.getBlockX()); arena.minY = Math.min(arena.corner1.getBlockY(), arena.corner2.getBlockY()); arena.minZ = Math.min(arena.corner1.getBlockZ(), arena.corner2.getBlockZ());
+        arena.maxX = Math.max(arena.corner1.getBlockX(), arena.corner2.getBlockX()); arena.maxY = Math.max(arena.corner1.getBlockY(), arena.corner2.getBlockY()); arena.maxZ = Math.max(arena.corner1.getBlockZ(), arena.corner2.getBlockZ());
+        saveRegion(arena);
+        arena.savedBlocks = null;
+        try { Files.deleteIfExists(snapshotPath(arena)); } catch (IOException ignored) { }
     }
 
-    public boolean isRegionDefined() {
-        return worldName != null;
+    private void saveRegion(Arena arena) {
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(arenasFile);
+        String base = "arenas." + arena.id;
+        yaml.set(base + ".world", arena.worldName); yaml.set(base + ".min-x", arena.minX); yaml.set(base + ".min-y", arena.minY); yaml.set(base + ".min-z", arena.minZ);
+        yaml.set(base + ".max-x", arena.maxX); yaml.set(base + ".max-y", arena.maxY); yaml.set(base + ".max-z", arena.maxZ);
+        try { plugin.getDataFolder().mkdirs(); yaml.save(arenasFile); }
+        catch (IOException exception) { plugin.getLogger().warning("Impossible de sauvegarder arenas.yml : " + exception.getMessage()); }
     }
+
+    private Path snapshotPath(Arena arena) { return plugin.getDataFolder().toPath().resolve("arena-" + arena.id + ".snapshot"); }
+    private boolean defined(Arena a) { return a.worldName != null && !a.worldName.isBlank(); }
+    public boolean isRegionDefined() { return defined(active()); }
+    public boolean hasSnapshot() { return active().savedBlocks != null; }
 
     public boolean isInsideArena(Location location) {
-        if (!isRegionDefined() || location.getWorld() == null
-                || !location.getWorld().getName().equals(worldName)) {
-            return false;
+        if (location == null || location.getWorld() == null) return false;
+        for (int id = 1; id <= 2; id++) {
+            Arena a = arenas[id];
+            if (!defined(a) || !location.getWorld().getName().equals(a.worldName)) continue;
+            int x = location.getBlockX(), y = location.getBlockY(), z = location.getBlockZ();
+            if (x >= a.minX && x <= a.maxX && y >= a.minY && y <= a.maxY && z >= a.minZ && z <= a.maxZ) return true;
         }
-        int x = location.getBlockX();
-        int y = location.getBlockY();
-        int z = location.getBlockZ();
-        return x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ;
-    }
-
-    
-
-    public boolean hasSnapshot() {
-        return savedBlocks != null;
+        return false;
     }
 
     public boolean saveSnapshot(CommandSender sender) {
-        if (!isRegionDefined()) {
-            Messages.send(sender, "moderation.duelarena.corners-required");
-            return false;
-        }
-        World world = Bukkit.getWorld(worldName);
-        if (world == null) {
-            Messages.send(sender, "moderation.duelarena.world-not-loaded", java.util.Map.of("world", worldName));
-            return false;
-        }
-
-        int sizeX = maxX - minX + 1;
-        int sizeY = maxY - minY + 1;
-        int sizeZ = maxZ - minZ + 1;
-        List<String> lines = new ArrayList<>(sizeX * sizeY * sizeZ);
-
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    lines.add(world.getBlockAt(x, y, z).getBlockData().getAsString());
-                }
-            }
-        }
-
-        savedBlocks = lines.toArray(new String[0]);
-        writeSnapshotToDisk(lines);
-
-        Messages.send(sender, "moderation.duelarena.saved", java.util.Map.of("blocks", savedBlocks.length));
-        return true;
-    }
-
-    private void writeSnapshotToDisk(List<String> lines) {
+        Arena a = active();
+        if (!defined(a)) { Messages.send(sender, "moderation.duelarena.corners-required"); return false; }
+        World world = Bukkit.getWorld(a.worldName);
+        if (world == null) { Messages.send(sender, "moderation.duelarena.world-not-loaded", java.util.Map.of("world", a.worldName)); return false; }
+        int sx = a.maxX-a.minX+1, sy = a.maxY-a.minY+1, sz = a.maxZ-a.minZ+1;
+        List<String> lines = new ArrayList<>(Math.max(0, sx*sy*sz));
+        for (int x=a.minX; x<=a.maxX; x++) for (int y=a.minY; y<=a.maxY; y++) for (int z=a.minZ; z<=a.maxZ; z++) lines.add(world.getBlockAt(x,y,z).getBlockData().getAsString());
+        a.savedBlocks = lines.toArray(new String[0]);
         try {
-            Files.createDirectories(snapshotFile.getParent());
-            List<String> content = new ArrayList<>(lines.size() + 2);
-            content.add(worldName);
-            content.add(minX + " " + minY + " " + minZ + " " + maxX + " " + maxY + " " + maxZ);
-            content.addAll(lines);
-            Files.write(snapshotFile, content, StandardCharsets.UTF_8);
-        } catch (IOException exception) {
-            plugin.getLogger().warning("Impossible d'écrire la sauvegarde de l'arène de duel : " + exception.getMessage());
-        }
+            Path file = snapshotPath(a); Files.createDirectories(file.getParent());
+            List<String> content = new ArrayList<>(lines.size()+2); content.add(a.worldName); content.add(a.minX+" "+a.minY+" "+a.minZ+" "+a.maxX+" "+a.maxY+" "+a.maxZ); content.addAll(lines);
+            Files.write(file, content, StandardCharsets.UTF_8);
+            Messages.send(sender, "moderation.duelarena.saved", java.util.Map.of("blocks", a.savedBlocks.length));
+            sender.sendMessage("§7Sauvegarde enregistrée dans arena-" + a.id + ".snapshot");
+            return true;
+        } catch (IOException exception) { plugin.getLogger().warning("Impossible de sauvegarder arena-"+a.id+".snapshot : "+exception.getMessage()); sender.sendMessage("§cErreur lors de la sauvegarde de l'arène."); return false; }
     }
 
-    private void loadSnapshotFromDisk() {
-        if (!Files.exists(snapshotFile)) {
-            return;
-        }
+    private void loadSnapshot(Arena a) {
+        Path file = snapshotPath(a);
+        if (!Files.exists(file)) return;
         try {
-            List<String> content = Files.readAllLines(snapshotFile, StandardCharsets.UTF_8);
-            if (content.size() < 2) {
-                return;
-            }
-            String savedWorld = content.get(0);
-            String[] bounds = content.get(1).split(" ");
-            if (bounds.length != 6 || !savedWorld.equals(worldName)) {
-                
-                return;
-            }
-            int savedMinX = Integer.parseInt(bounds[0]);
-            int savedMinY = Integer.parseInt(bounds[1]);
-            int savedMinZ = Integer.parseInt(bounds[2]);
-            int savedMaxX = Integer.parseInt(bounds[3]);
-            int savedMaxY = Integer.parseInt(bounds[4]);
-            int savedMaxZ = Integer.parseInt(bounds[5]);
-            if (savedMinX != minX || savedMinY != minY || savedMinZ != minZ
-                    || savedMaxX != maxX || savedMaxY != maxY || savedMaxZ != maxZ) {
-                return;
-            }
-            savedBlocks = content.subList(2, content.size()).toArray(new String[0]);
-        } catch (IOException | NumberFormatException exception) {
-            plugin.getLogger().warning("Impossible de charger la sauvegarde de l'arène de duel : " + exception.getMessage());
-        }
+            List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
+            if (lines.size()<2 || !defined(a) || !lines.get(0).equals(a.worldName)) return;
+            String[] b=lines.get(1).split(" "); if (b.length!=6) return;
+            int[] bounds=new int[6]; for(int i=0;i<6;i++) bounds[i]=Integer.parseInt(b[i]);
+            if(bounds[0]!=a.minX||bounds[1]!=a.minY||bounds[2]!=a.minZ||bounds[3]!=a.maxX||bounds[4]!=a.maxY||bounds[5]!=a.maxZ) return;
+            a.savedBlocks=lines.subList(2,lines.size()).toArray(new String[0]);
+        } catch(IOException|NumberFormatException exception) { plugin.getLogger().warning("Impossible de charger arena-"+a.id+".snapshot : "+exception.getMessage()); }
     }
 
-    
+    public void resetArena() { resetArena(activeArena); }
 
-    
-
-    public void resetArena() {
-        if (!isRegionDefined() || savedBlocks == null) {
-            return;
-        }
-        World world = Bukkit.getWorld(worldName);
-        if (world == null) {
-            return;
-        }
-
-        int sizeY = maxY - minY + 1;
-        int sizeZ = maxZ - minZ + 1;
-
-        int[] cursor = {0}; 
-        BukkitTask[] taskHolder = new BukkitTask[1];
-        taskHolder[0] = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            int processed = 0;
-            while (processed < BLOCKS_PER_TICK && cursor[0] < savedBlocks.length) {
-                int index = cursor[0];
-                int x = minX + index / (sizeY * sizeZ);
-                int y = minY + (index / sizeZ) % sizeY;
-                int z = minZ + index % sizeZ;
-
-                BlockData data = Bukkit.createBlockData(savedBlocks[index]);
-                world.getBlockAt(x, y, z).setBlockData(data, false);
-
-                cursor[0]++;
-                processed++;
+    public void resetArena(int arenaId) {
+        if (arenaId < 1 || arenaId > 2) return;
+        Arena a = arenas[arenaId];
+        if (!defined(a) || a.savedBlocks == null) return;
+        World world = Bukkit.getWorld(a.worldName); if (world == null) return;
+        int sy=a.maxY-a.minY+1, sz=a.maxZ-a.minZ+1; int[] cursor={0}; BukkitTask[] task={null};
+        task[0]=Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            int done=0;
+            while(done<BLOCKS_PER_TICK && cursor[0]<a.savedBlocks.length) {
+                int i=cursor[0]; int x=a.minX+i/(sy*sz); int y=a.minY+(i/sz)%sy; int z=a.minZ+i%sz;
+                BlockData data=Bukkit.createBlockData(a.savedBlocks[i]); world.getBlockAt(x,y,z).setBlockData(data,false); cursor[0]++; done++;
             }
-            if (cursor[0] >= savedBlocks.length) {
-                taskHolder[0].cancel();
-            }
-        }, 1L, 1L);
+            if(cursor[0]>=a.savedBlocks.length) task[0].cancel();
+        },1L,1L);
     }
 }

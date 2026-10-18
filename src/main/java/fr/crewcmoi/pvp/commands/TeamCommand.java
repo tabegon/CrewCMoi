@@ -4,6 +4,8 @@ import fr.crewcmoi.other.utils.Messages;
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.database.TeamData;
 import fr.crewcmoi.pvp.managers.TeamManager;
+import fr.crewcmoi.pvp.gui.TeamGuiManager;
+import fr.crewcmoi.pvp.gui.TeamRequestGuiManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -20,10 +22,14 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
     private final TeamManager teamManager;
+    private final TeamGuiManager teamGuiManager;
+    private final TeamRequestGuiManager teamRequestGuiManager;
 
-    public TeamCommand(Main plugin, TeamManager teamManager) {
+    public TeamCommand(Main plugin, TeamManager teamManager, TeamGuiManager teamGuiManager, TeamRequestGuiManager teamRequestGuiManager) {
         this.plugin = plugin;
         this.teamManager = teamManager;
+        this.teamGuiManager = teamGuiManager;
+        this.teamRequestGuiManager = teamRequestGuiManager;
     }
 
     @Override
@@ -34,7 +40,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 0) {
-            sendUsage(player);
+            teamGuiManager.open(player);
             return true;
         }
 
@@ -46,6 +52,8 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             case "leave" -> handleLeave(player);
             case "disband" -> handleDisband(player);
             case "info" -> handleInfo(player, args);
+            case "promote" -> handlePromote(player, args);
+            case "request" -> teamRequestGuiManager.open(player);
             default -> sendUsage(player);
         }
 
@@ -147,6 +155,30 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         });
     }
 
+    private void handlePromote(Player player, String[] args) {
+        if (args.length < 2) {
+            Messages.send(player, "teams.promote.usage");
+            return;
+        }
+        String targetName = args[1];
+        teamManager.promoteMember(player, targetName, result -> {
+            switch (result) {
+                case SUCCESS -> {
+                    Messages.send(player, "teams.promote.success", java.util.Map.of("player", targetName), true);
+                    Player target = Bukkit.getPlayerExact(targetName);
+                    if (target != null) Messages.send(target, "teams.promote.received");
+                    teamGuiManager.open(player);
+                }
+                case NO_TEAM -> Messages.send(player, "teams.generic.not-in-team");
+                case NOT_OWNER -> Messages.send(player, "teams.promote.owner-only");
+                case TARGET_NOT_IN_TEAM -> Messages.send(player, "teams.promote.target-not-in-team", java.util.Map.of("player", targetName), true);
+                case CANNOT_PROMOTE_SELF -> Messages.send(player, "teams.promote.self");
+                case MAX_RANK -> Messages.send(player, "teams.promote.max-rank", java.util.Map.of("player", targetName), true);
+                case ERROR -> Messages.send(player, "teams.generic.error");
+            }
+        });
+    }
+
     private void handleInfo(Player player, String[] args) {
         if (args.length >= 2) {
             String name = args[1];
@@ -189,12 +221,12 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             String partial = args[0].toLowerCase();
-            for (String sub : List.of("create", "add", "accept", "deny", "leave", "disband", "info")) {
+            for (String sub : List.of("create", "add", "accept", "deny", "leave", "disband", "info", "promote", "request")) {
                 if (sub.startsWith(partial)) {
                     completions.add(sub);
                 }
             }
-        } else if (args.length == 2 && args[0].equalsIgnoreCase("add")) {
+        } else if (args.length == 2 && (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("promote"))) {
             String partial = args[1].toLowerCase();
             for (Player online : Bukkit.getOnlinePlayers()) {
                 if (online.getName().toLowerCase().startsWith(partial)) {

@@ -30,7 +30,7 @@ pay:
   sent: '&aᴇɴᴠᴏʏᴇ &e{amount}&a ᴀ &e{player}&a.'
   received: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e{amount}&a ᴅᴇ &e{player}&a !'
 ah:
-  gui-title: '&5&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ'
+  gui-title: '&8&lʜᴏᴛᴇʟ ᴅᴇꜱ ᴠᴇɴᴛᴇꜱ'
   usage: '&cᴜꜱᴀɢᴇ : /ᴀʜ ᴏᴜ /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>'
   invalid-price: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.'
   price-too-low: '&cᴘʀɪx ᴍɪɴɪᴍᴜᴍ : {amount}.'
@@ -215,7 +215,13 @@ economy:
     other: '&7ꜱᴏʟᴅᴇ ᴅᴇ &e{player}&7 : &a{amount}'
   auction:
     usage: '&cᴜꜱᴀɢᴇ : /ᴀʜ &7ᴏᴜ&c /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>'
-    sell-usage: '&cᴜꜱᴀɢᴇ : /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx>'
+    sell-usage: '&cᴜꜱᴀɢᴇ : /ᴀʜ ꜱᴇʟʟ <ᴘʀɪx> &7(ᴛᴇɴᴇᴢ ʟ’ᴏʙᴊᴇᴛ ᴇɴ ᴍᴀɪɴ)'
+    help: |
+      &6&lHÔTEL DES VENTES
+      &e/ah &7- Ouvrir l’hôtel des ventes.
+      &e/ah sell <prix> &7- Mettre en vente l’objet tenu en main.
+      &7Exemple : &f/ah sell 1500
+      &e/ah help &7- Afficher cette aide.
     invalid-price: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.'
     no-item: '&cᴠᴏᴜꜱ ᴅᴇᴠᴇᴢ ᴛᴇɴɪʀ ᴜɴ ᴏʙᴊᴇᴛ ᴇɴ ᴍᴀɪɴ ᴘᴏᴜʀ ʟᴇ ᴍᴇᴛᴛʀᴇ ᴇɴ ᴠᴇɴᴛᴇ.'
     list-failed: '&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ, ʟ''ᴏʙᴊᴇᴛ ᴠᴏᴜꜱ ᴀ ᴇᴛᴇ ʀᴇɴᴅᴜ.'
@@ -315,7 +321,7 @@ claims:
 teams:
   command:
     player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
-    usage: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ <ᴄʀᴇᴀᴛᴇ|ᴀᴅᴅ|ᴀᴄᴄᴇᴘᴛ|ᴅᴇɴʏ|ʟᴇᴀᴠᴇ|ᴅɪꜱʙᴀɴᴅ|ɪɴꜰᴏ>'
+    usage: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ <ᴄʀᴇᴀᴛᴇ|ᴀᴅᴅ|ᴀᴄᴄᴇᴘᴛ|ᴅᴇɴʏ|ʟᴇᴀᴠᴇ|ᴅɪꜱʙᴀɴᴅ|ɪɴꜰᴏ|ᴘʀᴏᴍᴏᴛᴇ>'
   create:
     usage: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ ᴄʀᴇᴀᴛᴇ <ɴᴏᴍ>'
     already-in-team: '&cᴠᴏᴜꜱ ꜰᴀɪᴛᴇꜱ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ''ᴜɴᴇ ᴇǫᴜɪᴘᴇ.'
@@ -343,6 +349,14 @@ teams:
     success: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ǫᴜɪᴛᴛᴇ ᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ.'
   disband:
     owner-only: '&cꜱᴇᴜʟ ʟᴇ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ ᴅᴇ ʟ''ᴇǫᴜɪᴘᴇ ᴘᴇᴜᴛ ʟᴀ ᴅɪꜱꜱᴏᴜᴅʀᴇ.'
+  promote:
+    usage: '&cUsage : /team promote <joueur>'
+    owner-only: '&cSeul le fondateur peut promouvoir les membres.'
+    target-not-in-team: '&c{player} ne fait pas partie de votre équipe.'
+    self: '&cVous ne pouvez pas vous promouvoir vous-même.'
+    max-rank: '&e{player} possède déjà le grade maximal.'
+    success: '&a{player} a été promu au grade suivant.'
+    received: '&aVotre grade dans l’équipe a été modifié.'
   created: '&aᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ &e{team}&a ᴀ ᴇᴛᴇ ᴄʀᴇᴇᴇ !'
   invite-sent: '&aɪɴᴠɪᴛᴀᴛɪᴏɴ ᴇɴᴠᴏʏᴇᴇ ᴀ &e{player}&a.'
   invite-received: '&e{player}&a ᴠᴏᴜꜱ ᴀ ɪɴᴠɪᴛᴇ ᴅᴀɴꜱ ꜱᴏɴ ᴇǫᴜɪᴘᴇ !'
@@ -373,7 +387,7 @@ roles:
   player: '&7ʀôʟᴇ ᴅᴇ &e{player}&7 : {role}&r&7.'
 gui:
   pets:
-    title: '&5&lᴘᴇᴛꜱ'
+    title: '&8&lᴘᴇᴛꜱ'
     active: '&a&l✓ ᴘᴇᴛ ᴀᴄᴛɪꜰ'
     activate: '&eᴄʟɪǫᴜᴇᴢ ᴘᴏᴜʀ ᴀᴄᴛɪᴠᴇʀ'
     locked: '&c&l✘ ᴘᴇᴛ ɴᴏɴ ᴅᴇʙʟᴏǫᴜᴇ'

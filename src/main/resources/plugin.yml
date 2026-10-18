@@ -8,11 +8,21 @@ softdepend: [ItemsAdder, MythicMobs, Vault, PlaceholderAPI, Citizens, CosmeticsC
 loadbefore: [RPGhuds]
 
 commands:
+  admin:
+    description: Ouvre le menu central d’administration.
+    usage: /admin [zone pos1|pos2|add <nom>|remove <nom>|list]
+  reset:
+    description: Réinitialise les quêtes d’un joueur.
+    usage: /reset quest <joueur>
   balance:
     description: Affiche votre solde ou celui d'un autre joueur.
     usage: /balance [joueur]
     aliases: [bal]
     permission: crew.command.balance
+  moneybag:
+    description: Convertit une somme de ton solde en sac de pièces.
+    usage: /moneybag <montant>
+    permission: crew.command.moneybag
   money:
     description: Commande admin pour gérer l'argent des joueurs.
     usage: /money <add|remove|set> <joueur> <montant>
@@ -31,8 +41,8 @@ commands:
     usage: /pay <joueur> <montant>
     permission: crew.command.pay
   ah:
-    description: Ouvre l'hôtel des ventes entre joueurs.
-    usage: /ah [sell <prix>]
+    description: Ouvre l'hôtel des ventes. Utilise /ah sell <prix> pour vendre l'objet en main.
+    usage: /ah [help|sell <prix>]
     aliases: [auctionhouse, auction]
     permission: crew.command.ah
   team:
@@ -75,9 +85,17 @@ commands:
     usage: /tpahere <joueur>
     permission: crew.command.tpahere
   tpaccept:
-    description: Acceptation d'une invitation de tp
+    description: Accepte la demande de tp la plus récente.
     usage: /tpaccept
     permission: crew.command.tpaccept
+  tpacceptall:
+    description: Accepte toutes les demandes de téléportation récentes.
+    usage: /tpacceptall
+    permission: crew.command.tpacceptall
+  tpacceptteam:
+    description: Accepte toutes les demandes de téléportation récentes de ton équipe.
+    usage: /tpacceptteam
+    permission: crew.command.tpacceptteam
   claim:
     description: Réclame le chunk actuel pour empêcher les autres joueurs d'y construire/détruire.
     usage: /claim [unclaim|trust <joueur>|untrust <joueur>|info|settings|see|shop|sell <prix>|buy|ah]
@@ -86,25 +104,24 @@ commands:
     description: Alias de /claim, notamment pour /claims settings (GUI des règles du claim).
     usage: /claims settings
     permission: crew.command.claim
-  claimadmin:
-    description: Ouvre la GUI de gestion de tous les claims du serveur. Réservé au staff à partir de Mod.
-    usage: /claimadmin
-    aliases: [claimsadmin, claimmanage]
-    permission: crew.claim.admin
   duel:
     description: Provoque un joueur en duel, avec configuration des règles (keepinventory, mise) via une GUI.
     usage: /duel <joueur>
     permission: crew.command.duel
+  spectate:
+    description: Observe un joueur en duel sans pouvoir être attaqué.
+    usage: /spectate <joueur|stop>
+    permission: crew.command.spectate
   duelaccept:
     description: Accepte (ou refuse avec "deny") la demande de duel reçue.
     usage: /duelaccept [deny]
     permission: crew.command.duelaccept
   duelarena:
     description: "Admin : configure l'arène de duel (coins, sauvegarde, restauration manuelle)."
-    usage: /duelarena <corner1|corner2|save|reset>
+    usage: /duelarena [1|2] <corner1|corner2|save|reset>
     permission: crew.admin
   rank:
-    description: Affiche ou gère les rôles (Player/Vip/Mod/Dev/Fonda) affichés dans le tab.
+    description: Affiche ou gère les rôles affichés dans le tab.
     usage: /rank [joueur|list|set <joueur> <rôle>|clear <joueur>]
     permission: crew.rank.set
   staff:
@@ -155,7 +172,19 @@ permissions:
   crew.role.fonda:
     description: Rôle Fondateur.
     default: false
+  crew.role.tester:
+    description: Rôle Testeur.
+    default: false
+  crew.role.youtubeur:
+    description: Rôle YouTubeur.
+    default: false
 
+  crew.command.moneybag:
+    description: Permet d'utiliser /moneybag.
+    default: true
+  crew.command.spectate:
+    description: Permet d'observer les duels.
+    default: true
   crew.command.balance:
     description: Permet d'utiliser /balance et /bal.
     default: true
@@ -197,6 +226,12 @@ permissions:
     default: true
   crew.command.tpaccept:
     description: Permet d'utiliser /tpaccept.
+    default: true
+  crew.command.tpacceptall:
+    description: Permet d'utiliser /tpacceptall.
+    default: true
+  crew.command.tpacceptteam:
+    description: Permet d'utiliser /tpacceptteam.
     default: true
   crew.command.claim:
     description: Permet d'utiliser /claim et /claims.

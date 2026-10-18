@@ -41,7 +41,7 @@ public class SellGuiManager {
             return taggedPrice;
         }
 
-        double basePrice = pricesManager.getPrice(stack.getType());
+        double basePrice = pricesManager.getPrice(stack);
         double contentValue = getShulkerContentValue(stack);
 
         if (basePrice <= 0 && contentValue <= 0) {
@@ -95,10 +95,6 @@ public class SellGuiManager {
                 gui.setItem(i, filler.clone());
             }
         }
-        for (int emptySlot : new int[]{25, 32, 33, 34}) {
-            gui.setItem(emptySlot, null);
-        }
-
         ConfigurationSection slots = plugin.getConfig().getConfigurationSection("sell-gui.slots");
         if (slots != null) {
             for (String key : slots.getKeys(false)) {
@@ -130,6 +126,12 @@ public class SellGuiManager {
 
         // Bouton Search fixe (Custom Model Data 16 via GuiItems).
         renderSearchButtons(gui, false);
+
+        // Ces quatre emplacements doivent toujours utiliser le modèle ItemsAdder demandé.
+        ItemStack sellBotFiller = itemsAdderItem("server:fill_button", new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
+        for (int emptySlot : new int[]{25, 32, 33, 34}) {
+            gui.setItem(emptySlot, sellBotFiller.clone());
+        }
     }
 
     private int[] getSearchSlots() {
@@ -456,6 +458,15 @@ public class SellGuiManager {
         for (ItemStack leftover : player.getInventory().addItem(stack).values()) {
             player.getWorld().dropItem(player.getLocation(), leftover);
         }
+    }
+
+    private ItemStack itemsAdderItem(String id, ItemStack fallback) {
+        try {
+            dev.lone.itemsadder.api.CustomStack custom = dev.lone.itemsadder.api.CustomStack.getInstance(id);
+            if (custom != null && custom.getItemStack() != null) return custom.getItemStack().clone();
+        } catch (Throwable ignored) {
+        }
+        return fallback;
     }
 
     public void returnItems(Player player, Inventory gui, SellHolder holder) {

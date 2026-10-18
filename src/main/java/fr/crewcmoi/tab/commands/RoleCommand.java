@@ -78,8 +78,9 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
             Messages.send(sender, "roles.set", java.util.Map.of("player", target.getName(), "role", roleManager.getPrefix(role)), true);
 
             if (target.isOnline()) {
-                tabListManager.applyRole((Player) target);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> tabListManager.applyRole((Player) target), 3L);
             }
+            Bukkit.getScheduler().runTaskLater(plugin, tabListManager::refreshAll, 4L);
             return true;
         }
 
@@ -101,8 +102,9 @@ public class RoleCommand implements CommandExecutor, TabCompleter {
             Messages.send(sender, "roles.cleared", java.util.Map.of("player", target.getName()), true);
 
             if (target.isOnline()) {
-                tabListManager.applyRole((Player) target);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> tabListManager.applyRole((Player) target), 3L);
             }
+            Bukkit.getScheduler().runTaskLater(plugin, tabListManager::refreshAll, 4L);
             return true;
         }
 

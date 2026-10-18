@@ -186,24 +186,18 @@ public class BountyManager {
                 Bukkit.getScheduler().runTask(plugin, () -> callback.accept(false));
                 return;
             }
-            databaseManager.deleteBountyEntry(entryId);
-            if (!entry.isServerBounty()) {
-                economyManager.deposit(entry.getContributorUuid(), entry.getAmount());
-            }
+            databaseManager.setBountyRejected(entryId, true);
 
             List<BountyEntry> remaining = databaseManager.getBounties(entry.getTargetUuid());
             double total = remaining.stream().mapToDouble(BountyEntry::getAmount).sum();
             double serverTotal = remaining.stream()
                     .filter(BountyEntry::isServerBounty)
-                    .mapToDouble(BountyEntry::getAmount)
-                    .sum();
+                    .mapToDouble(BountyEntry::getAmount).sum();
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 applyBountyDisplay(entry.getTargetUuid(), entry.getTargetName(), total);
                 Player target = Bukkit.getPlayer(entry.getTargetUuid());
-                if (target != null && target.isOnline()) {
-                    malusEffectManager.updateBountyEffect(target, serverTotal);
-                }
+                if (target != null && target.isOnline()) malusEffectManager.updateBountyEffect(target, serverTotal);
                 callback.accept(true);
             });
         });

@@ -3,7 +3,8 @@ package fr.crewcmoi;
 import fr.crewcmoi.claims.commands.ClaimCommand;
 import fr.crewcmoi.claims.gui.ClaimAuctionGuiManager;
 import fr.crewcmoi.claims.gui.ClaimAdminGuiManager;
-import fr.crewcmoi.claims.commands.ClaimAdminCommand;
+import fr.crewcmoi.admin.AdminCommand;
+import fr.crewcmoi.admin.AdminGuiManager;
 import fr.crewcmoi.claims.gui.ClaimSettingsGuiManager;
 import fr.crewcmoi.claims.gui.ClaimShopGuiManager;
 import fr.crewcmoi.claims.listeners.ClaimListener;
@@ -23,12 +24,18 @@ import fr.crewcmoi.teleport.commands.DelHomeCommand;
 import fr.crewcmoi.teleport.commands.SpawnCommand;
 import fr.crewcmoi.pvp.commands.TeamCommand;
 import fr.crewcmoi.teleport.commands.TpAcceptCommand;
+import fr.crewcmoi.teleport.commands.TpAcceptBulkCommand;
 import fr.crewcmoi.teleport.commands.TpaCommand;
 import fr.crewcmoi.teleport.commands.TpaHereCommand;
 import fr.crewcmoi.economie.commands.AuctionCommand;
 import fr.crewcmoi.economie.commands.BalanceCommand;
 import fr.crewcmoi.economie.commands.BalanceTopCommand;
 import fr.crewcmoi.economie.commands.MoneyCommand;
+import fr.crewcmoi.economie.commands.MoneyBagCommand;
+import fr.crewcmoi.economie.commands.ResetQuestCommand;
+import fr.crewcmoi.economie.listeners.MoneyBagListener;
+import fr.crewcmoi.economie.listeners.CrabClawListener;
+import fr.crewcmoi.economie.managers.CustomItemRecipeManager;
 import fr.crewcmoi.economie.commands.PayCommand;
 import fr.crewcmoi.economie.commands.SellCommand;
 import fr.crewcmoi.economie.gui.AuctionGuiManager;
@@ -64,9 +71,15 @@ import fr.crewcmoi.pvp.commands.BountyCommand;
 import fr.crewcmoi.pvp.commands.DuelAcceptCommand;
 import fr.crewcmoi.pvp.commands.DuelArenaCommand;
 import fr.crewcmoi.pvp.commands.DuelCommand;
+import fr.crewcmoi.pvp.commands.SpectateCommand;
+import fr.crewcmoi.pvp.managers.SpectateManager;
 import fr.crewcmoi.pvp.gui.BountyGuiManager;
 import fr.crewcmoi.pvp.gui.BountyReviewGuiManager;
 import fr.crewcmoi.pvp.gui.DuelConfigGuiManager;
+import fr.crewcmoi.pvp.gui.TeamGuiManager;
+import fr.crewcmoi.pvp.gui.TeamRequestGuiManager;
+import fr.crewcmoi.pvp.teamrequest.TeamRequestManager;
+import fr.crewcmoi.pvp.gui.TeamGuiListener;
 import fr.crewcmoi.pvp.listeners.BountyListener;
 import fr.crewcmoi.pvp.listeners.CombatListener;
 import fr.crewcmoi.pvp.listeners.DuelArenaListener;
@@ -146,9 +159,11 @@ public class Main extends JavaPlugin {
     private ClaimVisualizer claimVisualizer;
     private ClaimAuctionGuiManager claimAuctionGuiManager;
     private ClaimAdminGuiManager claimAdminGuiManager;
+    private AdminGuiManager adminGuiManager;
     private DuelManager duelManager;
     private fr.crewcmoi.pvp.managers.DuelKitManager duelKitManager;
     private DuelConfigGuiManager duelConfigGuiManager;
+    private TeamGuiManager teamGuiManager;
     private DuelArenaManager duelArenaManager;
     private InvisibilityManager invisibilityManager;
     private RoleManager roleManager;
@@ -163,12 +178,81 @@ public class Main extends JavaPlugin {
     private PetGuiManager petGuiManager;
     private FishermanGuiManager fishermanGuiManager;
     private QuestManager questManager;
+    private SpectateManager spectateManager;
+    private TeamRequestManager teamRequestManager;
+    private TeamRequestGuiManager teamRequestGuiManager;
+    private CrabClawListener crabClawListener;
+
+    private void loadSplitConfiguration() {
+        java.util.Map<String, java.util.List<String>> files = new java.util.LinkedHashMap<>();
+        files.put("economy.yml", java.util.List.of("economy", "coin-item", "fisherman", "sell-gui"));
+        files.put("pvp.yml", java.util.List.of("combat-log", "player-head-drop", "bounty", "team", "duel"));
+        files.put("claims.yml", java.util.List.of("claims"));
+        files.put("teleport.yml", java.util.List.of("spawn", "tpa", "homes"));
+        files.put("items.yml", java.util.List.of("flying-banana", "knife", "pets"));
+        files.put("halloween.yml", java.util.List.of("halloween"));
+        files.put("quests.yml", java.util.List.of("quest-master", "quest-world", "quest-visibility", "sellbot", "npcs"));
+        files.put("lootbox.yml", java.util.List.of("lootbox-teleport"));
+
+        for (var entry : files.entrySet()) {
+            File file = new File(getDataFolder(), entry.getKey());
+            if (!file.exists()) {
+                YamlConfiguration split = new YamlConfiguration();
+                try (java.io.InputStream stream = getResource(entry.getKey())) {
+                    if (stream != null) {
+                        split = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+                    }
+                } catch (IOException exception) {
+                    getLogger().warning("Impossible de lire " + entry.getKey() + " : " + exception.getMessage());
+                }
+                for (String section : entry.getValue()) {
+                    if (getConfig().isConfigurationSection(section)) {
+                        var oldSection = getConfig().getConfigurationSection(section);
+                        for (var value : oldSection.getValues(true).entrySet()) {
+                            if (!(value.getValue() instanceof org.bukkit.configuration.ConfigurationSection)) {
+                                split.set(section + "." + value.getKey(), value.getValue());
+                            }
+                        }
+                    }
+                }
+                try { getDataFolder().mkdirs(); split.save(file); }
+                catch (IOException exception) { getLogger().severe("Impossible de créer " + entry.getKey() + " : " + exception.getMessage()); }
+            }
+        }
+
+        boolean removedFromMain = false;
+        for (var entry : files.entrySet()) {
+            for (String section : entry.getValue()) {
+                if (getConfig().contains(section)) {
+                    getConfig().set(section, null);
+                    removedFromMain = true;
+                }
+            }
+        }
+        if (removedFromMain) saveConfig();
+        reloadConfig();
+
+        for (var entry : files.entrySet()) {
+            File file = new File(getDataFolder(), entry.getKey());
+            YamlConfiguration split = YamlConfiguration.loadConfiguration(file);
+            for (String section : entry.getValue()) {
+                if (split.isConfigurationSection(section)) {
+                    for (var value : split.getConfigurationSection(section).getValues(true).entrySet()) {
+                        if (!(value.getValue() instanceof org.bukkit.configuration.ConfigurationSection)) {
+                            getConfig().set(section + "." + value.getKey(), value.getValue());
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     public void onEnable() {
         instance = this;
 
         saveDefaultConfig();
+        loadSplitConfiguration();
         setupMessages();
 
         registerCustomMaceRecipe();
@@ -191,6 +275,8 @@ public class Main extends JavaPlugin {
         this.combatManager = new CombatManager(this);
         this.combatManager.startActionBar();
         this.teamManager = new TeamManager(this, databaseManager);
+        this.teamRequestManager = new TeamRequestManager(this);
+        this.teamRequestGuiManager = new TeamRequestGuiManager(this, teamManager, teamRequestManager, economyManager);
         this.malusEffectManager = new MalusEffectManager(this);
 
         this.playerTeamManager = new PlayerTeamManager(this);
@@ -212,9 +298,13 @@ public class Main extends JavaPlugin {
         this.claimVisualizer = new ClaimVisualizer(this, claimManager);
         this.claimAuctionGuiManager = new ClaimAuctionGuiManager(this, claimManager);
         this.claimAdminGuiManager = new ClaimAdminGuiManager(this, claimManager, claimSettingsGuiManager);
+        this.adminGuiManager = new AdminGuiManager(this, bountyReviewGuiManager, claimAdminGuiManager, homeAdminGuiManager, playerAdminGuiManager);
         this.duelKitManager = new fr.crewcmoi.pvp.managers.DuelKitManager(this);
         this.duelManager = new DuelManager(this, economyManager, combatManager);
+        this.spectateManager = new SpectateManager(this, duelManager);
+        getServer().getPluginManager().registerEvents(spectateManager, this);
         this.duelConfigGuiManager = new DuelConfigGuiManager(this, duelManager);
+        this.teamGuiManager = new TeamGuiManager(this, teamManager);
         this.duelArenaManager = new DuelArenaManager(this);
         this.duelManager.setDuelArenaManager(this.duelArenaManager);
         this.roleManager = new RoleManager(this);
@@ -226,14 +316,16 @@ public class Main extends JavaPlugin {
         this.petGuiManager = new PetGuiManager(this, petManager);
         this.fishermanGuiManager = new FishermanGuiManager(this, economyManager);
         getServer().getPluginManager().registerEvents(new JoinListener(this, economyManager, teamManager, bountyManager, malusEffectManager, claimVisualizer, auctionManager), this);
-        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager, claimAdminGuiManager, fishermanGuiManager, homeGuiManager, homeShopGuiManager, homeAdminGuiManager, playerAdminGuiManager), this);
+        getServer().getPluginManager().registerEvents(new GuiListener(this, sellGuiManager, auctionManager, auctionGuiManager, bountyGuiManager, claimManager, claimSettingsGuiManager, claimShopGuiManager, bountyReviewGuiManager, bountyManager, claimAuctionGuiManager, claimAdminGuiManager, fishermanGuiManager, homeGuiManager, homeShopGuiManager, homeAdminGuiManager, playerAdminGuiManager, adminGuiManager), this);
         getServer().getPluginManager().registerEvents(new HalloweenListener(halloweenManager, halloweenGuiManager), this);
         getServer().getPluginManager().registerEvents(new BountyListener(this, bountyManager, combatManager, teamManager, economyManager, invisibilityManager), this);
         getServer().getPluginManager().registerEvents(new CombatListener(this, combatManager, malusEffectManager), this);
 
+
         getServer().getPluginManager().registerEvents(new PvpRulesListener(combatManager), this);
         getServer().getPluginManager().registerEvents(new ClaimListener(this, claimManager), this);
         getServer().getPluginManager().registerEvents(new DuelListener(this, duelManager, duelConfigGuiManager), this);
+        getServer().getPluginManager().registerEvents(new TeamGuiListener(this, teamManager, teamGuiManager, teamRequestGuiManager, teamRequestManager), this);
         getServer().getPluginManager().registerEvents(new PlayerHeadDropListener(this, duelManager), this);
         getServer().getPluginManager().registerEvents(new DuelArenaListener(duelArenaManager), this);
 
@@ -250,7 +342,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TabListListener(tabListManager), this);
         getServer().getPluginManager().registerEvents(new ChatRoleListener(roleManager), this);
         getServer().getPluginManager().registerEvents(new QuestListener(this, questManager), this);
-        getServer().getPluginManager().registerEvents(new QuestCommandListener(), this);
+        getServer().getPluginManager().registerEvents(new QuestCommandListener(this), this);
 
         getServer().getPluginManager().registerEvents(new StaffModeListener(staffModeManager, roleManager), this);
         
@@ -270,6 +362,12 @@ public class Main extends JavaPlugin {
         
         if (getServer().getPluginManager().isPluginEnabled("ItemsAdder")) {
             getServer().getPluginManager().registerEvents(new CoinItemListener(this, economyManager), this);
+            getServer().getPluginManager().registerEvents(new MoneyBagListener(this, economyManager), this);
+            this.crabClawListener = new CrabClawListener(this);
+            getServer().getPluginManager().registerEvents(crabClawListener, this);
+            CustomItemRecipeManager customItemRecipeManager = new CustomItemRecipeManager(this);
+            getServer().getPluginManager().registerEvents(customItemRecipeManager, this);
+            Bukkit.getScheduler().runTaskLater(this, customItemRecipeManager::registerRecipes, 20L);
             getServer().getPluginManager().registerEvents(new FlyingBananaListener(this), this);
             getServer().getPluginManager().registerEvents(new KnifeListener(this), this);
             getServer().getPluginManager().registerEvents(new fr.crewcmoi.economie.listeners.LootboxKeyTeleportListener(this), this);
@@ -307,17 +405,23 @@ public class Main extends JavaPlugin {
 
         registerCommand("balance", new BalanceCommand(this, economyManager));
         registerCommand("money", new MoneyCommand(this, economyManager));
+        registerCommand("reset", new ResetQuestCommand(this));
+        if (Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")) {
+            registerCommand("moneybag", new MoneyBagCommand(this, economyManager));
+        }
         registerCommand("baltop", new BalanceTopCommand(this, economyManager));
         registerCommand("sell", new SellCommand(sellGuiManager, pricesManager));
         registerCommand("pay", new PayCommand(this, economyManager));
         registerCommand("ah", new AuctionCommand(this, auctionManager, auctionGuiManager));
-        registerCommand("team", new TeamCommand(this, teamManager));
+        registerCommand("team", new TeamCommand(this, teamManager, teamGuiManager, teamRequestGuiManager));
         registerCommand("bounty", new BountyCommand(this, bountyManager, bountyGuiManager, bountyReviewGuiManager));
         registerCommand("info", new InfoCommand(this, bountyManager, malusEffectManager));
         registerCommand("spawn", new SpawnCommand(this));
         registerCommand("tpa", new TpaCommand(this, teleportManager, combatManager));
         registerCommand("tpahere", new TpaHereCommand(this, teleportManager, combatManager));
         registerCommand("tpaccept", new TpAcceptCommand(this, teleportManager));
+        registerCommand("tpacceptall", new TpAcceptBulkCommand(this, teleportManager, false));
+        registerCommand("tpacceptteam", new TpAcceptBulkCommand(this, teleportManager, true));
         registerCommand("sethome", new SetHomeCommand(this, homeManager));
         registerCommand("home", new HomeCommand(this, homeManager, homeGuiManager));
         registerCommand("delhome", new DelHomeCommand(homeManager));
@@ -327,9 +431,10 @@ public class Main extends JavaPlugin {
         ClaimCommand claimCommand = new ClaimCommand(this, claimManager, claimSettingsGuiManager, claimShopGuiManager, claimVisualizer, claimAuctionGuiManager);
         registerCommand("claim", claimCommand);
         registerCommand("claims", claimCommand);
-        registerCommand("claimadmin", new ClaimAdminCommand(claimAdminGuiManager));
+        registerCommand("admin", new AdminCommand(adminGuiManager, claimManager));
         registerCommand("duel", new DuelCommand(this, duelManager, duelConfigGuiManager, combatManager));
         registerCommand("duelaccept", new DuelAcceptCommand(this, duelManager));
+        registerCommand("spectate", new SpectateCommand(spectateManager));
         registerCommand("duelarena", new DuelArenaCommand(duelArenaManager));
         registerCommand("rank", new RoleCommand(this, roleManager, tabListManager));
         registerCommand("staff", new StaffCommand(staffModeManager, roleManager, vanishManager));
@@ -350,9 +455,12 @@ public class Main extends JavaPlugin {
         if (questManager != null) {
             questManager.shutdown();
         }
+        if (teamRequestManager != null) teamRequestManager.close();
         if (petManager != null) {
             petManager.shutdown();
         }
+        if (spectateManager != null) spectateManager.shutdown();
+        if (crabClawListener != null) crabClawListener.shutdown();
         if (webDashboardServer != null) {
             webDashboardServer.stop();
         }

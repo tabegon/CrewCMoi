@@ -27,9 +27,6 @@ public class QuestMasterNpcListener implements Listener {
         if (plugin.getQuestManager().turnInQuest2Item(player)) {
             return;
         }
-        if (!plugin.getQuestManager().isCompleted(player)) {
-            player.sendMessage("J'aimerais que vous me trouviez mon ami dans ce monde");
-        }
         guiManager.open(player);
     }
 }

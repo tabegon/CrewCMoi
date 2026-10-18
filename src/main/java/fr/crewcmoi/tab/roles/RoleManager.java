@@ -29,6 +29,7 @@ public class RoleManager {
         this.plugin = plugin;
         this.rolesFile = new File(plugin.getDataFolder(), "roles.yml");
         load();
+        synchronizeLuckPermsWeights();
     }
 
     private void load() {
@@ -49,6 +50,28 @@ public class RoleManager {
         manualRoles.clear();
     }
 
+
+    private void synchronizeLuckPermsWeights() {
+        if (!Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) return;
+        for (Role role : Role.values()) {
+            String group = plugin.getConfig().getString(
+                    "roles." + role.getId() + ".luckperms-group", role.getId()).trim();
+            int weight = plugin.getConfig().getInt(
+                    "roles." + role.getId() + ".luckperms-weight", role.getWeight());
+            if (group.isEmpty()) group = role.getId();
+
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp creategroup " + group);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    "lp group " + group + " setweight " + weight);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    "lp group " + group + " permission set " + getPermission(role) + " true");
+            if (!group.equalsIgnoreCase("default")) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "lp group " + group + " parent add default");
+            }
+        }
+    }
+
     private void save() {
         for (Map.Entry<UUID, Role> entry : manualRoles.entrySet()) {
             rolesConfig.set("players." + entry.getKey(), entry.getValue().getId());
@@ -65,22 +88,44 @@ public class RoleManager {
         OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
         String name = player.getName();
         if (name == null || name.isBlank()) return false;
-        manualRoles.remove(uuid);
-        rolesConfig.set("players." + uuid, null);
-        save();
-        String group = plugin.getConfig().getString("roles." + role.getId() + ".luckperms-group", role.getId());
-        return Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + name + " parent set " + group);
+
+        for (Role existing : Role.values()) {
+            String group = plugin.getConfig().getString(
+                    "roles." + existing.getId() + ".luckperms-group", existing.getId());
+            Bukkit.dispatchCommand(
+                    Bukkit.getConsoleSender(), "lp user " + name + " parent remove " + group);
+        }
+
+        String newGroup = plugin.getConfig().getString(
+                "roles." + role.getId() + ".luckperms-group", role.getId());
+        boolean added = Bukkit.dispatchCommand(
+                Bukkit.getConsoleSender(), "lp user " + name + " parent add " + newGroup);
+
+        if (added) {
+            synchronizeLuckPermsWeights();
+            manualRoles.remove(uuid);
+            rolesConfig.set("players." + uuid, null);
+            save();
+        }
+        return added;
     }
 
     public boolean clearRole(UUID uuid) {
-        boolean hadManual = manualRoles.remove(uuid) != null;
-        rolesConfig.set("players." + uuid, null);
-        save();
         OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
         String name = player.getName();
-        if (name == null || name.isBlank()) return hadManual;
-        String group = plugin.getConfig().getString("roles.player.luckperms-group", "player");
-        return Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + name + " parent set " + group);
+        if (name == null || name.isBlank()) return false;
+
+        for (Role role : Role.values()) {
+            String group = plugin.getConfig().getString(
+                    "roles." + role.getId() + ".luckperms-group", role.getId());
+            Bukkit.dispatchCommand(
+                    Bukkit.getConsoleSender(), "lp user " + name + " parent remove " + group);
+        }
+
+        manualRoles.remove(uuid);
+        rolesConfig.set("players." + uuid, null);
+        save();
+        return true;
     }
 
     public Role getManualRole(UUID uuid) {
@@ -119,7 +164,8 @@ public class RoleManager {
 
         Role best = null;
         for (Role role : Role.values()) {
-            if (player.hasPermission(getPermission(role)) && (best == null || role.getWeight() < best.getWeight())) {
+            if (player.hasPermission(getPermission(role))
+                    && (best == null || role.getPriority() > best.getPriority())) {
                 best = role;
             }
         }

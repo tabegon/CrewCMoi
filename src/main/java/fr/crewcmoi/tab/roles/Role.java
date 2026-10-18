@@ -2,20 +2,24 @@ package fr.crewcmoi.tab.roles;
 
 public enum Role {
 
-    FONDA("fonda", "§f\uE509 ", 0),
-    DEV("dev", "§f\uE508 ", 1),
-    MOD("mod", "§f\uE507 ", 2),
-    VIP("vip", "§f\uE510 ", 3),
-    PLAYER("player", "§f\uE518 ", 4);
+    FONDA("fonda", "§f\uE509 ", 1000, 1000),
+    DEV("dev", "§f\uE508 ", 900, 900),
+    MOD("mod", "§f\uE507 ", 800, 800),
+    VIP("vip", "§f\uE510 ", 700, 700),
+    YOUTUBEUR("youtubeur", "§f\uE533 ", 600, 600),
+    TESTER("tester", "§f\uE534 ", 500, 500),
+    PLAYER("player", "§f\uE518 ", 100, 100);
 
     private final String id;
     private final String defaultPrefix;
     private final int weight;
+    private final int priority;
 
-    Role(String id, String defaultPrefix, int weight) {
+    Role(String id, String defaultPrefix, int weight, int priority) {
         this.id = id;
         this.defaultPrefix = defaultPrefix;
         this.weight = weight;
+        this.priority = priority;
     }
 
     public String getId() {
@@ -30,6 +34,10 @@ public enum Role {
         return weight;
     }
 
+    public int getPriority() {
+        return priority;
+    }
+
     public static Role getDefault() {
         return PLAYER;
     }
@@ -39,13 +47,9 @@ public enum Role {
     }
 
     public static Role fromId(String id) {
-        if (id == null) {
-            return null;
-        }
+        if (id == null) return null;
         for (Role role : values()) {
-            if (role.id.equalsIgnoreCase(id)) {
-                return role;
-            }
+            if (role.id.equalsIgnoreCase(id)) return role;
         }
         return null;
     }

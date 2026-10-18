@@ -1,0 +1,28 @@
+lootbox-teleport:
+  key-itemsadder-id: server:halloween_crate_key
+  queue-check-ticks: 10
+  destinations:
+    destination1:
+      name: Emplacement 1
+      world: test
+      x: -52.0
+      y: -60.0
+      z: 97.0
+      yaw: 0.0
+      pitch: 0.0
+      occupancy-radius: 5.0
+    destination2:
+      name: Emplacement 2
+      world: test
+      x: -52.0
+      y: -60.0
+      z: 97.0
+      yaw: 0.0
+      pitch: 0.0
+      occupancy-radius: 5.0
+  messages:
+    all-occupied: '&cTous les emplacements de lootbox sont actuellement occupés.'
+    queued: '&eLes deux salles sont occupées. &7Vous êtes ajouté à la file d''attente (&f#%position%&7).'
+    teleported-from-queue: '&dUne salle de lootbox vient de se libérer ! &7Vous êtes téléporté vers &5%destination%&7.'
+    queue-no-key: '&cVous n''avez plus la clé de lootbox, vous avez été retiré de la file d''attente.'
+    configuration-error: '&cAucune destination de téléportation de lootbox n''est configurée.'

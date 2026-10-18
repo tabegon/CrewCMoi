@@ -8,6 +8,8 @@ import fr.crewcmoi.economie.managers.EconomyManager;
 import fr.crewcmoi.pvp.managers.MalusEffectManager;
 import fr.crewcmoi.pvp.managers.TeamManager;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -38,6 +40,9 @@ public class JoinListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        if (!player.hasPlayedBefore()) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 30 * 60 * 20, 1));
+        }
         economyManager.loadPlayer(player.getUniqueId(), player.getName());
         teamManager.loadPlayer(player.getUniqueId());
         bountyManager.refreshBountyDisplayOnJoin(player.getUniqueId(), player.getName());

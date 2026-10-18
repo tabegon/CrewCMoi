@@ -39,6 +39,10 @@ public class TeamManager {
         SUCCESS, NO_PENDING_INVITE, INVITER_OFFLINE, TARGET_ALREADY_IN_TEAM, TEAM_GONE, ERROR
     }
 
+    public enum PromoteResult {
+        SUCCESS, NO_TEAM, NOT_OWNER, TARGET_NOT_IN_TEAM, CANNOT_PROMOTE_SELF, MAX_RANK, ERROR
+    }
+
     public void loadPlayer(UUID uuid) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             TeamData team = databaseManager.getTeamByPlayer(uuid);
@@ -221,6 +225,62 @@ public class TeamManager {
             }
 
             Bukkit.getScheduler().runTask(plugin, () -> callback.accept(true));
+        });
+    }
+
+    public void removeMember(UUID playerUuid, Consumer<Boolean> callback) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            TeamData team = databaseManager.getTeamByPlayer(playerUuid);
+            if (team == null || team.isOwner(playerUuid)) {
+                Bukkit.getScheduler().runTask(plugin, () -> callback.accept(false));
+                return;
+            }
+            databaseManager.removeTeamMember(playerUuid);
+            playerTeamCache.remove(playerUuid);
+            Bukkit.getScheduler().runTask(plugin, () -> callback.accept(true));
+        });
+    }
+
+    public void promoteMember(Player promoter, String targetName, Consumer<PromoteResult> callback) {
+        UUID promoterUuid = promoter.getUniqueId();
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            TeamData team = databaseManager.getTeamByPlayer(promoterUuid);
+            if (team == null) {
+                Bukkit.getScheduler().runTask(plugin, () -> callback.accept(PromoteResult.NO_TEAM));
+                return;
+            }
+            if (!team.isOwner(promoterUuid)) {
+                Bukkit.getScheduler().runTask(plugin, () -> callback.accept(PromoteResult.NOT_OWNER));
+                return;
+            }
+            UUID targetUuid = null;
+            for (Map.Entry<UUID, String> member : team.getMembers().entrySet()) {
+                if (member.getValue().equalsIgnoreCase(targetName)) {
+                    targetUuid = member.getKey();
+                    break;
+                }
+            }
+            if (targetUuid == null) {
+                Bukkit.getScheduler().runTask(plugin, () -> callback.accept(PromoteResult.TARGET_NOT_IN_TEAM));
+                return;
+            }
+            if (promoterUuid.equals(targetUuid)) {
+                Bukkit.getScheduler().runTask(plugin, () -> callback.accept(PromoteResult.CANNOT_PROMOTE_SELF));
+                return;
+            }
+            String currentRole = team.getRole(targetUuid);
+            String nextRole = switch (currentRole) {
+                case "MEMBER" -> "OFFICER";
+                case "OFFICER" -> "CO_FOUNDER";
+                case "CO_FOUNDER" -> "FOUNDER";
+                default -> null;
+            };
+            if (nextRole == null) {
+                Bukkit.getScheduler().runTask(plugin, () -> callback.accept(PromoteResult.MAX_RANK));
+                return;
+            }
+            boolean success = databaseManager.promoteTeamMember(team.getId(), targetUuid, nextRole, promoterUuid);
+            Bukkit.getScheduler().runTask(plugin, () -> callback.accept(success ? PromoteResult.SUCCESS : PromoteResult.ERROR));
         });
     }
 

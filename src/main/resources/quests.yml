@@ -1,0 +1,147 @@
+quest-master:
+  title: '&8&lQuest Master'
+  random-teleport:
+    material: NETHER_STAR
+    display-name: '&7&lTéléportation aléatoire'
+    lore:
+    - '&7Téléporte-toi aléatoirement'
+    - '&7dans le monde &equest&7.'
+  quest-1:
+    mythic-mob: Electric_Goat
+    search-radius-min: 180
+    search-radius-max: 220
+    compass-update-ticks: 10
+    horn:
+      itemsadder-id: server:electric_ghoast_item
+      turn-in-reward-itemsadder-id: server:electric_goat_horn_broken
+    messages:
+      locked: '&cTu dois terminer l''énigme avant de commencer cette quête.'
+      started: 'ᴛᴜᴇ ᴄᴇᴛᴛᴇ ᴇʟᴇᴄᴛʀɪᴄ ɢᴏᴀᴛ ᴘᴏᴜʀ ᴍᴏɪ ᴇᴛ ᴅᴏɴɴᴇ ᴍᴏɪ ꜱᴀ ᴄᴏʀɴᴇ.'
+      horn-obtained: '&aTu as récupéré server:electric_ghoast_item ! &7Retourne voir le Quest Master.'
+      completed: 'ᴍᴇʀᴄɪ ᴀ̀ ᴛᴏɪ ᴊᴇ ᴛᴇ ᴅᴏɴɴᴇ ʟᴀ ᴍᴏɪᴛɪᴇ́, ᴀɪɴꜱɪ ǫᴜ''ᴜɴ ᴄᴏꜱᴍᴇᴛɪǫᴜᴇ ᴠᴀ ᴠᴏɪʀ ʟᴇ ɴᴘᴄ ᴀ̀ ᴄᴏᴛᴇ́ ᴅᴇ ʟᴀ ᴍᴀɪꜱᴏɴ ᴅᴜ ꜱᴇʟʟʙᴏᴛ.'
+      already-completed: '&aTu as déjà terminé cette quête.'
+      wrong-killer: '&cTu dois battre toi-même l''Electric Goat pour obtenir son objet.'
+  quest-2:
+    reward:
+      itemsadder-id: ''
+      material: PAPER
+    messages:
+      locked: '&cTu dois terminer la première quête avant de commencer celle-ci.'
+      started: 'ᴛʀᴏᴜᴠᴇ ᴍᴏɪ ᴅᴜ ᴘᴀᴘɪᴇʀ.'
+      completed: 'ᴍᴇʀᴄɪ ᴊᴇ ꜱᴀɪꜱ ᴄᴇ ǫᴜ''ɪʟ ᴍᴇ ᴍᴀɴǫᴜᴇ, ᴛᴜ ᴘᴇᴜx ᴀʟʟᴇʀ ᴠᴇɴᴅʀᴇ ᴛᴇꜱ ᴏʙᴊᴇᴛꜱ ᴀᴜ ꜱᴇʟʟ ʙᴏᴛ.'
+      already-completed: '&aTu as déjà terminé cette quête.'
+      world-unavailable: '&cLe monde quest n''est pas disponible.'
+    wardrobe-access:
+      grant: true
+      permission-command: lp user %player% permission set cosmeticscore.user.wardrobe.enterarea true
+    first-cosmetic:
+      id: ''
+      grant-permissions: true
+      permission-commands:
+      - lp user %player% permission set cosmeticscore.user.cosmetics.seeingui.%cosmetic% true
+      - lp user %player% permission set cosmeticscore.user.cosmetics.wear.%cosmetic% true
+      commands: []
+  slots:
+    '10':
+      display-name: '&a&lElectric Goat'
+      lore:
+      - '&7Partez à la recherche de l''Electric Goat.'
+      - '&7Battez-le et rapportez sa corne.'
+      completed:
+        display-name: '&a&lElectric Goat &2✓'
+        lore:
+        - '&aQuête terminée !'
+        - '&7Le NPC des cosmétiques est désormais accessible.'
+    '11':
+      display-name: '&c&lLocked Boss'
+      lore:
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
+      unlocked:
+        itemsadder-id: ''
+        material: PAPER
+        custom-model-data: 0
+        display-name: '&b&lÉnigme'
+        lore:
+        - '&7Résous l''énigme dans le monde quest.'
+        - '&7Rapporte ensuite l''objet au Quest Master.'
+      completed:
+        display-name: '&b&lÉnigme &2✓'
+        lore:
+        - '&aQuête terminée !'
+        - '&7Le SellBot est désormais accessible.'
+    '12':
+      display-name: '&c&lLocked Boss'
+      lore:
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
+    '13':
+      display-name: '&c&lLocked Boss'
+      lore:
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
+    '14':
+      display-name: '&c&lLocked Boss'
+      lore:
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
+    '15':
+      display-name: '&c&lLocked Boss'
+      lore:
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
+    '16':
+      display-name: '&c&lLocked Boss'
+      lore:
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
+quest-world:
+  name: quest
+  border:
+    center-x: 0
+    center-z: 0
+    size: 2000
+  seed-pool:
+    seed-1:
+      seed: 1698939616
+      mountains:
+      - x: 0
+        y: 251
+        z: 0
+    seed-2:
+      seed: 53149100
+      mountains:
+      - x: 10
+        y: 167
+        z: 10
+    seed-3:
+      seed: 23901624190
+      mountains:
+      - x: 0
+        y: 119
+        z: 0
+      - x: -266
+        y: 141
+        z: -71
+      - x: -649
+        y: 90
+        z: -319
+quest-visibility:
+  locked-entity-uuids:
+  - -1897302195,-753776902,-1108047104,2042727389
+  - 1290637293,1606108740,-1518603030,-2041268223
+  - -2100547630,-651475239,-1329318179,2098900653
+sellbot:
+  require-quest: true
+  model-armorstand-radius: 4.0
+  entity-uuids:
+  - 9e4af15d-dc74-4e56-9b7c-a5d706021d7b
+  - 61249442-f710-41c3-b8e3-5a1bd8384003
+  - cb1901ae-3ead-4244-ab02-196b1118e627
+  - c7a9c361-222b-4543-b68e-e1357acd7a6c
+npcs:
+  sell: 16
+  cosmetics: 12
+  quest-master: 1
+  fisherman: 4
+  halloween: 7

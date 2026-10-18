@@ -2,10 +2,13 @@ package fr.crewcmoi.other.listeners;
 import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
+import fr.crewcmoi.admin.AdminGuiHolder;
+import fr.crewcmoi.admin.AdminGuiManager;
 import fr.crewcmoi.claims.database.ClaimFlag;
 import fr.crewcmoi.claims.database.ClaimPermission;
 import fr.crewcmoi.economie.gui.AuctionGuiManager;
 import fr.crewcmoi.economie.gui.AuctionHolder;
+import fr.crewcmoi.economie.auction.AuctionItem;
 import fr.crewcmoi.economie.gui.BaltopHolder;
 import fr.crewcmoi.economie.gui.FishermanBuyHolder;
 import fr.crewcmoi.economie.gui.FishermanGuiManager;
@@ -40,6 +43,8 @@ import fr.crewcmoi.teleport.gui.PlayerAdminGuiManager;
 import fr.crewcmoi.economie.managers.AuctionManager;
 import fr.crewcmoi.pvp.managers.BountyManager;
 import fr.crewcmoi.claims.managers.ClaimManager;
+import java.util.List;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -70,6 +75,7 @@ public class GuiListener implements Listener {
     private final HomeAdminGuiManager homeAdminGuiManager;
     private final PlayerAdminGuiManager playerAdminGuiManager;
     private final QuestMasterGuiManager questMasterGuiManager;
+    private final AdminGuiManager adminGuiManager;
 
     public GuiListener(Main plugin, SellGuiManager sellGuiManager, AuctionManager auctionManager,
                         AuctionGuiManager auctionGuiManager, BountyGuiManager bountyGuiManager,
@@ -78,7 +84,7 @@ public class GuiListener implements Listener {
                         BountyManager bountyManager, ClaimAuctionGuiManager claimAuctionGuiManager,
                         ClaimAdminGuiManager claimAdminGuiManager, FishermanGuiManager fishermanGuiManager,
                         HomeGuiManager homeGuiManager, HomeShopGuiManager homeShopGuiManager,
-                        HomeAdminGuiManager homeAdminGuiManager, PlayerAdminGuiManager playerAdminGuiManager) {
+                        HomeAdminGuiManager homeAdminGuiManager, PlayerAdminGuiManager playerAdminGuiManager, AdminGuiManager adminGuiManager) {
         this.plugin = plugin;
         this.sellGuiManager = sellGuiManager;
         this.auctionManager = auctionManager;
@@ -96,6 +102,7 @@ public class GuiListener implements Listener {
         this.homeShopGuiManager = homeShopGuiManager;
         this.homeAdminGuiManager = homeAdminGuiManager;
         this.playerAdminGuiManager = playerAdminGuiManager;
+        this.adminGuiManager = adminGuiManager;
         this.questMasterGuiManager = new QuestMasterGuiManager(plugin);
     }
 
@@ -103,7 +110,9 @@ public class GuiListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         InventoryHolder holder = event.getInventory().getHolder();
 
-        if (holder instanceof SellHolder sellHolder) {
+        if (holder instanceof AdminGuiHolder) {
+            adminGuiManager.handleClick(event);
+        } else if (holder instanceof SellHolder sellHolder) {
             handleSellClick(event, sellHolder);
         } else if (holder instanceof AuctionHolder auctionHolder) {
             handleAuctionClick(event, auctionHolder);
@@ -147,7 +156,8 @@ public class GuiListener implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getInventory().getHolder() instanceof BaltopHolder) {
+        if (event.getInventory().getHolder() instanceof BaltopHolder
+                || event.getInventory().getHolder() instanceof AdminGuiHolder) {
             event.setCancelled(true);
         }
     }
@@ -176,7 +186,7 @@ public class GuiListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
         if (event.getRawSlot() == 10) {
-            plugin.getQuestManager().startQuest(player);
+            plugin.getQuestManager().startQuest2(player);
             return;
         }
 
@@ -184,7 +194,7 @@ public class GuiListener implements Listener {
             if (!plugin.getQuestManager().isCompleted(player)) {
                 return;
             }
-            plugin.getQuestManager().startQuest2(player);
+            plugin.getQuestManager().startQuest(player);
             return;
         }
 
@@ -311,35 +321,46 @@ public class GuiListener implements Listener {
             return;
         }
         int slot = event.getRawSlot();
-        if (slot < 0 || slot >= event.getInventory().getSize()) {
+        Inventory topInventory = event.getView().getTopInventory();
+        if (slot < 0 || slot >= topInventory.getSize()) {
             return;
         }
 
+        if (!holder.isMyListings() && slot == AuctionHolder.MY_LISTINGS_SLOT) {
+            player.closeInventory();
+            auctionGuiManager.openMyListings(player, 0);
+            return;
+        }
+
+        if (!holder.isMyListings() && slot == AuctionHolder.MAIN_BACK_SLOT) {
+            player.closeInventory();
+            return;
+        }
+        if (holder.isMyListings() && slot == AuctionHolder.MY_BACK_SLOT) {
+            auctionGuiManager.open(player, 0);
+            return;
+        }
         if (slot == AuctionHolder.PREV_PAGE_SLOT) {
-            if (holder.isMyListings()) {
-                auctionGuiManager.openMyListings(player, holder.getPage() - 1);
-            } else {
-                auctionGuiManager.open(player, holder.getPage() - 1);
+            if (holder.getPage() > 0) {
+                if (holder.isMyListings()) auctionGuiManager.openMyListings(player, holder.getPage() - 1);
+                else auctionGuiManager.open(player, holder.getPage() - 1);
             }
             return;
         }
         if (slot == AuctionHolder.NEXT_PAGE_SLOT) {
+            List<AuctionItem> pageAuctions = auctionManager.getCachedAuctions();
             if (holder.isMyListings()) {
-                auctionGuiManager.openMyListings(player, holder.getPage() + 1);
-            } else {
-                auctionGuiManager.open(player, holder.getPage() + 1);
+                pageAuctions = pageAuctions.stream()
+                        .filter(a -> a.getSellerUuid().equals(player.getUniqueId())).toList();
+            }
+            int perPage = holder.isMyListings() ? AuctionHolder.MY_ITEMS_PER_PAGE : AuctionHolder.MAIN_ITEMS_PER_PAGE;
+            int maxPage = Math.max(0, (pageAuctions.size() - 1) / perPage);
+            if (holder.getPage() < maxPage) {
+                if (holder.isMyListings()) auctionGuiManager.openMyListings(player, holder.getPage() + 1);
+                else auctionGuiManager.open(player, holder.getPage() + 1);
             }
             return;
         }
-        if (slot == AuctionHolder.MY_LISTINGS_SLOT) {
-            if (holder.isMyListings()) {
-                auctionGuiManager.open(player, 0);
-            } else {
-                auctionGuiManager.openMyListings(player, 0);
-            }
-            return;
-        }
-
         Integer auctionId = holder.getAuctionId(slot);
         if (auctionId == null) {
             return;
@@ -375,16 +396,18 @@ public class GuiListener implements Listener {
 
         if (slot == ConfirmationHolder.CONFIRM_SLOT) {
             holder.setResolved(true);
-            if (holder.getOnConfirm() != null) {
-                holder.getOnConfirm().run();
-            }
+            Runnable callback = holder.getOnConfirm();
             event.getWhoClicked().closeInventory();
+            if (callback != null) {
+                callback.run();
+            }
         } else if (slot == ConfirmationHolder.CANCEL_SLOT) {
             holder.setResolved(true);
-            if (holder.getOnCancel() != null) {
-                holder.getOnCancel().run();
-            }
+            Runnable callback = holder.getOnCancel();
             event.getWhoClicked().closeInventory();
+            if (callback != null) {
+                callback.run();
+            }
         }
     }
 
@@ -446,7 +469,10 @@ public class GuiListener implements Listener {
             return;
         }
 
-        ClaimPermission next = claim.getPermission(flag).next();
+        ClaimPermission current = claim.getPermission(flag);
+        ClaimPermission next = flag == ClaimFlag.MOB_GRIEFING
+                ? (current == ClaimPermission.EVERYONE ? ClaimPermission.OWNER_ONLY : ClaimPermission.EVERYONE)
+                : current.next();
         claimManager.setFlag(player, holder.getWorld(), holder.getChunkX(), holder.getChunkZ(), flag, next);
         claimSettingsGuiManager.render(holder);
     }
@@ -541,7 +567,7 @@ public class GuiListener implements Listener {
             bountyManager.denyBounty(entryId, success -> {
                 if (success) {
                     player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', prefix
-                            + "&cʀᴀɪꜱᴏɴ ʀᴇꜰᴜꜱᴇᴇ, ʟᴇ ᴄᴏɴᴛʀɪʙᴜᴛᴇᴜʀ ᴀ ᴇᴛᴇ ʀᴇᴍʙᴏᴜʀꜱᴇ."));
+                            + "&cʀᴀɪꜱᴏɴ ʀᴇꜰᴜꜱᴇᴇ : ʟᴀ ᴘʀɪᴍᴇ ʀᴇꜱᴛᴇ ꜱᴜʀ ʟᴇ ᴊᴏᴜᴇᴜʀ, ꜱᴀɴꜱ ʀᴇᴍʙᴏᴜʀꜱᴇᴍᴇɴᴛ."));
                 }
                 bountyReviewGuiManager.render(holder);
             });

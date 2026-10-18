@@ -35,7 +35,7 @@ public class HalloweenGuiManager {
         int size = Math.max(9, Math.min(54, plugin.getConfig().getInt("halloween.shop.size", 54)));
         size = (size / 9) * 9;
         Inventory inv = Bukkit.createInventory(holder, size,
-                color(plugin.getConfig().getString("halloween.shop.title", "&5&lHalloween &8• &dMarchand")));
+                color(plugin.getConfig().getString("halloween.shop.title", "&8&lHalloween &8• &7Marchand")));
         holder.setInventory(inv);
 
         // Design historique : NOTHING partout, avec les cases prévues réellement vides.
@@ -53,7 +53,14 @@ public class HalloweenGuiManager {
             if (slot >= 0 && slot < size && fillButton != null) inv.setItem(slot, fillButton.clone());
         }
 
-        // Nouveaux boutons : toute la zone 1-2-3 / 46-47-48 est cliquable.
+        ConfigurationSection requestedFiller = plugin.getConfig().getConfigurationSection("halloween.shop.filler");
+        ItemStack requestedFillButton = requestedFiller == null
+                ? GuiItems.nothing(" ")
+                : ConfigGuiItem.fromSection(plugin, requestedFiller, Material.GRAY_STAINED_GLASS_PANE);
+        for (int slot : new int[]{12, 13, 14, 21, 23, 30, 31, 32}) {
+            if (slot >= 0 && slot < size) inv.setItem(slot, requestedFillButton.clone());
+        }
+
         ConfigurationSection nav1 = plugin.getConfig().getConfigurationSection("halloween.shop.navigation." + "first");
         ConfigurationSection nav2 = plugin.getConfig().getConfigurationSection("halloween.shop.navigation." + "second");
         ItemStack navItem1 = ConfigGuiItem.fromSection(plugin, nav1, Material.ARROW);
@@ -88,12 +95,15 @@ public class HalloweenGuiManager {
             }
         }
 
+        ItemStack nothingItem = GuiItems.nothing(" ");
+        if (13 < size) inv.setItem(13, nothingItem.clone());
+        if (27 < size) inv.setItem(27, nothingItem.clone());
         p.openInventory(inv);
     }
 
     public void openChallenges(Player p) {
         HalloweenChallengeHolder holder = new HalloweenChallengeHolder();
-        Inventory inv = Bukkit.createInventory(holder, 27, color("&5&lTable maudite &8• &dDéfis"));
+        Inventory inv = Bukkit.createInventory(holder, 27, color("&8&lTable maudite &8• &7Défis"));
         holder.setInventory(inv);
         for (int i=0;i<27;i++) inv.setItem(i, GuiItems.nothing(" "));
         List<String> ids = manager.getChallengeIds();

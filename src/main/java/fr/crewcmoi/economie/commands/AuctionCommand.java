@@ -9,12 +9,15 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.crewcmoi.other.utils.MoneyFormat;
 
-public class AuctionCommand implements CommandExecutor {
+public class AuctionCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
     private final AuctionManager auctionManager;
@@ -40,6 +43,10 @@ public class AuctionCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("sell")) {
             handleSell(player, args);
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("help")) {
+            Messages.send(player, "economy.auction.help");
             return true;
         }
 
@@ -92,6 +99,20 @@ public class AuctionCommand implements CommandExecutor {
                 Messages.send(player, "economy.auction.list-failed");
             }
         });
+    }
+
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (args.length == 1) {
+            String prefix = args[0].toLowerCase(java.util.Locale.ROOT);
+            List<String> options = new ArrayList<>();
+            for (String option : List.of("sell", "help")) {
+                if (option.startsWith(prefix)) options.add(option);
+            }
+            return options;
+        }
+        return List.of();
     }
 
     private void sendMessage(Player player, String message) {

@@ -79,7 +79,9 @@ public class CombatManager {
 
         
         if (player.isGliding()) {
-            player.setGliding(false);
+            DuelManager duels = plugin.getDuelManager();
+            DuelSession session = duels == null ? null : duels.getSession(player.getUniqueId());
+            if (session == null || !session.isAllowElytra()) player.setGliding(false);
         }
 
         BukkitTask existing = combatTasks.get(uuid);

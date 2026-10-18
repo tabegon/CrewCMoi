@@ -1,0 +1,19 @@
+flying-banana:
+  itemsadder-id: server:flying_banana
+  effect:
+    level: 25
+    duration-ticks: 20
+knife:
+  itemsadder-id: server:hunted_knife
+  soul-itemsadder-id: server:soul
+pets:
+  recall-item-id: minecraft:stick
+  list:
+    spookie_spice:
+      itemsadder-id: server:spooky_spice_item
+      mythic-mob: Spooky_Spice
+      slot: 0
+    electric_ghoast:
+      itemsadder-id: server:electric_ghoast_item
+      mythic-mob: Electric_Ghoast
+      slot: 1

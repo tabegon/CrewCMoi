@@ -8,6 +8,9 @@ import fr.crewcmoi.other.managers.DatabaseManager;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.configuration.file.YamlConfiguration;
+import java.io.File;
+import java.io.IOException;
 
 import java.util.List;
 import java.util.Map;
@@ -22,10 +25,18 @@ public class ClaimManager {
     private final Map<String, ClaimData> claims = new ConcurrentHashMap<>();
 
     private final Map<UUID, Integer> extraClaims = new ConcurrentHashMap<>();
+    private final File zonesFile;
+    private final Map<UUID, Location[]> zoneSelections = new ConcurrentHashMap<>();
 
     public ClaimManager(Main plugin, DatabaseManager databaseManager) {
         this.plugin = plugin;
         this.databaseManager = databaseManager;
+        this.zonesFile = new File(plugin.getDataFolder(), "claim-zones.yml");
+        if (!zonesFile.exists()) {
+            try { plugin.getDataFolder().mkdirs(); zonesFile.createNewFile(); } catch (IOException exception) {
+                plugin.getLogger().warning("Impossible de créer claim-zones.yml : " + exception.getMessage());
+            }
+        }
     }
 
     public void loadAll() {
@@ -39,12 +50,86 @@ public class ClaimManager {
         return world + ";" + chunkX + ";" + chunkZ;
     }
 
+    public void setZoneCorner(Player player, int corner) {
+        Location[] corners = zoneSelections.computeIfAbsent(player.getUniqueId(), key -> new Location[2]);
+        corners[corner - 1] = player.getLocation().getBlock().getLocation();
+    }
+
+    public boolean addBlockedZone(Player player, String name) {
+        Location[] corners = zoneSelections.get(player.getUniqueId());
+        if (corners == null || corners[0] == null || corners[1] == null
+                || corners[0].getWorld() == null || !corners[0].getWorld().equals(corners[1].getWorld())) return false;
+        String safeName = name.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_-]", "_");
+        if (safeName.isBlank()) return false;
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(zonesFile);
+        String path = "zones." + safeName;
+        yaml.set(path + ".world", corners[0].getWorld().getName());
+        yaml.set(path + ".min-x", Math.min(corners[0].getBlockX(), corners[1].getBlockX()));
+        yaml.set(path + ".min-y", Math.min(corners[0].getBlockY(), corners[1].getBlockY()));
+        yaml.set(path + ".min-z", Math.min(corners[0].getBlockZ(), corners[1].getBlockZ()));
+        yaml.set(path + ".max-x", Math.max(corners[0].getBlockX(), corners[1].getBlockX()));
+        yaml.set(path + ".max-y", Math.max(corners[0].getBlockY(), corners[1].getBlockY()));
+        yaml.set(path + ".max-z", Math.max(corners[0].getBlockZ(), corners[1].getBlockZ()));
+        try { yaml.save(zonesFile); zoneSelections.remove(player.getUniqueId()); return true; }
+        catch (IOException exception) { plugin.getLogger().warning("Impossible de sauvegarder la zone de claim : " + exception.getMessage()); return false; }
+    }
+
+    public boolean removeBlockedZone(String name) {
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(zonesFile);
+        String path = "zones." + name.toLowerCase(java.util.Locale.ROOT);
+        if (!yaml.contains(path)) return false;
+        yaml.set(path, null);
+        try { yaml.save(zonesFile); return true; }
+        catch (IOException exception) { plugin.getLogger().warning("Impossible de modifier claim-zones.yml : " + exception.getMessage()); return false; }
+    }
+
+    public java.util.Set<String> getBlockedZoneNames() {
+        return YamlConfiguration.loadConfiguration(zonesFile).getConfigurationSection("zones") == null
+                ? java.util.Collections.emptySet()
+                : new java.util.TreeSet<>(YamlConfiguration.loadConfiguration(zonesFile).getConfigurationSection("zones").getKeys(false));
+    }
+
+    public boolean isClaimBlocked(Location location) {
+        if (location == null || location.getWorld() == null) return false;
+        List<Map<?, ?>> configured = plugin.getConfig().getMapList("claims.blocked-zones");
+        for (Map<?, ?> zone : configured) if (isInside(location, zone)) return true;
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(zonesFile);
+        if (yaml.getConfigurationSection("zones") == null) return false;
+        for (String name : yaml.getConfigurationSection("zones").getKeys(false)) {
+            org.bukkit.configuration.ConfigurationSection zone = yaml.getConfigurationSection("zones." + name);
+            if (zone == null) continue;
+            int chunkMinX = location.getChunk().getX() * 16;
+            int chunkMaxX = chunkMinX + 15;
+            int chunkMinZ = location.getChunk().getZ() * 16;
+            int chunkMaxZ = chunkMinZ + 15;
+            if (location.getWorld().getName().equalsIgnoreCase(zone.getString("world", ""))
+                    && overlaps(chunkMinX, chunkMaxX, zone.getInt("min-x"), zone.getInt("max-x"))
+                    && overlaps(chunkMinZ, chunkMaxZ, zone.getInt("min-z"), zone.getInt("max-z"))) return true;
+        }
+        return false;
+    }
+
+    private boolean isInside(Location location, Map<?, ?> zone) {
+        String world = zone.containsKey("world") ? String.valueOf(zone.get("world")) : "";
+        int chunkMinX = location.getChunk().getX() * 16;
+        int chunkMaxX = chunkMinX + 15;
+        int chunkMinZ = location.getChunk().getZ() * 16;
+        int chunkMaxZ = chunkMinZ + 15;
+        return location.getWorld().getName().equalsIgnoreCase(world)
+                && overlaps(chunkMinX, chunkMaxX, number(zone.get("min-x")), number(zone.get("max-x")))
+                && overlaps(chunkMinZ, chunkMaxZ, number(zone.get("min-z")), number(zone.get("max-z")));
+    }
+
+    private int number(Object value) { return value instanceof Number n ? n.intValue() : Integer.MIN_VALUE; }
+    private boolean overlaps(int aMin, int aMax, int bMin, int bMax) { return bMin <= bMax && aMin <= bMax && aMax >= bMin; }
+
     public ClaimResult claim(Player player) {
         Chunk chunk = player.getLocation().getChunk();
         String world = chunk.getWorld().getName();
         int chunkX = chunk.getX();
         int chunkZ = chunk.getZ();
 
+        if (isClaimBlocked(player.getLocation())) return ClaimResult.BLOCKED_ZONE;
         if (getClaim(world, chunkX, chunkZ) != null) {
             return ClaimResult.ALREADY_CLAIMED;
         }
@@ -436,7 +521,7 @@ public class ClaimManager {
     }
 
     public enum ClaimResult {
-        SUCCESS, ALREADY_CLAIMED, LIMIT_REACHED
+        SUCCESS, ALREADY_CLAIMED, LIMIT_REACHED, BLOCKED_ZONE
     }
 
     public enum SellResult {

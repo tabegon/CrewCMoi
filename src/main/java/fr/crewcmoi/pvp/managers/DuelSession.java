@@ -13,6 +13,7 @@ public class DuelSession {
     private final double bet;
     private final boolean dropHead;
     private final String kitId;
+    private final boolean allowElytra;
 
     private org.bukkit.inventory.ItemStack[] player1Contents;
     private org.bukkit.inventory.ItemStack[] player1Armor;
@@ -29,16 +30,21 @@ public class DuelSession {
     private int arenaIndex = 1;
 
     public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet, boolean dropHead) {
-        this(player1, player2, keepInventory, bet, dropHead, null);
+        this(player1, player2, keepInventory, bet, dropHead, null, false);
     }
 
     public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet, boolean dropHead, String kitId) {
+        this(player1, player2, keepInventory, bet, dropHead, kitId, false);
+    }
+
+    public DuelSession(UUID player1, UUID player2, boolean keepInventory, double bet, boolean dropHead, String kitId, boolean allowElytra) {
         this.player1 = player1;
         this.player2 = player2;
         this.keepInventory = keepInventory;
         this.bet = bet;
         this.dropHead = dropHead;
         this.kitId = kitId;
+        this.allowElytra = allowElytra;
     }
 
     public UUID getPlayer1() {
@@ -76,6 +82,10 @@ public class DuelSession {
 
     public boolean hasKit() {
         return kitId != null;
+    }
+
+    public boolean isAllowElytra() {
+        return allowElytra;
     }
 
     public boolean isDropHead() {

@@ -5,16 +5,16 @@ import org.bukkit.inventory.InventoryHolder;
 
 public class ConfirmationHolder implements InventoryHolder {
 
-    public static final int SIZE = 27;
-    public static final int CANCEL_SLOT = 11;
-    public static final int INFO_SLOT = 13;
-    public static final int CONFIRM_SLOT = 15;
+    public static final int SIZE = 54;
+    public static final int CANCEL_SLOT = 39;
+    public static final int INFO_SLOT = 22;
+    public static final int CONFIRM_SLOT = 41;
+    public static final int SELLER_SLOT = 8;
+    public static final int MONEY_SLOT = 40;
 
     private Inventory inventory;
     private Runnable onConfirm;
     private Runnable onCancel;
-
-    
     private boolean resolved = false;
 
     @Override

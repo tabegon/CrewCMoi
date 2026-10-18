@@ -6,6 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 /** Événements liés à la quête n°1 du Quest Master. */
@@ -33,6 +35,29 @@ public final class QuestListener implements Listener {
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             questManager.refreshSellBotVisibility(player);
             questManager.refreshCosmeticsNpcVisibility(player);
+            questManager.refreshQuestLockedEntitiesVisibility(player);
         }, 20L);
+    }
+
+    @EventHandler
+    public void onEntitySpawn(EntitySpawnEvent event) {
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            questManager.refreshQuestLockedEntityVisibility(event.getEntity());
+            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                questManager.refreshSellBotVisibility(player);
+            }
+        });
+    }
+
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            for (org.bukkit.entity.Entity entity : event.getChunk().getEntities()) {
+                questManager.refreshQuestLockedEntityVisibility(entity);
+            }
+            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                questManager.refreshSellBotVisibility(player);
+            }
+        });
     }
 }

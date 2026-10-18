@@ -74,8 +74,9 @@ public class ClaimSettingsGuiManager {
         gui.setItem(MOB_GRIEFING_SLOT, buildItem(ClaimFlag.MOB_GRIEFING, claim.getPermission(ClaimFlag.MOB_GRIEFING)));
         holder.mapSlot(MOB_GRIEFING_SLOT, ClaimFlag.MOB_GRIEFING);
 
-        ItemStack info = new ItemStack(Material.BOOK);
+        ItemStack info = new ItemStack(Material.GHAST_SPAWN_EGG);
         ItemMeta infoMeta = info.getItemMeta();
+        infoMeta.setCustomModelData(65);
         infoMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&e&lInfo"));
         List<String> infoLore = new ArrayList<>();
         infoLore.add(ChatColor.translateAlternateColorCodes('&', "&7Cliquez sur une règle pour changer"));
@@ -118,32 +119,58 @@ public class ClaimSettingsGuiManager {
     }
 
     private ItemStack buildItem(ClaimFlag flag, ClaimPermission permission) {
-        ItemStack item = new ItemStack(materialFor(flag));
+        ItemStack item = new ItemStack(Material.GHAST_SPAWN_EGG);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', colorFor(permission) + "&l" + flag.getDisplayName()));
+        if (meta == null) return item;
+
+        meta.setCustomModelData(modelDataFor(flag, permission));
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', colorFor(permission) + "&l" + displayNameFor(flag)));
 
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.translateAlternateColorCodes('&', "&7" + flag.getDescription()));
         lore.add("");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&7Autorisé pour : " + colorFor(permission)
-                + permission.getDisplayName()));
-        lore.add("");
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic gauche pour changer"));
+        if (flag == ClaimFlag.MOB_GRIEFING) {
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7État : " + (permission == ClaimPermission.EVERYONE ? "&aON" : "&cOFF")));
+            lore.add("");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour activer/désactiver"));
+        } else {
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Autorisé pour : " + colorFor(permission) + permission.getDisplayName()));
+            lore.add("");
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eClic gauche pour changer"));
+        }
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
     }
 
-    private Material materialFor(ClaimFlag flag) {
+    private int modelDataFor(ClaimFlag flag, ClaimPermission permission) {
+        if (flag == ClaimFlag.MOB_GRIEFING) {
+            return permission == ClaimPermission.EVERYONE ? 53 : 55;
+        }
+        boolean everyone = permission == ClaimPermission.EVERYONE;
+        boolean trusted = permission == ClaimPermission.TRUSTED;
         return switch (flag) {
-            case BUILD -> Material.BRICKS;
-            case BREAK -> Material.IRON_PICKAXE;
-            case CONTAINERS -> Material.CHEST;
-            case INTERACT -> Material.LEVER;
-            case BUCKETS -> Material.WATER_BUCKET;
-            case FIRE -> Material.FLINT_AND_STEEL;
-            case EXPLOSIONS -> Material.TNT;
-            case MOB_GRIEFING -> Material.ZOMBIE_HEAD;
+            case BUILD -> everyone ? 47 : trusted ? 48 : 49;
+            case BREAK -> everyone ? 50 : trusted ? 51 : 52;
+            case CONTAINERS -> everyone ? 37 : trusted ? 69 : 42;
+            case INTERACT -> everyone ? 56 : trusted ? 57 : 58;
+            case BUCKETS -> everyone ? 66 : trusted ? 67 : 68;
+            case FIRE -> everyone ? 64 : trusted ? 59 : 64;
+            case EXPLOSIONS -> everyone ? 60 : trusted ? 61 : 62;
+            case MOB_GRIEFING -> permission == ClaimPermission.EVERYONE ? 53 : 55;
+        };
+    }
+
+    private String displayNameFor(ClaimFlag flag) {
+        return switch (flag) {
+            case BUILD -> "Construire";
+            case BREAK -> "Casser des blocs";
+            case CONTAINERS -> "Interagir avec des conteneurs";
+            case INTERACT -> "Interagir avec les blocs";
+            case BUCKETS -> "Seaux";
+            case FIRE -> "Allumer feu";
+            case EXPLOSIONS -> "Explosions";
+            case MOB_GRIEFING -> "Mobs spawn";
         };
     }
 

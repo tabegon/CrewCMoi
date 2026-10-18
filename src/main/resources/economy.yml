@@ -1,0 +1,57 @@
+economy:
+  starting-balance: 100.0
+  currency-symbol: §f 
+  allow-negative-balance: false
+  auction-min-price: 1
+  auction-tax-percent: 0
+  auction-max-slots: 14
+  auction-expire-days: 3
+  money-bag-furniture-id: server:ccoin_bag
+coin-item:
+  enabled: true
+  itemsadder-id: server:ccoin
+  value: 50.0
+fisherman:
+  sell-prices:
+    COD: 10
+    SALMON: 10
+    COOKED_COD: 15
+    COOKED_SALMON: 15
+    PUFFERFISH: 30
+    FISHING_ROD: 50
+  buy-prices:
+    cooked-cod: 20
+    cooked-salmon: 20
+    pufferfish: 30
+    fishing-rod: 100
+    fishing-rod-luck-of-the-sea-1: 150
+sell-gui:
+  slots: {}
+  buttons:
+    search:
+      slots:
+      - 46
+      item-slots:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 9
+      - 10
+      - 11
+      - 12
+      - 18
+      - 19
+      - 20
+      - 21
+      - 27
+      - 28
+      - 29
+      - 30
+      - 36
+      - 37
+      - 38
+      - 39
+      lore:
+      - '&7Cliquez pour calculer le prix total.'
+      - '&7Prix total : %total%'

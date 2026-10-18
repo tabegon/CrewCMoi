@@ -113,7 +113,8 @@ public class SQLiteManager implements DatabaseManager {
         String teamMembersSql = "CREATE TABLE IF NOT EXISTS team_members (" +
                 "team_id INTEGER NOT NULL," +
                 "player_uuid TEXT PRIMARY KEY," +
-                "player_name TEXT NOT NULL" +
+                "player_name TEXT NOT NULL," +
+                "role TEXT NOT NULL DEFAULT 'MEMBER'" +
                 ");";
 
         String bountiesSql = "CREATE TABLE IF NOT EXISTS bounties (" +
@@ -125,7 +126,8 @@ public class SQLiteManager implements DatabaseManager {
                 "amount REAL NOT NULL," +
                 "created_at INTEGER NOT NULL," +
                 "reason TEXT," +
-                "approved INTEGER NOT NULL DEFAULT 1" +
+                "approved INTEGER NOT NULL DEFAULT 1," +
+                "rejected INTEGER NOT NULL DEFAULT 0" +
                 ");";
 
         String serverBountyCountSql = "CREATE TABLE IF NOT EXISTS server_bounty_count (" +
@@ -172,6 +174,10 @@ public class SQLiteManager implements DatabaseManager {
         try (Statement statement = connection.createStatement()) {
             statement.execute(teamsSql);
             statement.execute(teamMembersSql);
+            try {
+                statement.execute("ALTER TABLE team_members ADD COLUMN role TEXT NOT NULL DEFAULT 'MEMBER'");
+            } catch (SQLException ignored) {
+            }
             statement.execute(bountiesSql);
             statement.execute(serverBountyCountSql);
             statement.execute(homesSql);
@@ -203,6 +209,11 @@ public class SQLiteManager implements DatabaseManager {
                 statement.execute("ALTER TABLE bounties ADD COLUMN approved INTEGER NOT NULL DEFAULT 1;");
             } catch (SQLException ignored) {
                 
+            }
+
+            try {
+                statement.execute("ALTER TABLE bounties ADD COLUMN rejected INTEGER NOT NULL DEFAULT 0;");
+            } catch (SQLException ignored) {
             }
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la création des tables team/bounty.", e);
@@ -505,6 +516,49 @@ public class SQLiteManager implements DatabaseManager {
     }
 
     @Override
+    public boolean promoteTeamMember(int teamId, UUID targetUuid, String newRole, UUID currentOwnerUuid) {
+        String targetSql = "UPDATE team_members SET role = ? WHERE team_id = ? AND player_uuid = ?";
+        boolean oldAutoCommit = true;
+        try {
+            oldAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            if ("FOUNDER".equals(newRole)) {
+                try (PreparedStatement oldOwner = connection.prepareStatement("UPDATE team_members SET role = 'CO_FOUNDER' WHERE team_id = ? AND player_uuid = ?")) {
+                    oldOwner.setInt(1, teamId);
+                    oldOwner.setString(2, currentOwnerUuid.toString());
+                    oldOwner.executeUpdate();
+                }
+                try (PreparedStatement updateOwner = connection.prepareStatement("UPDATE teams SET owner_uuid = ? WHERE id = ? AND owner_uuid = ?")) {
+                    updateOwner.setString(1, targetUuid.toString());
+                    updateOwner.setInt(2, teamId);
+                    updateOwner.setString(3, currentOwnerUuid.toString());
+                    if (updateOwner.executeUpdate() != 1) {
+                        connection.rollback();
+                        return false;
+                    }
+                }
+            }
+            try (PreparedStatement ps = connection.prepareStatement(targetSql)) {
+                ps.setString(1, newRole);
+                ps.setInt(2, teamId);
+                ps.setString(3, targetUuid.toString());
+                if (ps.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+            }
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            try { connection.rollback(); } catch (SQLException ignored) { }
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors de la promotion d'un membre d'équipe.", e);
+            return false;
+        } finally {
+            try { connection.setAutoCommit(oldAutoCommit); } catch (SQLException ignored) { }
+        }
+    }
+
+    @Override
     public void removeTeamMember(UUID playerUuid) {
         String sql = "DELETE FROM team_members WHERE player_uuid = ?;";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -574,17 +628,20 @@ public class SQLiteManager implements DatabaseManager {
                 UUID owner = UUID.fromString(rs.getString("owner_uuid"));
 
                 Map<UUID, String> members = new LinkedHashMap<>();
-                String membersSql = "SELECT player_uuid, player_name FROM team_members WHERE team_id = ?;";
+                Map<UUID, String> roles = new LinkedHashMap<>();
+                String membersSql = "SELECT player_uuid, player_name, role FROM team_members WHERE team_id = ?;";
                 try (PreparedStatement psMembers = connection.prepareStatement(membersSql)) {
                     psMembers.setInt(1, teamId);
                     try (ResultSet rsMembers = psMembers.executeQuery()) {
                         while (rsMembers.next()) {
-                            members.put(UUID.fromString(rsMembers.getString("player_uuid")), rsMembers.getString("player_name"));
+                            UUID memberUuid = UUID.fromString(rsMembers.getString("player_uuid"));
+                            members.put(memberUuid, rsMembers.getString("player_name"));
+                            roles.put(memberUuid, rsMembers.getString("role"));
                         }
                     }
                 }
 
-                return new TeamData(teamId, name, owner, members);
+                return new TeamData(teamId, name, owner, members, roles);
             }
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la récupération de l'équipe " + teamId, e);
@@ -641,7 +698,7 @@ public class SQLiteManager implements DatabaseManager {
     @Override
     public List<BountyEntry> getPendingReasonedBounties() {
         List<BountyEntry> list = new ArrayList<>();
-        String sql = "SELECT * FROM bounties WHERE reason IS NOT NULL AND approved = 0 ORDER BY created_at ASC;";
+        String sql = "SELECT * FROM bounties WHERE reason IS NOT NULL AND approved = 0 AND rejected = 0 ORDER BY created_at ASC;";
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -662,6 +719,18 @@ public class SQLiteManager implements DatabaseManager {
             ps.executeUpdate();
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Erreur lors de la mise à jour de la prime " + entryId, e);
+        }
+    }
+
+    @Override
+    public void setBountyRejected(int entryId, boolean rejected) {
+        String sql = "UPDATE bounties SET rejected = ? WHERE id = ?;";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, rejected ? 1 : 0);
+            ps.setInt(2, entryId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Erreur lors du refus de la prime " + entryId, e);
         }
     }
 

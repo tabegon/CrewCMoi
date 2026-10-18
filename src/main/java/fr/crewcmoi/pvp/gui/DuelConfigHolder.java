@@ -8,13 +8,14 @@ import java.util.UUID;
 public class DuelConfigHolder implements InventoryHolder {
 
     public static final int SIZE = 27;
-    public static final int KEEPINVENTORY_SLOT = 2;
-    public static final int BET_SLOT = 6;
-    public static final int KIT_SLOT = 4;
-    public static final int DROPHEAD_SLOT = 8;
-    public static final int CONFIRM_SLOT = 24;
-    public static final int CANCEL_SLOT = 20;
+    public static final int KEEPINVENTORY_SLOT = 0;
+    public static final int DROPHEAD_SLOT = 2;
+    public static final int BET_SLOT = 4;
+    public static final int KIT_SLOT = 6;
+    public static final int ELYTRA_SLOT = 8;
     public static final int INFO_SLOT = 13;
+    public static final int CANCEL_SLOT = 21;
+    public static final int CONFIRM_SLOT = 23;
 
     private final UUID targetUuid;
     private final String targetName;
@@ -24,6 +25,7 @@ public class DuelConfigHolder implements InventoryHolder {
     private double bet = 0.0;
     private boolean dropHead = false;
     private String kitId = null;
+    private boolean allowElytra = false;
 
     public DuelConfigHolder(UUID targetUuid, String targetName) {
         this.targetUuid = targetUuid;
@@ -72,6 +74,14 @@ public class DuelConfigHolder implements InventoryHolder {
         if (kitId != null) {
             this.keepInventory = false;
         }
+    }
+
+    public boolean isAllowElytra() {
+        return allowElytra;
+    }
+
+    public void setAllowElytra(boolean allowElytra) {
+        this.allowElytra = allowElytra;
     }
 
     public boolean isDropHead() {

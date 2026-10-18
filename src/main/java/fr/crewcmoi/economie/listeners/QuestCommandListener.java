@@ -1,13 +1,19 @@
 package fr.crewcmoi.economie.listeners;
 
+import fr.crewcmoi.Main;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
-/** Bloque totalement l'accès joueur à la commande /wardrobe. */
+/** Bloque /wardrobe avant la fin de la quête 2. */
 public final class QuestCommandListener implements Listener {
+    private final Main plugin;
+
+    public QuestCommandListener(Main plugin) {
+        this.plugin = plugin;
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
@@ -18,9 +24,12 @@ public final class QuestCommandListener implements Listener {
         if (command.isEmpty()) return;
 
         String base = command.split("\\s+", 2)[0].toLowerCase();
-        if (base.equals("wardrobe") || base.equals("wardrobe:wardrobe")) {
-            event.setCancelled(true);
-            event.getPlayer().sendMessage(ChatColor.RED + "La commande /wardrobe est désactivée.");
-        }
+        if (!base.equals("wardrobe") && !base.equals("wardrobe:wardrobe")) return;
+
+        // /wardrobe reste volontairement interdit pour tout le monde.
+        // L'accès aux cosmétiques se fait uniquement en entrant dans la salle
+        // de wardrobe de CosmeticsCore, après validation de la quête 2.
+        event.setCancelled(true);
+        event.getPlayer().sendMessage(ChatColor.RED + "Accès uniquement depuis la salle des cosmétiques.");
     }
 }

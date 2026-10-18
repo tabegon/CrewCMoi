@@ -51,6 +51,8 @@ public interface DatabaseManager {
 
     boolean addTeamMember(int teamId, UUID playerUuid, String playerName);
 
+    boolean promoteTeamMember(int teamId, UUID targetUuid, String newRole, UUID currentOwnerUuid);
+
     void removeTeamMember(UUID playerUuid);
 
     void deleteTeam(int teamId);
@@ -68,6 +70,8 @@ public interface DatabaseManager {
     List<BountyEntry> getPendingReasonedBounties();
 
     void setBountyApproved(int entryId, boolean approved);
+
+    void setBountyRejected(int entryId, boolean rejected);
 
     void deleteBountyEntry(int entryId);
 

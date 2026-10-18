@@ -113,6 +113,9 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             case ALREADY_CLAIMED:
                 sendMessage(player, "claim.already-claimed");
                 break;
+            case BLOCKED_ZONE:
+                player.sendMessage(ChatColor.RED + "Cette zone ne peut pas être claim.");
+                break;
             case LIMIT_REACHED:
                 String def = "&cVous avez atteint votre nombre maximum de claims (&e{max}&c). Utilisez /claim shop pour en acheter davantage.";
                 String message = plugin.getMessages().getString("claim.limit-reached", def)
