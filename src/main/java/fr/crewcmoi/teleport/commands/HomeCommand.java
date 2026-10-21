@@ -22,6 +22,10 @@ public class HomeCommand implements CommandExecutor, TabCompleter {
             Messages.send(s,"teleport.home.player-only");
             return true;
         }
+        if (plugin.getCombatManager() != null && plugin.getCombatManager().isInCombat(p)) {
+            Messages.send(p, "combat-log.action-blocked", Map.of("seconds", String.valueOf(plugin.getCombatManager().getRemainingSeconds(p))), true);
+            return true;
+        }
         if(a.length==0) {
             gui.open(p);
             return true;

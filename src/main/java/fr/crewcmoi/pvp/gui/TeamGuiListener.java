@@ -16,17 +16,33 @@ public class TeamGuiListener implements Listener {
     private final TeamGuiManager guiManager;
     private final TeamRequestGuiManager requestGuiManager;
     private final TeamRequestManager requestManager;
+    private final TeamSettingsGuiManager settingsGuiManager;
 
-    public TeamGuiListener(Main plugin, TeamManager teamManager, TeamGuiManager guiManager, TeamRequestGuiManager requestGuiManager, TeamRequestManager requestManager) {
+    public TeamGuiListener(Main plugin, TeamManager teamManager, TeamGuiManager guiManager, TeamRequestGuiManager requestGuiManager, TeamRequestManager requestManager, TeamSettingsGuiManager settingsGuiManager) {
         this.plugin = plugin;
         this.teamManager = teamManager;
         this.guiManager = guiManager;
         this.requestGuiManager = requestGuiManager;
         this.requestManager = requestManager;
+        this.settingsGuiManager = settingsGuiManager;
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
+        if (event.getInventory().getHolder() instanceof TeamSettingsHolder holder) {
+            event.setCancelled(true);
+            if (!(event.getWhoClicked() instanceof Player player)) return;
+            int slot = event.getRawSlot();
+            if (slot < 0 || slot >= event.getInventory().getSize()) return;
+            if (slot == TeamSettingsHolder.FRIENDLY_FIRE_SLOT) {
+                settingsGuiManager.handleFriendlyFireClick(player, holder);
+            } else if (slot == TeamSettingsHolder.BACK_SLOT) {
+                settingsGuiManager.openTeamMenu(player, holder.getTeamId());
+            } else if (slot == TeamSettingsHolder.CLOSE_SLOT) {
+                player.closeInventory();
+            }
+            return;
+        }
         if (event.getInventory().getHolder() instanceof TeamGuiHolder holder) {
             event.setCancelled(true);
             if (!(event.getWhoClicked() instanceof Player player)) return;

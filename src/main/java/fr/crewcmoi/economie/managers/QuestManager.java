@@ -50,7 +50,20 @@ public final class QuestManager {
         this.questOrderMigrationKey = new NamespacedKey(plugin, "quest_order_swapped_v1");
         startCompassTask();
         Bukkit.getScheduler().runTaskLater(plugin, this::refreshNpcVisibilityForOnlinePlayers, 20L);
-        Bukkit.getScheduler().runTaskTimer(plugin, this::refreshNpcVisibilityForOnlinePlayers, 100L, 100L);
+    }
+
+
+    public void removeQuestCompass(Player player) {
+        if (player == null) return;
+        NamespacedKey key = new NamespacedKey(plugin, "quest_1_compass");
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            ItemStack item = player.getInventory().getItem(slot);
+            if (item == null || item.getType() != Material.COMPASS || !item.hasItemMeta()) continue;
+            if (item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.BYTE)) {
+                player.getInventory().setItem(slot, null);
+            }
+        }
+        player.updateInventory();
     }
 
     public boolean isCompleted(Player player) {
@@ -73,6 +86,27 @@ public final class QuestManager {
         data.set(completedKey, PersistentDataType.BYTE, oldQuest2);
         data.set(quest2CompletedKey, PersistentDataType.BYTE, oldQuest1);
         data.set(questOrderMigrationKey, PersistentDataType.BYTE, (byte) 1);
+    }
+
+    public boolean resetQuest(Player player, int questNumber) {
+        if (player == null || (questNumber != 1 && questNumber != 2)) return false;
+        if (questNumber == 1) {
+            player.getPersistentDataContainer().remove(completedKey);
+            refreshSellBotVisibility(player);
+            refreshCosmeticsNpcVisibility(player);
+        } else {
+            player.getPersistentDataContainer().remove(quest2CompletedKey);
+            UUID goatId = activeGoats.remove(player.getUniqueId());
+            if (goatId != null) {
+                Entity goat = Bukkit.getEntity(goatId);
+                if (goat != null && goat.isValid()) goat.remove();
+            }
+            questTargets.remove(player.getUniqueId());
+            removeQuestCompass(player);
+        }
+        refreshQuestLockedEntitiesVisibility(player);
+        player.sendMessage(color("&eLa quête " + questNumber + " a été réinitialisée par un administrateur."));
+        return true;
     }
 
     public void resetAllQuests(Player player) {
@@ -572,12 +606,13 @@ public final class QuestManager {
         Set<UUID> sellBotIds = getSellBotEntityUuids();
         if (lockedIds.isEmpty() && sellBotIds.isEmpty()) return;
         boolean questCompleted = isCompleted(player);
-        for (World world : Bukkit.getWorlds()) {
-            for (Entity entity : world.getEntities()) {
-                UUID id = entity.getUniqueId();
-                if (lockedIds.contains(id)) setEntityVisible(player, entity, !questCompleted);
-                if (sellBotIds.contains(id)) setEntityVisible(player, entity, questCompleted);
-            }
+        for (UUID id : lockedIds) {
+            Entity entity = Bukkit.getEntity(id);
+            if (entity != null && entity.isValid()) setEntityVisible(player, entity, !questCompleted);
+        }
+        for (UUID id : sellBotIds) {
+            Entity entity = Bukkit.getEntity(id);
+            if (entity != null && entity.isValid()) setEntityVisible(player, entity, questCompleted);
         }
     }
 
@@ -594,12 +629,9 @@ public final class QuestManager {
     }
 
     private void refreshSellBotEntityVisibility(Player player, boolean visible) {
-        Set<UUID> ids = getSellBotEntityUuids();
-        if (ids.isEmpty()) return;
-        for (World world : Bukkit.getWorlds()) {
-            for (Entity entity : world.getEntities()) {
-                if (ids.contains(entity.getUniqueId())) setEntityVisible(player, entity, visible);
-            }
+        for (UUID id : getSellBotEntityUuids()) {
+            Entity entity = Bukkit.getEntity(id);
+            if (entity != null && entity.isValid()) setEntityVisible(player, entity, visible);
         }
     }
 

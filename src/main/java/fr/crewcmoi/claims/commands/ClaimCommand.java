@@ -51,6 +51,16 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         }
 
         Player player = (Player) sender;
+        String questWorld = plugin.getConfig().getString("quest-world.name", "quest");
+        if (player.getWorld().getName().equalsIgnoreCase(questWorld)) {
+            sendMessage(player, "claim.quest-world-disabled");
+            return true;
+        }
+
+        if (label.equalsIgnoreCase("unclaim")) {
+            handleUnclaim(player);
+            return true;
+        }
 
         if (args.length == 0) {
             handleClaim(player);
@@ -242,7 +252,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 
         double price;
         try {
-            price = MoneyFormat.parse(args[1]);
+            price = MoneyFormat.parseWhole(args[1]);
         } catch (NumberFormatException e) {
             Messages.send(player, "claims.command.sell-usagex");
             return;
@@ -319,7 +329,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            List<String> options = Arrays.asList("unclaim", "trust", "untrust", "info", "settings", "see", "shop", "sell", "buy", "ah");
+            List<String> options = Arrays.asList("trust", "untrust", "info", "settings", "see", "shop", "sell", "buy", "ah");
             String partial = args[0].toLowerCase();
             return options.stream().filter(o -> o.startsWith(partial)).collect(Collectors.toList());
         }

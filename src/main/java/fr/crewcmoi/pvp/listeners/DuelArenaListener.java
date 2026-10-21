@@ -4,6 +4,7 @@ import fr.crewcmoi.pvp.managers.DuelArenaManager;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
@@ -24,9 +25,13 @@ public class DuelArenaListener implements Listener {
         this.duelArenaManager = duelArenaManager;
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
+        if (duelArenaManager.isProtectedDuelFloor(event.getBlock().getLocation())) {
+            event.setCancelled(true);
+            return;
+        }
         if (player.isOp() || player.hasPermission(BYPASS_PERMISSION)) {
             return;
         }
@@ -64,7 +69,7 @@ public class DuelArenaListener implements Listener {
     private void removeArenaBlocks(Iterator<Block> blocks) {
         while (blocks.hasNext()) {
             Block block = blocks.next();
-            if (duelArenaManager.isInsideArena(block.getLocation())) {
+            if (duelArenaManager.isInsideArena(block.getLocation()) || duelArenaManager.isProtectedDuelFloor(block.getLocation())) {
                 blocks.remove();
             }
         }

@@ -5,7 +5,6 @@ import fr.crewcmoi.claims.database.ClaimData;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -15,7 +14,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClaimVisualizer {
-
     private final Main plugin;
     private final ClaimManager claimManager;
     private final Map<UUID, BukkitTask> activeTasks = new ConcurrentHashMap<>();
@@ -31,95 +29,61 @@ public class ClaimVisualizer {
             existing.cancel();
             return false;
         }
-
         int radius = plugin.getConfig().getInt("claims.see-radius", 5);
         int durationSeconds = plugin.getConfig().getInt("claims.see-duration", 10);
-        long maxTicks = durationSeconds * 20L;
-
-        BukkitTask task = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
-            long elapsed = 0;
-
-            @Override
-            public void run() {
+        long maxTicks = Math.max(20L, durationSeconds * 20L);
+        final BukkitTask[] taskRef = new BukkitTask[1];
+        taskRef[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
+            long elapsed;
+            @Override public void run() {
                 if (!player.isOnline() || elapsed >= maxTicks) {
                     BukkitTask self = activeTasks.remove(player.getUniqueId());
-                    if (self != null) {
-                        self.cancel();
-                    }
+                    if (self != null) self.cancel();
                     return;
                 }
                 showClaims(player, radius);
-                elapsed += 10;
+                elapsed += 20;
             }
-        }, 0L, 10L);
-
-        activeTasks.put(player.getUniqueId(), task);
+        }, 0L, 20L);
+        activeTasks.put(player.getUniqueId(), taskRef[0]);
         return true;
     }
 
     public void stop(Player player) {
         BukkitTask task = activeTasks.remove(player.getUniqueId());
-        if (task != null) {
-            task.cancel();
-        }
+        if (task != null) task.cancel();
     }
 
     private void showClaims(Player player, int radius) {
         List<ClaimData> nearby = claimManager.getNearbyClaims(player.getLocation(), radius);
-        World world = player.getWorld();
         double baseY = player.getLocation().getY();
-
         for (ClaimData claim : nearby) {
-            Color color;
-            if (claim.getOwnerUuid().equals(player.getUniqueId())) {
-                color = Color.LIME;
-            } else if (claim.getTrusted().contains(player.getUniqueId())) {
-                color = Color.YELLOW;
-            } else {
-                color = Color.RED;
-            }
-            drawChunkCorners(world, claim.getChunkX(), claim.getChunkZ(), baseY, color);
+            Color color = claim.getOwnerUuid().equals(player.getUniqueId()) ? Color.LIME
+                    : claim.getTrusted().contains(player.getUniqueId()) ? Color.YELLOW : Color.RED;
+            drawChunkCorners(player, claim.getChunkX(), claim.getChunkZ(), baseY, color);
         }
     }
 
-    private void drawChunkCorners(World world, int chunkX, int chunkZ, double baseY, Color color) {
+    private void drawChunkCorners(Player player, int chunkX, int chunkZ, double baseY, Color color) {
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
         int maxX = minX + 16;
         int maxZ = minZ + 16;
-
-        Particle.DustOptions dust = new Particle.DustOptions(color, 1.4f);
-
-        
-        int[][] corners = {
-                {minX, minZ},
-                {maxX, minZ},
-                {minX, maxZ},
-                {maxX, maxZ}
-        };
+        Particle.DustOptions dust = new Particle.DustOptions(color, 1.2f);
+        int[][] corners = {{minX, minZ}, {maxX, minZ}, {minX, maxZ}, {maxX, maxZ}};
         for (int[] corner : corners) {
-            for (double dy = -1; dy <= 4; dy += 0.15) {
-                Location loc = new Location(world, corner[0], baseY + dy, corner[1]);
-                world.spawnParticle(Particle.DUST, loc, 2, 0.05, 0.05, 0.05, 0, dust);
+            for (double dy = 0; dy <= 3; dy += 0.5) {
+                player.spawnParticle(Particle.DUST, new Location(player.getWorld(), corner[0], baseY + dy, corner[1]), 1, 0, 0, 0, 0, dust);
             }
         }
-
-        
-        double step = 0.25;
         double[] edgeHeights = {baseY + 0.2, baseY + 1.6};
         for (double edgeY : edgeHeights) {
-            for (double x = minX; x <= maxX; x += step) {
-                spawnEdgeParticle(world, x, edgeY, minZ, dust);
-                spawnEdgeParticle(world, x, edgeY, maxZ, dust);
-            }
-            for (double z = minZ; z <= maxZ; z += step) {
-                spawnEdgeParticle(world, minX, edgeY, z, dust);
-                spawnEdgeParticle(world, maxX, edgeY, z, dust);
+            for (int offset = 0; offset <= 16; offset += 2) {
+                player.spawnParticle(Particle.DUST, new Location(player.getWorld(), minX + offset, edgeY, minZ), 1, 0, 0, 0, 0, dust);
+                player.spawnParticle(Particle.DUST, new Location(player.getWorld(), minX + offset, edgeY, maxZ), 1, 0, 0, 0, 0, dust);
+                player.spawnParticle(Particle.DUST, new Location(player.getWorld(), minX, edgeY, minZ + offset), 1, 0, 0, 0, 0, dust);
+                player.spawnParticle(Particle.DUST, new Location(player.getWorld(), maxX, edgeY, minZ + offset), 1, 0, 0, 0, 0, dust);
             }
         }
-    }
-
-    private void spawnEdgeParticle(World world, double x, double y, double z, Particle.DustOptions dust) {
-        world.spawnParticle(Particle.DUST, new Location(world, x, y, z), 1, 0, 0, 0, 0, dust);
     }
 }

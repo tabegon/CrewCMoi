@@ -304,15 +304,24 @@ public class ClaimManager {
     }
 
     public boolean canBuild(Player player, Location location) {
-        if (player.hasPermission("crew.claim.bypass")) {
+        if (canBypassClaimProtection(player)) {
             return true;
         }
         ClaimData claim = getClaim(location);
         return claim == null || claim.canBuild(player.getUniqueId());
     }
 
+    private boolean canBypassClaimProtection(Player player) {
+        if (!player.hasPermission("crew.claim.bypass")) return false;
+        var roleManager = plugin.getRoleManager();
+        if (roleManager == null) return true;
+        if (!roleManager.getRealRole(player).isStaffRole()) return true;
+        return plugin.getStaffModeManager() != null
+                && plugin.getStaffModeManager().isActive(player.getUniqueId());
+    }
+
     public boolean isAllowed(Player player, Location location, ClaimFlag flag) {
-        if (player.hasPermission("crew.claim.bypass")) {
+        if (canBypassClaimProtection(player)) {
             return true;
         }
         ClaimData claim = getClaim(location);

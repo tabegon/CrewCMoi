@@ -43,6 +43,13 @@ public class CombatListener implements Listener {
         }
 
         
+        fr.crewcmoi.pvp.managers.TeamManager teamManager = plugin.getTeamManager();
+        if (teamManager != null && teamManager.isSameTeam(attacker.getUniqueId(), victim.getUniqueId())
+                && !teamManager.isFriendlyFireEnabled(attacker.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
+
         event.setDamage(malusEffectManager.applyReduction(attacker, event.getDamage()));
     }
 
@@ -121,12 +128,10 @@ public class CombatListener implements Listener {
         Player victim = event.getEntity();
         UUID opponentId = combatManager.getOpponent(victim);
         combatManager.clearCombat(victim);
-        malusEffectManager.clearVolatileState(victim);
         if (opponentId != null) {
             Player opponent = Bukkit.getPlayer(opponentId);
             if (opponent != null) {
                 combatManager.clearCombat(opponent);
-                malusEffectManager.clearVolatileState(opponent);
             }
         }
     }

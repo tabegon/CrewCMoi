@@ -5,6 +5,7 @@ import fr.crewcmoi.moderation.managers.StaffModeManager;
 import fr.crewcmoi.moderation.managers.VanishManager;
 import fr.crewcmoi.tab.roles.Role;
 import fr.crewcmoi.tab.roles.RoleManager;
+import fr.crewcmoi.tab.roles.Role;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -44,8 +45,14 @@ public class StaffCommand implements CommandExecutor, TabCompleter {
         StaffModeManager.ToggleResult result = staffModeManager.toggle(player);
         switch (result) {
             case NOT_ALLOWED -> Messages.send(player, "moderation.staff.staff-only");
-            case NOW_STAFF -> Messages.send(player, "moderation.staff.enabled");
-            case NOW_NORMAL -> Messages.send(player, "moderation.staff.disabled");
+            case NOW_STAFF -> {
+                if (roleManager.getRealRole(player) == Role.FONDA) player.setOp(true);
+                Messages.send(player, "moderation.staff.enabled");
+            }
+            case NOW_NORMAL -> {
+                if (roleManager.getRealRole(player) == Role.FONDA) player.setOp(false);
+                Messages.send(player, "moderation.staff.disabled");
+            }
         }
         return true;
     }

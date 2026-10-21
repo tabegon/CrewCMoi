@@ -62,7 +62,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
 
         double price;
         try {
-            price = MoneyFormat.parse(args[1]);
+            price = MoneyFormat.parseWhole(args[1]);
         } catch (NumberFormatException e) {
             Messages.send(player, "economy.auction.invalid-price");
             return;

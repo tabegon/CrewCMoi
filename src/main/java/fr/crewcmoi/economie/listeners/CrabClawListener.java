@@ -14,7 +14,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.meta.Damageable;
+import java.util.ArrayList;
+import java.util.List;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -23,7 +29,6 @@ import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitTask;
 
 public class CrabClawListener implements Listener {
     private static final String CLAW_ID = "server:crab_claw";
@@ -34,25 +39,50 @@ public class CrabClawListener implements Listener {
     private final Main plugin;
     private final NamespacedKey reachKey;
     private final NamespacedKey durabilityKey;
-    private final BukkitTask refreshTask;
 
     public CrabClawListener(Main plugin) {
         this.plugin = plugin;
         this.reachKey = new NamespacedKey(plugin, "crab_claw_reach");
         this.durabilityKey = new NamespacedKey(plugin, "crab_claw_durability");
-        this.refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) updateReach(player);
-        }, 1L, 10L);
     }
 
-    public void shutdown() { refreshTask.cancel(); }
+    public void shutdown() {
+        for (Player player : Bukkit.getOnlinePlayers()) removeReach(player);
+    }
 
-    @EventHandler public void onJoin(PlayerJoinEvent event) { Bukkit.getScheduler().runTask(plugin, () -> updateReach(event.getPlayer())); }
+    @EventHandler public void onJoin(PlayerJoinEvent event) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            updateReach(event.getPlayer());
+            normalizeCookedVenison(event.getPlayer());
+        });
+    }
     @EventHandler public void onQuit(PlayerQuitEvent event) { removeReach(event.getPlayer()); }
     @EventHandler public void onHeld(PlayerItemHeldEvent event) { Bukkit.getScheduler().runTask(plugin, () -> updateReach(event.getPlayer())); }
     @EventHandler public void onSwap(PlayerSwapHandItemsEvent event) { Bukkit.getScheduler().runTask(plugin, () -> updateReach(event.getPlayer())); }
     @EventHandler public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getWhoClicked() instanceof Player player) Bukkit.getScheduler().runTask(plugin, () -> updateReach(player));
+        if (event.getWhoClicked() instanceof Player player) Bukkit.getScheduler().runTask(plugin, () -> {
+            updateReach(player);
+            normalizeCookedVenison(player);
+            normalizeInventory(event.getView().getTopInventory());
+            ItemStack cursor = player.getItemOnCursor();
+            if (normalizeItemStack(cursor)) player.setItemOnCursor(cursor);
+        });
+    }
+
+    @EventHandler public void onInventoryOpen(InventoryOpenEvent event) {
+        Bukkit.getScheduler().runTask(plugin, () -> normalizeInventory(event.getInventory()));
+    }
+    @EventHandler public void onInventoryDrag(InventoryDragEvent event) {
+        if (event.getWhoClicked() instanceof Player player) Bukkit.getScheduler().runTask(plugin, () -> {
+            updateReach(player);
+            normalizeCookedVenison(player);
+        });
+    }
+    @EventHandler public void onPickup(EntityPickupItemEvent event) {
+        if (event.getEntity() instanceof Player player && isCustomItem(event.getItem().getItemStack(), COOKED_VENISON_ID)) {
+            normalizeItemStack(event.getItem().getItemStack());
+            Bukkit.getScheduler().runTask(plugin, () -> normalizeCookedVenison(player));
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -83,7 +113,15 @@ public class CrabClawListener implements Listener {
             plugin.getLogger().warning("Impossible de cuire " + rawId + " : " + cookedId + " est introuvable dans ItemsAdder.");
             return;
         }
-        event.setResult(cooked.getItemStack().clone());
+        ItemStack result = cooked.getItemStack().clone();
+        result.setAmount(1);
+        ItemMeta resultMeta = result.getItemMeta();
+        if (resultMeta != null) {
+            resultMeta.setMaxStackSize(64);
+            result.setItemMeta(resultMeta);
+        }
+        normalizeItemStack(result);
+        event.setResult(result);
     }
 
     private boolean isCustomItem(ItemStack item, String id) {
@@ -94,6 +132,28 @@ public class CrabClawListener implements Listener {
         } catch (RuntimeException ignored) {
             return false;
         }
+    }
+
+
+    private void normalizeCookedVenison(Player player) {
+        normalizeInventory(player.getInventory());
+        normalizeInventory(player.getEnderChest());
+    }
+
+    private void normalizeInventory(Inventory inventory) {
+        if (inventory == null) return;
+        for (ItemStack item : inventory.getContents()) {
+            normalizeItemStack(item);
+        }
+    }
+
+    private boolean normalizeItemStack(ItemStack item) {
+        if (item == null || !isCustomItem(item, COOKED_VENISON_ID)) return false;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || (meta.hasMaxStackSize() && meta.getMaxStackSize() == 64)) return false;
+        meta.setMaxStackSize(64);
+        item.setItemMeta(meta);
+        return true;
     }
 
     private void damageClaw(Player player, EquipmentSlot hand, ItemStack item) {
@@ -114,6 +174,14 @@ public class CrabClawListener implements Listener {
             player.sendMessage(ChatColor.RED + "Ta pince de crabe s'est cassée.");
         } else {
             meta.getPersistentDataContainer().set(durabilityKey, PersistentDataType.INTEGER, nextDamage);
+            if (meta instanceof Damageable damageable && damagedItem.getType().getMaxDurability() > 0) {
+                int vanillaMax = damagedItem.getType().getMaxDurability();
+                damageable.setDamage(Math.min(vanillaMax - 1, (int) Math.round((nextDamage / (double) MAX_DURABILITY) * vanillaMax)));
+            }
+            List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+            lore.removeIf(line -> ChatColor.stripColor(line).startsWith("Durabilité :"));
+            lore.add(ChatColor.GRAY + "Durabilité : " + (MAX_DURABILITY - nextDamage) + "/" + MAX_DURABILITY);
+            meta.setLore(lore);
             damagedItem.setItemMeta(meta);
             if (hand == EquipmentSlot.OFF_HAND) player.getInventory().setItemInOffHand(damagedItem);
             else player.getInventory().setItemInMainHand(damagedItem);
@@ -136,6 +204,8 @@ public class CrabClawListener implements Listener {
     }
 
     private void updateReach(Player player) {
+        refreshClawDisplay(player.getInventory().getItemInMainHand());
+        refreshClawDisplay(player.getInventory().getItemInOffHand());
         AttributeInstance attribute = getBlockInteractionRange(player);
         if (attribute == null) return;
         AttributeModifier current = attribute.getModifier(reachKey);
@@ -145,6 +215,24 @@ public class CrabClawListener implements Listener {
         } else if (!hasClaw && current != null) {
             attribute.removeModifier(reachKey);
         }
+    }
+
+    private void refreshClawDisplay(ItemStack item) {
+        if (!isClaw(item)) return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+        int currentDamage = meta.getPersistentDataContainer().getOrDefault(durabilityKey, PersistentDataType.INTEGER, 0);
+        int remaining = Math.max(0, MAX_DURABILITY - currentDamage);
+        if (meta instanceof Damageable damageable && item.getType().getMaxDurability() > 0) {
+            int vanillaMax = item.getType().getMaxDurability();
+            damageable.setDamage(Math.min(vanillaMax - 1, (int) Math.round((currentDamage / (double) MAX_DURABILITY) * vanillaMax)));
+        }
+        List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+        String durabilityLine = ChatColor.GRAY + "Durabilité : " + remaining + "/" + MAX_DURABILITY;
+        lore.removeIf(line -> ChatColor.stripColor(line).startsWith("Durabilité :"));
+        lore.add(durabilityLine);
+        meta.setLore(lore);
+        item.setItemMeta(meta);
     }
 
     private AttributeInstance getBlockInteractionRange(Player player) {

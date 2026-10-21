@@ -10,7 +10,7 @@ economy:
 coin-item:
   enabled: true
   itemsadder-id: server:ccoin
-  value: 50.0
+  value: 10.0
 fisherman:
   sell-prices:
     COD: 10

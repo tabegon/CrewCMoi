@@ -43,57 +43,57 @@ quest-master:
       commands: []
   slots:
     '10':
-      display-name: '&a&lElectric Goat'
+      display-name: '&f&l???'
       lore:
-      - '&7Partez à la recherche de l''Electric Goat.'
-      - '&7Battez-le et rapportez sa corne.'
+      - ᴄʟɪᴄᴋ ᴛᴏ ᴛᴘ ᴏɴ ᴛʜᴇ ǫᴜᴇꜱᴛ ᴡᴏʀʟᴅ
+      material: PAPER
+      custom-model-data: 0
       completed:
-        display-name: '&a&lElectric Goat &2✓'
+        display-name: '&a&l??? &2✓'
         lore:
         - '&aQuête terminée !'
-        - '&7Le NPC des cosmétiques est désormais accessible.'
     '11':
       display-name: '&c&lLocked Boss'
       lore:
-      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟᴇɴɢᴇ
       - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
       unlocked:
         itemsadder-id: ''
         material: PAPER
         custom-model-data: 0
-        display-name: '&b&lÉnigme'
+        display-name: '&a&lElectric Goat'
         lore:
-        - '&7Résous l''énigme dans le monde quest.'
-        - '&7Rapporte ensuite l''objet au Quest Master.'
+        - '&7Partez à la recherche de l''Electric Goat.'
+        - '&7Battez-le et rapportez sa corne.'
       completed:
-        display-name: '&b&lÉnigme &2✓'
+        display-name: '&a&lElectric Goat &2✓'
         lore:
         - '&aQuête terminée !'
-        - '&7Le SellBot est désormais accessible.'
+        - '&7Le NPC des cosmétiques est désormais accessible.'
     '12':
       display-name: '&c&lLocked Boss'
       lore:
-      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟᴇɴɢᴇ
       - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
     '13':
       display-name: '&c&lLocked Boss'
       lore:
-      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟᴇɴɢᴇ
       - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
     '14':
       display-name: '&c&lLocked Boss'
       lore:
-      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟᴇɴɢᴇ
       - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
     '15':
       display-name: '&c&lLocked Boss'
       lore:
-      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟᴇɴɢᴇ
       - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
     '16':
       display-name: '&c&lLocked Boss'
       lore:
-      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟʟᴀɴɢᴇ
+      - ꜰɪɴɪꜱʜ ᴛʜᴇ ᴘʀᴇᴠɪᴏᴜꜱ ᴄʜᴀʟʟᴇɴɢᴇ
       - ʙᴇꜰᴏʀᴇ ᴅᴏɪɴɢ ᴛʜɪꜱ ᴏɴᴇ
 quest-world:
   name: quest
@@ -145,3 +145,35 @@ npcs:
   quest-master: 1
   fisherman: 4
   halloween: 7
+
+  entity-interactions:
+    random-teleport:
+      uuid: "039089ae-ccb1-4bc5-8082-047c1278b12e"
+      world: world
+      size-x: 5000
+      size-z: 5000
+      center-x: 0
+      center-z: 0
+      min-y: 60
+      max-attempts: 40
+      cooldown-seconds: 3
+    rules-display:
+      uuid: "6e0df616-acc1-44e9-bfef-73ebcf678ec1"
+      world: world
+      x: -42.5
+      y: 73.5
+      z: -83.5
+      hide-distance: 15.0
+      line-width: 280
+      text:
+        - "- ᴘᴀꜱ ᴅᴇ ᴛᴘ ᴋɪʟʟ / ᴀꜰᴋ ᴋɪʟʟ / ᴋɪʟʟ ᴀᴠᴇᴄ ꜱᴛᴜꜰꜰ ᴅɪꜰ"
+        - "    (ᴍᴀx ᴅᴇᴜx ᴘɪᴇ̀ᴄᴇꜱ ᴅᴇ ɴɪᴠᴇᴀᴜx ɪɴꜰᴇ́ʀɪᴇᴜʀ (𝟦 ᴘɪᴇ̀ᴄᴇꜱ ᴅɪᴀᴍᴏɴᴅꜱ ᴠꜱ 𝟤 ᴅɪᴀᴍᴏɴᴅ + 𝟤 ꜰᴇʀ))"
+        - "- ᴘᴀꜱ ᴅᴇ ᴋɪʟʟ ᴇɴᴛʀᴇ ᴛᴇᴀᴍᴀᴛᴇꜱ ᴘᴏᴜʀ ᴜɴ ᴏʙᴊᴇᴄᴛɪꜰ ꜰɪɴᴀɴᴄɪᴇʀ ᴏᴜ ᴅᴇ ʀᴇꜱᴇᴛ ᴅᴇ ᴘʀɪᴍᴇꜱ"
+        - "- ᴘᴀꜱ ᴅ'ᴇxᴘʟᴏɪᴛᴀᴛɪᴏɴ ᴅᴇ ʙᴜɢs ᴅᴜ ᴘʟᴜɢɪɴs"
+        - "    (ᴏɴ ᴠᴏᴜꜱ ɪɴᴄɪᴛᴇ ᴀ̀ ʟᴇꜱ ʀᴇᴘᴏʀᴛᴇʀ ᴀᴜx ᴀᴅᴍɪɴs ᴘᴏᴜʀ ʀᴇ́ᴄᴜᴘᴇ́ʀᴇʀ ᴜɴ ᴄᴏꜱᴍᴇ́ᴛɪǫᴜᴇꜱ)"
+        - "- ʟᴇꜱ ᴄʟᴀɪᴍꜱ ᴅᴏɪᴠᴇɴᴛ ʀᴇꜱᴛᴇʀ ᴀᴄᴄᴇꜱꜱɪʙʟᴇ ꜱᴀɴꜱ ʀɪᴇɴ ᴄᴀꜱꜱᴇʀ"
+        - "- ᴘᴀꜱ ᴅᴇ ᴛᴏxɪᴄɪᴛᴇ́ / ɪɴꜱᴜʟᴛᴇꜱ / ʀᴀɢᴇʙᴀɪᴛɪɴɢ"
+        - "- ᴘᴀꜱ ʟᴇ ᴅʀᴏɪᴛ ᴅᴇ ʜᴀᴄᴋ ɴɪ ᴅᴇ xʀᴀʏ"
+        - "- ᴘᴀꜱ ᴅᴇ ɢʀɪᴇꜰɪɴɢ (ᴛᴜᴇʀ ᴇɴᴛɪᴛᴇ́ꜱ / ᴄᴀꜱꜱᴇʀ ʙʟᴏᴄs)"
+        - "- ᴘᴀꜱ ᴅᴇ ꜱᴛʀᴇᴀᴍʜᴀᴄᴋ"
+        - "ᴘꜱ: ꜱᴏʏᴇᴢ ᴄᴏɴᴛᴇɴᴛ (ɴᴇ ᴛᴜᴇᴢ ᴘᴀꜱ ᴊᴜꜱᴛᴇ ᴘᴏᴜʀ ᴇ̂ᴛʀᴇ ᴄʜɪᴀɴᴛ ꜰᴀᴜᴛ ᴜɴ ᴏʙᴊᴇᴄᴛɪꜰ ᴅᴇʀʀɪᴇ̀ʀᴇ)"

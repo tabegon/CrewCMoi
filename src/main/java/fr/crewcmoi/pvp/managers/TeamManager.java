@@ -284,6 +284,20 @@ public class TeamManager {
         });
     }
 
+    public boolean isFriendlyFireEnabled(UUID playerUuid) {
+        Integer teamId = playerTeamCache.get(playerUuid);
+        return teamId != null && plugin.getConfig().getBoolean("teams.settings." + teamId + ".friendly-fire", false);
+    }
+
+    public boolean isFriendlyFireEnabledForTeam(int teamId) {
+        return plugin.getConfig().getBoolean("teams.settings." + teamId + ".friendly-fire", false);
+    }
+
+    public void setFriendlyFireEnabled(int teamId, boolean enabled) {
+        plugin.getConfig().set("teams.settings." + teamId + ".friendly-fire", enabled);
+        plugin.saveConfig();
+    }
+
     public void getTeamAsync(UUID playerUuid, Consumer<TeamData> callback) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             TeamData team = databaseManager.getTeamByPlayer(playerUuid);

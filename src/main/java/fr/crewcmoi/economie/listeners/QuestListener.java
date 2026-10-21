@@ -9,6 +9,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 
 /** Événements liés à la quête n°1 du Quest Master. */
 public final class QuestListener implements Listener {
@@ -41,12 +42,8 @@ public final class QuestListener implements Listener {
 
     @EventHandler
     public void onEntitySpawn(EntitySpawnEvent event) {
-        plugin.getServer().getScheduler().runTask(plugin, () -> {
-            questManager.refreshQuestLockedEntityVisibility(event.getEntity());
-            for (Player player : plugin.getServer().getOnlinePlayers()) {
-                questManager.refreshSellBotVisibility(player);
-            }
-        });
+        plugin.getServer().getScheduler().runTask(plugin,
+                () -> questManager.refreshQuestLockedEntityVisibility(event.getEntity()));
     }
 
     @EventHandler
@@ -55,9 +52,15 @@ public final class QuestListener implements Listener {
             for (org.bukkit.entity.Entity entity : event.getChunk().getEntities()) {
                 questManager.refreshQuestLockedEntityVisibility(entity);
             }
-            for (Player player : plugin.getServer().getOnlinePlayers()) {
-                questManager.refreshSellBotVisibility(player);
-            }
         });
+    }
+
+    @EventHandler
+    public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
+        String questWorldName = plugin.getConfig().getString("quest-world.name", "quest");
+        if (event.getFrom().getName().equalsIgnoreCase(questWorldName)
+                && !event.getPlayer().getWorld().getName().equalsIgnoreCase(questWorldName)) {
+            questManager.removeQuestCompass(event.getPlayer());
+        }
     }
 }

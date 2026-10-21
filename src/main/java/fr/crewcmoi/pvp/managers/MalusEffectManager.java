@@ -99,16 +99,16 @@ public class MalusEffectManager {
         }
 
         int previousLevel = reductionLevel.getOrDefault(player.getUniqueId(), 0);
-        if (newLevel == previousLevel) {
+        if (newLevel == 0) {
+            reductionLevel.remove(player.getUniqueId());
+            if (previousLevel != 0) Messages.send(player, "bounty.malus.removed");
             return;
         }
 
-        if (newLevel == 0) {
-            reductionLevel.remove(player.getUniqueId());
-            Messages.send(player, "bounty.malus.removed");
-        } else {
-            reductionLevel.put(player.getUniqueId(), newLevel);
-            sendMessage(player, newLevel == 2 ? "bounty.bad-luck-tier2" : "bounty.bad-luck-tier1");
+        reductionLevel.put(player.getUniqueId(), newLevel);
+        if (newLevel != previousLevel) {
+            sendMessage(player, newLevel == 3 ? "bounty.bad-luck-tier3"
+                    : newLevel == 2 ? "bounty.bad-luck-tier2" : "bounty.bad-luck-tier1");
         }
     }
 
@@ -229,8 +229,14 @@ public class MalusEffectManager {
     private void sendMessage(Player player, String path) {
         String message = plugin.getMessages().getString(path);
         if (message == null) {
-            return;
+            message = switch (path) {
+                case "bounty.bad-luck-tier1" -> "&cMalus PvP : -20 % de dégâts infligés aux joueurs.";
+                case "bounty.bad-luck-tier2" -> "&cMalus PvP : -40 % de dégâts infligés aux joueurs.";
+                case "bounty.bad-luck-tier3" -> "&4Malus PvP : -60 % de dégâts infligés aux joueurs.";
+                default -> null;
+            };
         }
+        if (message == null) return;
         String prefix = plugin.getMessages().getString("prefix");
         player.sendMessage((prefix + message).replace('&', '§'));
     }

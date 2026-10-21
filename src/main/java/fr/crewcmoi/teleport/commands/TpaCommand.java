@@ -55,11 +55,24 @@ public class TpaCommand implements CommandExecutor {
             return true;
         }
 
+        if (teleportManager.isArenaTeleportBlocked(requester, target)) {
+            teleportManager.sendArenaBlocked(requester);
+            return true;
+        }
+
         if (combatManager != null && combatManager.isInCombat(requester)) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     plugin.getMessages().getString("prefix") +
                             plugin.getMessages().getString("combat-log.action-blocked")
                                     .replace("{seconds}", String.valueOf(combatManager.getRemainingSeconds(requester)))));
+            return true;
+        }
+
+        if (combatManager != null && combatManager.isInCombat(target)) {
+            requester.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    plugin.getMessages().getString("prefix") +
+                            plugin.getMessages().getString("tpa.target-in-combat")
+                                    .replace("{player}", target.getName())));
             return true;
         }
 

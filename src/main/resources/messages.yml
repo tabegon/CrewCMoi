@@ -68,6 +68,9 @@ bounty:
   placed: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&a ꜱᴜʀ &e{player}&a !'
   received: '&c{player} ᴀ ᴘʟᴀᴄᴇ ᴜɴᴇ ᴘʀɪᴍᴇ ᴅᴇ &e{amount}&c ꜱᴜʀ ᴠᴏᴜꜱ !{reason}'
   not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ ᴘᴏᴜʀ &e{amount}&c.'
+  bad-luck-tier1: '&cᴍᴀʟᴜꜱ ᴘᴠᴘ : ᴠᴏꜱ ᴅᴇɢᴀᴛꜱ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ ꜱᴏɴᴛ ʀᴇᴅᴜɪᴛꜱ ᴅᴇ 20%.'
+  bad-luck-tier2: '&cᴍᴀʟᴜꜱ ᴘᴠᴘ : ᴠᴏꜱ ᴅᴇɢᴀᴛꜱ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ ꜱᴏɴᴛ ʀᴇᴅᴜɪᴛꜱ ᴅᴇ 40%.'
+  bad-luck-tier3: '&4ᴍᴀʟᴜꜱ ᴘᴠᴘ : ᴠᴏꜱ ᴅᴇɢᴀᴛꜱ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ ꜱᴏɴᴛ ʀᴇᴅᴜɪᴛꜱ ᴅᴇ 60%.'
   malus:
     removed: '&aʟᴇ ᴍᴀʟᴜꜱ ᴅᴇ ᴘʀɪᴍᴇ ᴀ ᴇᴛᴇ ʀᴇᴛɪʀᴇ.'
     health-reduced: '&cᴠᴏᴛʀᴇ ᴠɪᴇ ᴍᴀxɪᴍᴀʟᴇ ᴀ ᴇᴛᴇ ʀᴇᴅᴜɪᴛᴇ ᴇɴ ʀᴀɪꜱᴏɴ ᴅᴜ ᴍᴀʟᴜꜱ ᴅᴇ ᴘʀɪᴍᴇ.'
@@ -92,6 +95,7 @@ tpa:
   expired-target: '&cᴅᴇᴍᴀɴᴅᴇ ᴅᴇ &e{player}&c ᴇxᴘɪʀᴇᴇ.'
   target-in-combat: '&c{player} ᴇꜱᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ.'
   moving-in-combat: '&c{player} ᴇꜱᴛ ᴇɴ ᴄᴏᴍʙᴀᴛ, ᴀɴɴᴜʟᴇ.'
+  arena-blocked: '&cʟᴇꜱ ᴛᴇʟᴇᴘᴏʀᴛᴀᴛɪᴏɴꜱ ᴘᴀʀ /ᴛᴘᴀ ᴇᴛ /ᴛᴘᴀʜᴇʀᴇ ꜱᴏɴᴛ ɪɴᴛᴇʀᴅɪᴛᴇꜱ ᴅᴀɴꜱ ʟ’ᴀʀᴇɴᴇ.'
   accept-hover: ᴄʟɪǫᴜᴇᴢ ᴘᴏᴜʀ ᴀᴄᴄᴇᴘᴛᴇʀ
 duel:
   usage: '&cᴜꜱᴀɢᴇ : /ᴅᴜᴇʟ <ᴊᴏᴜᴇᴜʀ>'
@@ -142,6 +146,7 @@ home:
   world-missing: '&cᴍᴏɴᴅᴇ ᴅᴜ ʜᴏᴍᴇ ɪɴᴛʀᴏᴜᴠᴀʙʟᴇ.'
   teleported: '&aᴛᴇʟᴇᴘᴏʀᴛᴇ ᴀ ᴠᴏᴛʀᴇ ʜᴏᴍᴇ.'
 claim:
+  quest-world-disabled: '&cLes claims sont désactivés dans le monde Quest.'
   success: '&aᴄʜᴜɴᴋ ᴄʟᴀɪᴍ.'
   already-claimed: '&cᴄʜᴜɴᴋ ᴅᴇᴊᴀ ᴄʟᴀɪᴍ.'
   limit-reached: '&cʟɪᴍɪᴛᴇ ᴅᴇ ᴄʟᴀɪᴍꜱ ᴀᴛᴛᴇɪɴᴛᴇ.'
@@ -162,7 +167,7 @@ claim:
   sale-started: '&aᴄʟᴀɪᴍ ᴇɴ ᴠᴇɴᴛᴇ ᴘᴏᴜʀ &e{price}&a.'
   sale-cancelled: '&aᴄʟᴀɪᴍ ʀᴇᴛɪʀᴇ ᴅᴇ ʟᴀ ᴠᴇɴᴛᴇ.'
   not-for-sale: '&cᴄᴇ ᴄʟᴀɪᴍ ɴ''ᴇꜱᴛ ᴘᴀꜱ ᴇɴ ᴠᴇɴᴛᴇ.'
-  invalid-price: '&cᴘʀɪx ɪɴᴠᴀʟɪᴅᴇ.'
+  invalid-price: '&cᴘʀɪx ɪɴᴠᴀʟɪᴅᴇ. ᴜᴛɪʟɪꜱᴇᴢ ᴜɴ ᴍᴏɴᴛᴀɴᴛ ᴇɴᴛɪᴇʀ, ꜱᴀɴꜱ ᴠɪʀɢᴜʟᴇ.'
   buy-success: '&aᴄʟᴀɪᴍ ᴀᴄʜᴇᴛᴇ.'
   own-claim: '&cᴠᴏᴜꜱ ᴘᴏꜱꜱᴇᴅᴇᴢ ᴅᴇᴊᴀ ᴄᴇ ᴄʟᴀɪᴍ.'
   not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ.'
@@ -195,7 +200,7 @@ economy:
     usage: '&cᴜꜱᴀɢᴇ : /ᴘᴀʏ <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>'
     positive-amount: '&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴜɴ ɴᴏᴍʙʀᴇ ᴘᴏꜱɪᴛɪꜰ.'
     self: '&cᴠᴏᴜꜱ ɴᴇ ᴘᴏᴜᴠᴇᴢ ᴘᴀꜱ ᴠᴏᴜꜱ ᴘᴀʏᴇʀ ᴠᴏᴜꜱ-ᴍᴇᴍᴇ.'
-    invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}'
+    invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}. ᴜᴛɪʟɪꜱᴇᴢ ᴜɴ ᴍᴏɴᴛᴀɴᴛ ᴇɴᴛɪᴇʀ, ꜱᴀɴꜱ ᴠɪʀɢᴜʟᴇ.'
     not-enough-money: '&cꜰᴏɴᴅꜱ ɪɴꜱᴜꜰꜰɪꜱᴀɴᴛꜱ ᴘᴏᴜʀ &e{amount}&c.'
     sent: '&aᴇɴᴠᴏʏᴇ &e{amount}&a ᴀ &e{player}&a.'
     received: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ʀᴇᴄᴜ &e{amount}&a ᴅᴇ ʟᴀ ᴘᴀʀᴛ ᴅᴇ &e{player}&a !'
@@ -204,7 +209,7 @@ economy:
     usage: '&cᴜꜱᴀɢᴇ : /ᴍᴏɴᴇʏ <ᴀᴅᴅ|ʀᴇᴍᴏᴠᴇ|ꜱᴇᴛ> <ᴊᴏᴜᴇᴜʀ> <ᴍᴏɴᴛᴀɴᴛ>'
     positive-amount: '&cʟᴇ ᴍᴏɴᴛᴀɴᴛ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴘᴏꜱɪᴛɪꜰ.'
     unknown-action: '&cᴀᴄᴛɪᴏɴ ɪɴᴄᴏɴɴᴜᴇ. ᴜᴛɪʟɪꜱᴇᴢ ᴀᴅᴅ, ʀᴇᴍᴏᴠᴇ ᴏᴜ ꜱᴇᴛ.'
-    invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}'
+    invalid-amount: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ : {amount}. ᴜᴛɪʟɪꜱᴇᴢ ᴜɴ ᴍᴏɴᴛᴀɴᴛ ᴇɴᴛɪᴇʀ, ꜱᴀɴꜱ ᴠɪʀɢᴜʟᴇ.'
     add-success: '&aᴀᴊᴏᴜᴛᴇ &e{amount}&a ᴀ &e{player}&a.'
     remove-not-enough: '&c{player} ɴ''ᴀ ᴘᴀꜱ ᴀꜱꜱᴇᴢ ᴅ''ᴀʀɢᴇɴᴛ.'
     remove-success: '&aʀᴇᴛɪʀᴇ &e{amount}&a ᴀ &e{player}&a.'
@@ -222,7 +227,7 @@ economy:
       &e/ah sell <prix> &7- Mettre en vente l’objet tenu en main.
       &7Exemple : &f/ah sell 1500
       &e/ah help &7- Afficher cette aide.
-    invalid-price: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ.'
+    invalid-price: '&cᴍᴏɴᴛᴀɴᴛ ɪɴᴠᴀʟɪᴅᴇ. ᴜᴛɪʟɪꜱᴇᴢ ᴜɴ ᴍᴏɴᴛᴀɴᴛ ᴇɴᴛɪᴇʀ, ꜱᴀɴꜱ ᴠɪʀɢᴜʟᴇ.'
     no-item: '&cᴠᴏᴜꜱ ᴅᴇᴠᴇᴢ ᴛᴇɴɪʀ ᴜɴ ᴏʙᴊᴇᴛ ᴇɴ ᴍᴀɪɴ ᴘᴏᴜʀ ʟᴇ ᴍᴇᴛᴛʀᴇ ᴇɴ ᴠᴇɴᴛᴇ.'
     list-failed: '&cᴜɴᴇ ᴇʀʀᴇᴜʀ ᴇꜱᴛ ꜱᴜʀᴠᴇɴᴜᴇ, ʟ''ᴏʙᴊᴇᴛ ᴠᴏᴜꜱ ᴀ ᴇᴛᴇ ʀᴇɴᴅᴜ.'
     player-only: '&cᴄᴏᴍᴍᴀɴᴅᴇ ʀᴇꜱᴇʀᴠᴇᴇ ᴀᴜx ᴊᴏᴜᴇᴜʀꜱ.'
@@ -318,10 +323,15 @@ claims:
   admin:
     delete-success: '&aʟᴇ ᴄʟᴀɪᴍ ᴅᴇ &f{world} &a({x}, {z}) ᴀ ᴇᴛᴇ ꜱᴜᴘᴘʀɪᴍᴇ.'
     delete-failed: '&cɪᴍᴘᴏꜱꜱɪʙʟᴇ ᴅᴇ ꜱᴜᴘᴘʀɪᴍᴇʀ ᴄᴇ ᴄʟᴀɪᴍ.'
+    teleport-success: '&aTéléportation au claim de &f{owner} &a({world}, {x}, {z}).'
+    teleport-unsafe: '&eAucun emplacement sûr trouvé dans ce chunk : vérifie ta position.'
+    teleport-failed: '&cLa téléportation a été annulée.'
+    teleport-claim-missing: '&cCe claim n''existe plus.'
+    teleport-world-missing: '&cLe monde &f{world} &cn''est pas chargé.'
 teams:
   command:
     player-only: '&cᴄᴇᴛᴛᴇ ᴄᴏᴍᴍᴀɴᴅᴇ ᴅᴏɪᴛ ᴇᴛʀᴇ ᴇxᴇᴄᴜᴛᴇᴇ ᴘᴀʀ ᴜɴ ᴊᴏᴜᴇᴜʀ.'
-    usage: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ <ᴄʀᴇᴀᴛᴇ|ᴀᴅᴅ|ᴀᴄᴄᴇᴘᴛ|ᴅᴇɴʏ|ʟᴇᴀᴠᴇ|ᴅɪꜱʙᴀɴᴅ|ɪɴꜰᴏ|ᴘʀᴏᴍᴏᴛᴇ>'
+    usage: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ <ᴄʀᴇᴀᴛᴇ|ᴀᴅᴅ|ᴀᴄᴄᴇᴘᴛ|ᴅᴇɴʏ|ʟᴇᴀᴠᴇ|ᴅɪꜱʙᴀɴᴅ|ɪɴꜰᴏ|ᴘʀᴏᴍᴏᴛᴇ|ꜱᴇᴛᴛɪɴɢꜱ>'
   create:
     usage: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ ᴄʀᴇᴀᴛᴇ <ɴᴏᴍ>'
     already-in-team: '&cᴠᴏᴜꜱ ꜰᴀɪᴛᴇꜱ ᴅᴇᴊᴀ ᴘᴀʀᴛɪᴇ ᴅ''ᴜɴᴇ ᴇǫᴜɪᴘᴇ.'
@@ -349,6 +359,12 @@ teams:
     success: '&aᴠᴏᴜꜱ ᴀᴠᴇᴢ ǫᴜɪᴛᴛᴇ ᴠᴏᴛʀᴇ ᴇǫᴜɪᴘᴇ.'
   disband:
     owner-only: '&cꜱᴇᴜʟ ʟᴇ ᴘʀᴏᴘʀɪᴇᴛᴀɪʀᴇ ᴅᴇ ʟ''ᴇǫᴜɪᴘᴇ ᴘᴇᴜᴛ ʟᴀ ᴅɪꜱꜱᴏᴜᴅʀᴇ.'
+  settings:
+    usage: '&cᴜꜱᴀɢᴇ : /ᴛᴇᴀᴍ ꜱᴇᴛᴛɪɴɢꜱ [ꜰʀɪᴇɴᴅʟʏꜰɪʀᴇ <ᴏɴ|ᴏꜰꜰ>]'
+    status: '&7ᴘᴠᴘ ᴇɴᴛʀᴇ ᴍᴇᴍʙʀᴇꜱ : {status}'
+    owner-only: '&cꜱᴇᴜʟ ʟᴇ ꜰᴏɴᴅᴀᴛᴇᴜʀ ᴘᴇᴜᴛ ᴍᴏᴅɪꜰɪᴇʀ ʟᴇꜱ ᴘᴀʀᴀᴍᴇᴛʀᴇꜱ.'
+    enabled: '&eʟᴇ ᴘᴠᴘ ᴇɴᴛʀᴇ ᴍᴇᴍʙʀᴇꜱ ᴅᴇ ʟ''ᴇǫᴜɪᴘᴇ ᴇꜱᴛ ᴍᴀɪɴᴛᴇɴᴀɴᴛ ᴀᴄᴛɪꜰ.'
+    disabled: '&aʟᴇ ᴘᴠᴘ ᴇɴᴛʀᴇ ᴍᴇᴍʙʀᴇꜱ ᴅᴇ ʟ''ᴇǫᴜɪᴘᴇ ᴇꜱᴛ ᴅᴇꜱᴀᴄᴛɪᴠᴇ.'
   promote:
     usage: '&cUsage : /team promote <joueur>'
     owner-only: '&cSeul le fondateur peut promouvoir les membres.'

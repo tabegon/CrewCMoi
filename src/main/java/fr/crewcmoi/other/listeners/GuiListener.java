@@ -3,6 +3,7 @@ import fr.crewcmoi.other.utils.Messages;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.admin.AdminGuiHolder;
+import fr.crewcmoi.admin.AdminModerationHolder;
 import fr.crewcmoi.admin.AdminGuiManager;
 import fr.crewcmoi.claims.database.ClaimFlag;
 import fr.crewcmoi.claims.database.ClaimPermission;
@@ -110,8 +111,12 @@ public class GuiListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         InventoryHolder holder = event.getInventory().getHolder();
 
-        if (holder instanceof AdminGuiHolder) {
+        if (holder instanceof fr.crewcmoi.admin.AdminPlayerInventoryHolder) {
+            adminGuiManager.handleInventoryEditorClick(event);
+        } else if (holder instanceof AdminGuiHolder) {
             adminGuiManager.handleClick(event);
+        } else if (holder instanceof AdminModerationHolder) {
+            adminGuiManager.handleModerationClick(event);
         } else if (holder instanceof SellHolder sellHolder) {
             handleSellClick(event, sellHolder);
         } else if (holder instanceof AuctionHolder auctionHolder) {
@@ -156,8 +161,11 @@ public class GuiListener implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getInventory().getHolder() instanceof BaltopHolder
-                || event.getInventory().getHolder() instanceof AdminGuiHolder) {
+        if (event.getInventory().getHolder() instanceof fr.crewcmoi.admin.AdminPlayerInventoryHolder) {
+            adminGuiManager.handleInventoryEditorDrag(event);
+        } else if (event.getInventory().getHolder() instanceof BaltopHolder
+                || event.getInventory().getHolder() instanceof AdminGuiHolder
+                || event.getInventory().getHolder() instanceof AdminModerationHolder) {
             event.setCancelled(true);
         }
     }
@@ -169,7 +177,9 @@ public class GuiListener implements Listener {
             return;
         }
 
-        if (holder instanceof SellHolder sellHolder) {
+        if (holder instanceof fr.crewcmoi.admin.AdminPlayerInventoryHolder) {
+            adminGuiManager.handleInventoryEditorClose(event);
+        } else if (holder instanceof SellHolder sellHolder) {
             sellGuiManager.returnItems(player, event.getInventory(), sellHolder);
         } else if (holder instanceof FishermanSellHolder fishermanSellHolder) {
             fishermanGuiManager.returnSellItems(player, event.getInventory(), fishermanSellHolder);
@@ -439,6 +449,10 @@ public class GuiListener implements Listener {
                 claimAdminGuiManager.open(player);
                 return;
             }
+            if (slot == fr.crewcmoi.claims.gui.ClaimSettingsGuiManager.ADMIN_TELEPORT_SLOT && !holder.isDeleteArmed()) {
+                claimAdminGuiManager.teleportToClaim(player, holder.getWorld(), holder.getChunkX(), holder.getChunkZ());
+                return;
+            }
             if (slot == 26) {
                 if (!holder.isDeleteArmed()) {
                     holder.setDeleteArmed(true);
@@ -501,7 +515,13 @@ public class GuiListener implements Listener {
         String[] parts = key.split(";", 3);
         if (parts.length != 3) return;
         try {
-            claimAdminGuiManager.openSettings(player, parts[0], Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+            int chunkX = Integer.parseInt(parts[1]);
+            int chunkZ = Integer.parseInt(parts[2]);
+            if (event.isRightClick()) {
+                claimAdminGuiManager.teleportToClaim(player, parts[0], chunkX, chunkZ);
+            } else {
+                claimAdminGuiManager.openSettings(player, parts[0], chunkX, chunkZ);
+            }
         } catch (NumberFormatException ignored) {
         }
     }

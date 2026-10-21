@@ -9,8 +9,13 @@ loadbefore: [RPGhuds]
 
 commands:
   admin:
-    description: Ouvre le menu central d’administration.
-    usage: /admin [zone pos1|pos2|add <nom>|remove <nom>|list]
+    description: Ouvre le menu central d’administration et les outils de modération.
+    aliases: [admins]
+    usage: /admin [pets <joueur> <pet|all|1|2>|quest <joueur> <1|2|all>|zone ...]
+  pvpgroup:
+    description: Définit le groupe de punition PvP d’un joueur.
+    usage: /pvpgroup <joueur> <0|1|2>
+    permission: crew.admin
   reset:
     description: Réinitialise les quêtes d’un joueur.
     usage: /reset quest <joueur>
@@ -100,6 +105,10 @@ commands:
     description: Réclame le chunk actuel pour empêcher les autres joueurs d'y construire/détruire.
     usage: /claim [unclaim|trust <joueur>|untrust <joueur>|info|settings|see|shop|sell <prix>|buy|ah]
     permission: crew.command.claim
+  unclaim:
+    description: Supprime le claim du chunk actuel.
+    usage: /unclaim
+    permission: crew.command.claim
   claims:
     description: Alias de /claim, notamment pour /claims settings (GUI des règles du claim).
     usage: /claims settings
@@ -128,6 +137,14 @@ commands:
     description: Bascule ton mode staff (façade Vip <-> vrai rôle + inventaire dédié). "/staff info [joueur]" affiche le vrai rôle/mode staff/vanish.
     usage: /staff [info <joueur>]
     permission: crew.staff
+  mute:
+    description: Empêche un joueur de parler dans le chat.
+    usage: /mute <joueur>
+    permission: crew.admin
+  unmute:
+    description: Autorise de nouveau un joueur à parler dans le chat.
+    usage: /unmute <joueur>
+    permission: crew.admin
   vanish:
     description: Bascule le vanish. Nécessite le mode staff.
     usage: /vanish

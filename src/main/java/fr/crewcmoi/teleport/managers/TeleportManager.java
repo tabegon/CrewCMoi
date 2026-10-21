@@ -2,6 +2,7 @@ package fr.crewcmoi.teleport.managers;
 
 import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.managers.CombatManager;
+import fr.crewcmoi.pvp.managers.DuelArenaManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -48,6 +49,19 @@ public class TeleportManager {
     }
 
     public int getExpirySeconds() { return expirySeconds; }
+
+    public boolean isInDuelArena(Player player) {
+        if (player == null || plugin.getDuelArenaManager() == null) return false;
+        return plugin.getDuelArenaManager().isInsideArena(player.getLocation());
+    }
+
+    public boolean isArenaTeleportBlocked(Player first, Player second) {
+        return isInDuelArena(first) || isInDuelArena(second);
+    }
+
+    public void sendArenaBlocked(Player player) {
+        send(player, "tpa.arena-blocked", null, null);
+    }
 
     public void createRequest(Player requester, Player target, RequestType type) {
         UUID targetUuid = target.getUniqueId();
@@ -147,11 +161,24 @@ public class TeleportManager {
             return;
         }
 
-        Player moving = request.getType() == RequestType.TPA ? requester : target;
-        if (combatManager != null && combatManager.isInCombat(moving)) {
+        if (isArenaTeleportBlocked(requester, target)) {
+            sendArenaBlocked(requester);
+            sendArenaBlocked(target);
+            return;
+        }
+
+        Player combatant = null;
+        if (combatManager != null) {
+            if (combatManager.isInCombat(requester)) {
+                combatant = requester;
+            } else if (combatManager.isInCombat(target)) {
+                combatant = target;
+            }
+        }
+        if (combatant != null) {
             String prefix = plugin.getMessages().getString("prefix", "");
             String message = plugin.getMessages().getString("tpa.moving-in-combat", "&c{player} est en combat, annulation.")
-                    .replace("{player}", moving.getName());
+                    .replace("{player}", combatant.getName());
             target.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + message));
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + message));
             return;

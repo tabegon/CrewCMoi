@@ -105,6 +105,18 @@ public class DuelArenaManager {
         return false;
     }
 
+    public boolean isProtectedDuelFloor(Location location) {
+        if (location == null || location.getWorld() == null || location.getBlockY() != -59) return false;
+        for (int id = 1; id <= 2; id++) {
+            Arena arena = arenas[id];
+            if (!defined(arena) || !location.getWorld().getName().equals(arena.worldName)) continue;
+            int x = location.getBlockX();
+            int z = location.getBlockZ();
+            if (x >= arena.minX && x <= arena.maxX && z >= arena.minZ && z <= arena.maxZ) return true;
+        }
+        return false;
+    }
+
     public boolean saveSnapshot(CommandSender sender) {
         Arena a = active();
         if (!defined(a)) { Messages.send(sender, "moderation.duelarena.corners-required"); return false; }

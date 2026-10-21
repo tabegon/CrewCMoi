@@ -28,7 +28,10 @@ public class CustomItemRecipeManager implements Listener {
 
     @EventHandler
     public void onItemsAdderLoaded(ItemsAdderLoadDataEvent event) {
-        Bukkit.getScheduler().runTask(plugin, this::registerRecipes);
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            registerRecipes();
+            plugin.registerCustomMaceRecipe();
+        });
     }
 
     public void registerRecipes() {

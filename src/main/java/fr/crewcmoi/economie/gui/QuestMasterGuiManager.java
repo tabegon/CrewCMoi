@@ -34,28 +34,40 @@ public class QuestMasterGuiManager {
             gui.setItem(slot, GuiItems.nothing(" "));
         }
 
-        // Slots 10 à 16 : le modèle est fixe, mais le nom et le lore sont
-        // entièrement configurables individuellement dans config.yml.
-        for (int slot = 10; slot <= 16; slot++) {
-            ConfigurationSection section = plugin.getConfig()
-                    .getConfigurationSection("quest-master.slots." + slot);
+        // Slot 10 lance l'énigme et téléporte dans le monde Quest.
+        ConfigurationSection riddle = plugin.getConfig().getConfigurationSection("quest-master.slots.10");
+        ConfigurationSection riddleCompleted = plugin.getConfig().getConfigurationSection("quest-master.slots.10.completed");
+        ItemStack riddleItem;
+        if (plugin.getQuestManager().isCompleted(player)) {
+            riddleItem = createConfiguredItem(riddleCompleted, createConfiguredItem(riddle, GuiItems.lock("&f&l???")));
+            applyLore(riddleItem, riddleCompleted != null ? riddleCompleted : riddle);
+        } else {
+            riddleItem = createConfiguredItem(riddle, GuiItems.lock("&f&l???"));
+            applyLore(riddleItem, riddle);
+        }
+        gui.setItem(10, riddleItem);
 
-            ItemStack item;
-            if (slot == 10) {
-                ConfigurationSection riddle = plugin.getConfig().getConfigurationSection("quest-master.slots.11.unlocked");
-                ConfigurationSection riddleCompleted = plugin.getConfig().getConfigurationSection("quest-master.slots.11.completed");
-                if (plugin.getQuestManager().isCompleted(player)) {
-                    item = createConfiguredItem(riddleCompleted, createConfiguredItem(riddle, GuiItems.lock("&b&lÉnigme")));
-                } else {
-                    item = createConfiguredItem(riddle, GuiItems.lock("&b&lÉnigme"));
-                }
-                applyLore(item, plugin.getQuestManager().isCompleted(player) && riddleCompleted != null ? riddleCompleted : riddle);
-            } else if (slot == 11 && plugin.getQuestManager().isCompleted(player)) {
-                item = createQuestItem(section, player);
-            } else {
-                item = GuiItems.lock(getDisplayName(section, "&c&lVERROUILLÉ"));
-                applyLore(item, section);
-            }
+        // Slot 11 lance la quête de l'Electric Goat après la validation de l'énigme.
+        ConfigurationSection goat = plugin.getConfig().getConfigurationSection("quest-master.slots.11");
+        ItemStack goatItem;
+        if (!plugin.getQuestManager().isCompleted(player)) {
+            goatItem = GuiItems.lock(getDisplayName(goat, "&c&lLocked Boss"));
+            applyLore(goatItem, goat);
+        } else if (plugin.getQuestManager().isQuest2Completed(player)) {
+            ConfigurationSection completed = goat == null ? null : goat.getConfigurationSection("completed");
+            goatItem = createConfiguredItem(completed, GuiItems.goat("&a&lElectric Goat &2✓"));
+            applyLore(goatItem, completed);
+        } else {
+            ConfigurationSection unlocked = goat == null ? null : goat.getConfigurationSection("unlocked");
+            goatItem = createConfiguredItem(unlocked, GuiItems.goat("&a&lElectric Goat"));
+            applyLore(goatItem, unlocked);
+        }
+        gui.setItem(11, goatItem);
+
+        for (int slot = 12; slot <= 16; slot++) {
+            ConfigurationSection section = plugin.getConfig().getConfigurationSection("quest-master.slots." + slot);
+            ItemStack item = GuiItems.lock(getDisplayName(section, "&c&lVERROUILLÉ"));
+            applyLore(item, section);
             gui.setItem(slot, item);
         }
 

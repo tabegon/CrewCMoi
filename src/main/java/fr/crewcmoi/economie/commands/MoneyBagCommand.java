@@ -34,8 +34,8 @@ public class MoneyBagCommand implements CommandExecutor {
         if (!(sender instanceof Player player)) { sender.sendMessage("Cette commande doit être utilisée en jeu."); return true; }
         if (args.length != 1) { player.sendMessage(ChatColor.RED + "Usage : /moneybag <montant>"); return true; }
         double amount;
-        try { amount = MoneyFormat.parse(args[0]); }
-        catch (NumberFormatException exception) { player.sendMessage(ChatColor.RED + "Montant invalide."); return true; }
+        try { amount = MoneyFormat.parseWhole(args[0]); }
+        catch (NumberFormatException exception) { player.sendMessage(ChatColor.RED + "Montant invalide : utilisez un nombre entier sans virgule."); return true; }
         if (!Double.isFinite(amount) || amount <= 0) { player.sendMessage(ChatColor.RED + "Le montant doit être supérieur à 0."); return true; }
         CustomStack custom = CustomStack.getInstance(BAG_ID);
         if (custom == null || custom.getItemStack() == null) { player.sendMessage(ChatColor.RED + "L'item server:ccoin_bag est indisponible."); return true; }

@@ -6,13 +6,20 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 public class SetHomeCommand implements CommandExecutor {
+    private final Main plugin;
     private final HomeManager manager;
-    public SetHomeCommand(Main p,HomeManager m) {
-        manager=m;
+    public SetHomeCommand(Main plugin, HomeManager manager) {
+        this.plugin = plugin;
+        this.manager = manager;
     }
     public boolean onCommand(CommandSender s,Command c,String l,String[] a) {
         if(!(s instanceof Player p)) {
             Messages.send(s,"teleport.sethome.player-only");
+            return true;
+        }
+        String questWorld = plugin.getConfig().getString("quest-world.name", "quest");
+        if (p.getWorld().getName().equalsIgnoreCase(questWorld)) {
+            p.sendMessage(color("&cTu ne peux pas définir de home dans le monde Quest."));
             return true;
         }
         String name=a.length==0?"home":a[0];

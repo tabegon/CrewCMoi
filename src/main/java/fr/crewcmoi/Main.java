@@ -35,6 +35,8 @@ import fr.crewcmoi.economie.commands.MoneyBagCommand;
 import fr.crewcmoi.economie.commands.ResetQuestCommand;
 import fr.crewcmoi.economie.listeners.MoneyBagListener;
 import fr.crewcmoi.economie.listeners.CrabClawListener;
+import fr.crewcmoi.economie.listeners.ConfiguredEntityInteractionListener;
+import fr.crewcmoi.economie.listeners.ConfiguredNpcInteractionListener;
 import fr.crewcmoi.economie.managers.CustomItemRecipeManager;
 import fr.crewcmoi.economie.commands.PayCommand;
 import fr.crewcmoi.economie.commands.SellCommand;
@@ -62,6 +64,7 @@ import fr.crewcmoi.economie.managers.PricesManager;
 import fr.crewcmoi.economie.vault.VaultEconomyProvider;
 import fr.crewcmoi.other.listeners.GuiListener;
 import fr.crewcmoi.other.listeners.JoinListener;
+import fr.crewcmoi.other.listeners.CommandTabCompleteListener;
 import fr.crewcmoi.other.managers.DatabaseManager;
 import fr.crewcmoi.teleport.managers.HomeManager;
 import fr.crewcmoi.other.managers.SQLiteManager;
@@ -77,6 +80,7 @@ import fr.crewcmoi.pvp.gui.BountyGuiManager;
 import fr.crewcmoi.pvp.gui.BountyReviewGuiManager;
 import fr.crewcmoi.pvp.gui.DuelConfigGuiManager;
 import fr.crewcmoi.pvp.gui.TeamGuiManager;
+import fr.crewcmoi.pvp.gui.TeamSettingsGuiManager;
 import fr.crewcmoi.pvp.gui.TeamRequestGuiManager;
 import fr.crewcmoi.pvp.teamrequest.TeamRequestManager;
 import fr.crewcmoi.pvp.gui.TeamGuiListener;
@@ -88,6 +92,7 @@ import fr.crewcmoi.pvp.listeners.PlayerHeadDropListener;
 import fr.crewcmoi.pvp.listeners.InvisibilityListener;
 import fr.crewcmoi.pvp.listeners.PvpRulesListener;
 import fr.crewcmoi.pvp.managers.BountyManager;
+import fr.crewcmoi.pvp.managers.PvpGroupManager;
 import fr.crewcmoi.pvp.managers.BountyScoreboardManager;
 import fr.crewcmoi.pvp.managers.CombatManager;
 import fr.crewcmoi.pvp.managers.DuelArenaManager;
@@ -101,6 +106,9 @@ import fr.crewcmoi.moderation.listeners.StaffModeListener;
 import fr.crewcmoi.moderation.listeners.VanishListener;
 import fr.crewcmoi.moderation.managers.StaffModeManager;
 import fr.crewcmoi.moderation.managers.VanishManager;
+import fr.crewcmoi.moderation.commands.MuteCommand;
+import fr.crewcmoi.moderation.listeners.MuteListener;
+import fr.crewcmoi.moderation.managers.MuteManager;
 import fr.crewcmoi.tab.commands.RoleCommand;
 import fr.crewcmoi.tab.listeners.TabListListener;
 import fr.crewcmoi.tab.listeners.ChatRoleListener;
@@ -164,6 +172,7 @@ public class Main extends JavaPlugin {
     private fr.crewcmoi.pvp.managers.DuelKitManager duelKitManager;
     private DuelConfigGuiManager duelConfigGuiManager;
     private TeamGuiManager teamGuiManager;
+    private TeamSettingsGuiManager teamSettingsGuiManager;
     private DuelArenaManager duelArenaManager;
     private InvisibilityManager invisibilityManager;
     private RoleManager roleManager;
@@ -171,10 +180,12 @@ public class Main extends JavaPlugin {
     private PlayerTeamManager playerTeamManager;
     private StaffModeManager staffModeManager;
     private VanishManager vanishManager;
+    private MuteManager muteManager;
     private FileConfiguration messages;
     private File messagesFile;
     private WebDashboardServer webDashboardServer;
     private PetManager petManager;
+    private PvpGroupManager pvpGroupManager;
     private PetGuiManager petGuiManager;
     private FishermanGuiManager fishermanGuiManager;
     private QuestManager questManager;
@@ -182,6 +193,7 @@ public class Main extends JavaPlugin {
     private TeamRequestManager teamRequestManager;
     private TeamRequestGuiManager teamRequestGuiManager;
     private CrabClawListener crabClawListener;
+    private ConfiguredEntityInteractionListener configuredEntityInteractionListener;
 
     private void loadSplitConfiguration() {
         java.util.Map<String, java.util.List<String>> files = new java.util.LinkedHashMap<>();
@@ -220,6 +232,8 @@ public class Main extends JavaPlugin {
             }
         }
 
+        mergeMissingEntityInteractionDefaults();
+
         boolean removedFromMain = false;
         for (var entry : files.entrySet()) {
             for (String section : entry.getValue()) {
@@ -247,6 +261,46 @@ public class Main extends JavaPlugin {
         }
     }
 
+    private void mergeMissingEntityInteractionDefaults() {
+        File file = new File(getDataFolder(), "quests.yml");
+        if (!file.isFile()) return;
+
+        org.bukkit.configuration.file.YamlConfiguration defaults;
+        org.bukkit.configuration.file.YamlConfiguration current =
+                org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+        try (java.io.InputStream stream = getResource("quests.yml")) {
+            if (stream == null) return;
+            defaults = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(
+                    new InputStreamReader(stream, StandardCharsets.UTF_8));
+        } catch (IOException exception) {
+            getLogger().warning("Impossible de charger les valeurs par défaut des interactions PNJ : "
+                    + exception.getMessage());
+            return;
+        }
+
+        String path = "npcs.entity-interactions";
+        if (!defaults.isConfigurationSection(path)) return;
+        boolean changed = false;
+        for (var entry : defaults.getConfigurationSection(path).getValues(true).entrySet()) {
+            if (entry.getValue() instanceof org.bukkit.configuration.ConfigurationSection) continue;
+            String key = path + "." + entry.getKey();
+            if (!current.contains(key)) {
+                current.set(key, entry.getValue());
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            try {
+                current.save(file);
+                getLogger().info("Valeurs manquantes des interactions RTP/règles ajoutées à quests.yml sans écraser les réglages existants.");
+            } catch (IOException exception) {
+                getLogger().warning("Impossible d'enregistrer les valeurs par défaut des interactions PNJ : "
+                        + exception.getMessage());
+            }
+        }
+    }
+
     @Override
     public void onEnable() {
         instance = this;
@@ -256,6 +310,7 @@ public class Main extends JavaPlugin {
         setupMessages();
 
         registerCustomMaceRecipe();
+        Bukkit.getScheduler().runTaskLater(this, this::registerCustomMaceRecipe, 40L);
 
         this.databaseManager = new SQLiteManager(this);
         this.databaseManager.connect();
@@ -283,6 +338,7 @@ public class Main extends JavaPlugin {
         this.playerTeamManager.start();
         this.bountyScoreboardManager = new BountyScoreboardManager(this, playerTeamManager);
         this.bountyManager = new BountyManager(this, databaseManager, economyManager, malusEffectManager, bountyScoreboardManager);
+        this.pvpGroupManager = new PvpGroupManager(this);
         this.bountyGuiManager = new BountyGuiManager(this, bountyManager);
         this.bountyReviewGuiManager = new BountyReviewGuiManager(this, bountyManager);
         this.teleportManager = new TeleportManager(this, combatManager);
@@ -305,11 +361,13 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(spectateManager, this);
         this.duelConfigGuiManager = new DuelConfigGuiManager(this, duelManager);
         this.teamGuiManager = new TeamGuiManager(this, teamManager);
+        this.teamSettingsGuiManager = new TeamSettingsGuiManager(this, teamManager, teamGuiManager);
         this.duelArenaManager = new DuelArenaManager(this);
         this.duelManager.setDuelArenaManager(this.duelArenaManager);
         this.roleManager = new RoleManager(this);
         this.tabListManager = new TabListManager(this, roleManager, playerTeamManager);
         this.vanishManager = new VanishManager(this);
+        this.muteManager = new MuteManager(this);
         this.staffModeManager = new StaffModeManager(this, roleManager, tabListManager, vanishManager);
         this.invisibilityManager = new InvisibilityManager(this, playerTeamManager);
         this.petManager = new PetManager(this);
@@ -325,7 +383,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PvpRulesListener(combatManager), this);
         getServer().getPluginManager().registerEvents(new ClaimListener(this, claimManager), this);
         getServer().getPluginManager().registerEvents(new DuelListener(this, duelManager, duelConfigGuiManager), this);
-        getServer().getPluginManager().registerEvents(new TeamGuiListener(this, teamManager, teamGuiManager, teamRequestGuiManager, teamRequestManager), this);
+        getServer().getPluginManager().registerEvents(new TeamGuiListener(this, teamManager, teamGuiManager, teamRequestGuiManager, teamRequestManager, teamSettingsGuiManager), this);
         getServer().getPluginManager().registerEvents(new PlayerHeadDropListener(this, duelManager), this);
         getServer().getPluginManager().registerEvents(new DuelArenaListener(duelArenaManager), this);
 
@@ -341,7 +399,9 @@ public class Main extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new TabListListener(tabListManager), this);
         getServer().getPluginManager().registerEvents(new ChatRoleListener(roleManager), this);
+        getServer().getPluginManager().registerEvents(new MuteListener(muteManager), this);
         getServer().getPluginManager().registerEvents(new QuestListener(this, questManager), this);
+        getServer().getPluginManager().registerEvents(new CommandTabCompleteListener(), this);
         getServer().getPluginManager().registerEvents(new QuestCommandListener(this), this);
 
         getServer().getPluginManager().registerEvents(new StaffModeListener(staffModeManager, roleManager), this);
@@ -349,12 +409,17 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new VanishListener(vanishManager), this);
 
         
+        // RTP + règles : clic sur entité par UUID, indépendant de Citizens.
+        this.configuredEntityInteractionListener = new ConfiguredEntityInteractionListener(this);
+        getServer().getPluginManager().registerEvents(configuredEntityInteractionListener, this);
+
         if (getServer().getPluginManager().isPluginEnabled("Citizens")) {
             getServer().getPluginManager().registerEvents(new SellNpcListener(this, sellGuiManager), this);
             getServer().getPluginManager().registerEvents(new CosmeticsNpcListener(this), this);
             getServer().getPluginManager().registerEvents(new FishermanNpcListener(this, fishermanGuiManager), this);
             getServer().getPluginManager().registerEvents(new QuestMasterNpcListener(this), this);
             getServer().getPluginManager().registerEvents(new HalloweenNpcListener(this, halloweenGuiManager), this);
+            getServer().getPluginManager().registerEvents(new ConfiguredNpcInteractionListener(configuredEntityInteractionListener), this);
         } else {
             getLogger().warning("Citizens n'est pas détecté : l'ouverture de /sell et du pêcheur via clic droit sur les NPC est désactivée.");
         }
@@ -413,8 +478,10 @@ public class Main extends JavaPlugin {
         registerCommand("sell", new SellCommand(sellGuiManager, pricesManager));
         registerCommand("pay", new PayCommand(this, economyManager));
         registerCommand("ah", new AuctionCommand(this, auctionManager, auctionGuiManager));
-        registerCommand("team", new TeamCommand(this, teamManager, teamGuiManager, teamRequestGuiManager));
+        registerCommand("team", new TeamCommand(this, teamManager, teamGuiManager, teamRequestGuiManager, teamSettingsGuiManager));
         registerCommand("bounty", new BountyCommand(this, bountyManager, bountyGuiManager, bountyReviewGuiManager));
+        registerCommand("pvpgroup", pvpGroupManager);
+        if (getCommand("pvpgroup") != null) getCommand("pvpgroup").setTabCompleter(pvpGroupManager);
         registerCommand("info", new InfoCommand(this, bountyManager, malusEffectManager));
         registerCommand("spawn", new SpawnCommand(this));
         registerCommand("tpa", new TpaCommand(this, teleportManager, combatManager));
@@ -431,7 +498,8 @@ public class Main extends JavaPlugin {
         ClaimCommand claimCommand = new ClaimCommand(this, claimManager, claimSettingsGuiManager, claimShopGuiManager, claimVisualizer, claimAuctionGuiManager);
         registerCommand("claim", claimCommand);
         registerCommand("claims", claimCommand);
-        registerCommand("admin", new AdminCommand(adminGuiManager, claimManager));
+        registerCommand("unclaim", claimCommand);
+        registerCommand("admin", new AdminCommand(this, adminGuiManager, claimManager));
         registerCommand("duel", new DuelCommand(this, duelManager, duelConfigGuiManager, combatManager));
         registerCommand("duelaccept", new DuelAcceptCommand(this, duelManager));
         registerCommand("spectate", new SpectateCommand(spectateManager));
@@ -440,6 +508,8 @@ public class Main extends JavaPlugin {
         registerCommand("staff", new StaffCommand(staffModeManager, roleManager, vanishManager));
         registerCommand("vanish", new VanishCommand(staffModeManager, vanishManager));
         registerCommand("vanishlist", new VanishListCommand(vanishManager));
+        registerCommand("mute", new MuteCommand(this, muteManager, true));
+        registerCommand("unmute", new MuteCommand(this, muteManager, false));
         registerCommand("pets", new PetsCommand(petGuiManager));
 
         
@@ -461,6 +531,7 @@ public class Main extends JavaPlugin {
         }
         if (spectateManager != null) spectateManager.shutdown();
         if (crabClawListener != null) crabClawListener.shutdown();
+        if (configuredEntityInteractionListener != null) configuredEntityInteractionListener.shutdown();
         if (webDashboardServer != null) {
             webDashboardServer.stop();
         }
@@ -478,6 +549,14 @@ public class Main extends JavaPlugin {
 
     public QuestWorldManager getQuestWorldManager() {
         return questWorldManager;
+    }
+
+    public PetManager getPetManager() {
+        return petManager;
+    }
+
+    public PvpGroupManager getPvpGroupManager() {
+        return pvpGroupManager;
     }
 
     public QuestManager getQuestManager() {
@@ -523,11 +602,12 @@ public class Main extends JavaPlugin {
 
     
 
-    private void registerCustomMaceRecipe() {
+    public void registerCustomMaceRecipe() {
         
         Bukkit.removeRecipe(new NamespacedKey("minecraft", "mace"));
 
         NamespacedKey key = new NamespacedKey(this, "custom_mace");
+        Bukkit.removeRecipe(key);
         ShapedRecipe recipe = new ShapedRecipe(key, new ItemStack(Material.MACE));
         recipe.shape(" H ", " D ", " B ");
         recipe.setIngredient('H', Material.HEAVY_CORE);

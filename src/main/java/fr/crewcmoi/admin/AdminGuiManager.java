@@ -14,6 +14,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import java.util.ArrayList;
+import java.util.UUID;
 
 import java.util.List;
 
@@ -43,7 +45,11 @@ public final class AdminGuiManager {
         inventory.setItem(12, item(Material.IRON_BLOCK, "&a&lGestion des claims", List.of("&7Consulter et administrer tous les claims", "", "&eCliquer pour ouvrir")));
         inventory.setItem(14, item(Material.ENDER_PEARL, "&b&lHomes des joueurs", List.of("&7Consulter les homes et s'y téléporter", "", "&eCliquer pour ouvrir")));
         inventory.setItem(16, item(Material.PLAYER_HEAD, "&e&lInformations des joueurs", List.of("&7Soldes, homes, claims, équipe et primes", "", "&eCliquer pour ouvrir")));
-        inventory.setItem(31, item(Material.COMMAND_BLOCK, "&d&lOutils staff", List.of("&7Commandes utiles :", "&f/reset quest <joueur>", "&f/admin zone pos1|pos2|add|remove|list", "&f/duelarena 1|2 save|reset", "&f/staff et /vanish", "", "&eCliquer pour afficher l'aide")));
+        inventory.setItem(20, item(Material.LEAD, "&b&lModération des pets", List.of("&7Retirer des pets obtenus par un joueur", "&f/admin pets <joueur> <pet|1|2|all>", "", "&eCliquer pour afficher l'aide")));
+        inventory.setItem(22, item(Material.BOOK, "&d&lModération des quêtes", List.of("&7Réinitialiser une ou plusieurs quêtes", "&f/admin quest <joueur> <1|2|all>", "", "&eCliquer pour afficher l'aide")));
+        inventory.setItem(24, GuiItems.chestButton("&b&lInventaires des joueurs"));
+        inventory.getItem(24).setItemMeta(withLore(inventory.getItem(24), List.of("&7Modifier l'inventaire ou l'ender chest", "", "&eCliquer pour ouvrir")));
+        inventory.setItem(31, item(Material.COMMAND_BLOCK, "&d&lOutils staff", List.of("&7Commandes utiles :", "&f/pvpgroup <joueur> <0|1|2>", "&f/admin zone pos1|pos2|add|remove|list", "&f/duelarena 1|2 save|reset", "&f/staff et /vanish", "", "&eCliquer pour afficher l'aide")));
         player.openInventory(inventory);
     }
 
@@ -55,15 +61,230 @@ public final class AdminGuiManager {
             case 12 -> claimAdminGuiManager.open(player);
             case 14 -> homeAdminGuiManager.open(player);
             case 16 -> playerAdminGuiManager.open(player);
+            case 20 -> openPlayerSelection(player, AdminModerationHolder.Mode.PET_PLAYERS);
+            case 22 -> openPlayerSelection(player, AdminModerationHolder.Mode.QUEST_PLAYERS);
+            case 24 -> openPlayerSelection(player, AdminModerationHolder.Mode.INVENTORY_PLAYERS);
             case 31 -> {
                 player.sendMessage(color("&8&m---------------- &d&lOutils staff &8&m----------------"));
-                player.sendMessage(color("&e/reset quest <joueur> &7- Réinitialiser les quêtes"));
+                player.sendMessage(color("&e/reset quest <joueur> &7- Réinitialiser toutes les quêtes"));
+                player.sendMessage(color("&e/pvpgroup <joueur> <0|1|2> &7- Définir le groupe de punition PvP"));
                 player.sendMessage(color("&e/admin zone pos1|pos2|add <nom>|remove <nom>|list &7- Zones interdites aux claims"));
                 player.sendMessage(color("&e/duelarena 1|2 save|reset &7- Sauvegarder ou restaurer une arène"));
                 player.sendMessage(color("&e/staff &7et &e/vanish &7- Outils de modération"));
             }
             default -> { }
         }
+    }
+
+    private void openPlayerSelection(Player viewer, AdminModerationHolder.Mode mode) {
+        List<UUID> targets = Bukkit.getOnlinePlayers().stream().map(Player::getUniqueId).toList();
+        AdminModerationHolder holder = new AdminModerationHolder(mode, null, targets);
+        Inventory inventory = Bukkit.createInventory(holder, 54,
+                color(mode == AdminModerationHolder.Mode.PET_PLAYERS ? "&8Choisir un joueur — pets" : mode == AdminModerationHolder.Mode.QUEST_PLAYERS ? "&8Choisir un joueur — quêtes" : "&8Choisir un joueur — inventaire"));
+        holder.setInventory(inventory);
+        for (int slot = 0; slot < inventory.getSize(); slot++) inventory.setItem(slot, GuiItems.nothing(" "));
+        int slot = 0;
+        for (UUID uuid : targets) {
+            if (slot >= 45) break;
+            Player target = Bukkit.getPlayer(uuid);
+            if (target == null) continue;
+            inventory.setItem(slot++, item(Material.PLAYER_HEAD, "&e" + target.getName(),
+                    List.of("&7Cliquer pour gérer " + (mode == AdminModerationHolder.Mode.PET_PLAYERS ? "ses pets" : mode == AdminModerationHolder.Mode.QUEST_PLAYERS ? "ses quêtes" : "son inventaire"))));
+        }
+        viewer.openInventory(inventory);
+    }
+
+    public boolean handleModerationClick(InventoryClickEvent event) {
+        if (!(event.getInventory().getHolder() instanceof AdminModerationHolder holder)) return false;
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player viewer)) return true;
+        int slot = event.getRawSlot();
+        if (slot < 0 || slot >= event.getInventory().getSize()) return true;
+
+        if (holder.getMode() == AdminModerationHolder.Mode.PET_PLAYERS
+                || holder.getMode() == AdminModerationHolder.Mode.QUEST_PLAYERS
+                || holder.getMode() == AdminModerationHolder.Mode.INVENTORY_PLAYERS) {
+            if (slot >= holder.getPlayers().size()) return true;
+            UUID targetId = holder.getPlayers().get(slot);
+            Player target = Bukkit.getPlayer(targetId);
+            if (target == null) {
+                viewer.sendMessage(color("&cCe joueur n'est plus connecté."));
+                return true;
+            }
+            if (holder.getMode() == AdminModerationHolder.Mode.INVENTORY_PLAYERS) openInventoryActionMenu(viewer, target);
+            else openActionMenu(viewer, target, holder.getMode() == AdminModerationHolder.Mode.PET_PLAYERS);
+            return true;
+        }
+
+        Player target = Bukkit.getPlayer(holder.getTarget());
+        if (target == null) {
+            viewer.sendMessage(color("&cCe joueur n'est plus connecté."));
+            viewer.closeInventory();
+            return true;
+        }
+
+        if (holder.getMode() == AdminModerationHolder.Mode.INVENTORY_ACTIONS) {
+            if (slot == 40) viewer.closeInventory();
+            else if (slot == 20) openPlayerInventoryEditor(viewer, target, AdminPlayerInventoryHolder.Type.PLAYER_INVENTORY);
+            else if (slot == 24) openPlayerInventoryEditor(viewer, target, AdminPlayerInventoryHolder.Type.ENDER_CHEST);
+            return true;
+        }
+
+        if (holder.getMode() == AdminModerationHolder.Mode.PET_ACTIONS) {
+            var pets = plugin.getPetManager();
+            if (pets == null) return true;
+            if (slot == 45) {
+                int removed = pets.resetOwnedPets(target.getUniqueId(), 1);
+                viewer.sendMessage(color("&a" + removed + " pet retiré à " + target.getName() + "."));
+                openActionMenu(viewer, target, true);
+            } else if (slot == 46) {
+                int removed = pets.resetOwnedPets(target.getUniqueId(), 2);
+                viewer.sendMessage(color("&a" + removed + " pet(s) retiré(s) à " + target.getName() + "."));
+                openActionMenu(viewer, target, true);
+            } else if (slot == 48) {
+                int removed = pets.resetOwnedPets(target.getUniqueId(), Integer.MAX_VALUE);
+                viewer.sendMessage(color("&a" + removed + " pet(s) retiré(s) à " + target.getName() + "."));
+                openActionMenu(viewer, target, true);
+            } else {
+                List<String> owned = new ArrayList<>(pets.getOwnedPets(target.getUniqueId()));
+                int index = slot;
+                if (index < owned.size()) {
+                    String petId = owned.get(index);
+                    pets.removeOwnedPet(target.getUniqueId(), petId);
+                    viewer.sendMessage(color("&aPet &e" + petId + "&a retiré à " + target.getName() + "."));
+                    openActionMenu(viewer, target, true);
+                }
+            }
+            return true;
+        }
+
+        if (holder.getMode() == AdminModerationHolder.Mode.QUEST_ACTIONS) {
+            if (slot == 20) plugin.getQuestManager().resetQuest(target, 1);
+            else if (slot == 22) plugin.getQuestManager().resetQuest(target, 2);
+            else if (slot == 24) plugin.getQuestManager().resetAllQuests(target);
+            else return true;
+            viewer.sendMessage(color("&aProgression des quêtes mise à jour pour " + target.getName() + "."));
+            openActionMenu(viewer, target, false);
+        }
+        return true;
+    }
+
+    private void openInventoryActionMenu(Player viewer, Player target) {
+        AdminModerationHolder holder = new AdminModerationHolder(AdminModerationHolder.Mode.INVENTORY_ACTIONS, target.getUniqueId(), List.of());
+        Inventory inventory = Bukkit.createInventory(holder, 45, color("&8Inventaire de " + target.getName()));
+        holder.setInventory(inventory);
+        for (int slot = 0; slot < inventory.getSize(); slot++) inventory.setItem(slot, GuiItems.nothing(" "));
+        inventory.setItem(20, item(Material.CHEST, "&a&lInventaire du joueur", List.of("&7Modifier les objets, l'armure et la main secondaire", "", "&eCliquer pour ouvrir")));
+        inventory.setItem(24, item(Material.ENDER_CHEST, "&5&lEnder chest", List.of("&7Modifier le contenu de l'ender chest", "", "&eCliquer pour ouvrir")));
+        inventory.setItem(40, GuiItems.barrier("&cRetour / fermer"));
+        viewer.openInventory(inventory);
+    }
+
+    private void openPlayerInventoryEditor(Player viewer, Player target, AdminPlayerInventoryHolder.Type type) {
+        AdminPlayerInventoryHolder holder = new AdminPlayerInventoryHolder(target.getUniqueId(), type);
+        String title = type == AdminPlayerInventoryHolder.Type.PLAYER_INVENTORY ? "&8Inventaire : " : "&8Ender chest : ";
+        Inventory inventory = Bukkit.createInventory(holder, 54, color(title + target.getName()));
+        holder.setInventory(inventory);
+        for (int slot = 0; slot < inventory.getSize(); slot++) inventory.setItem(slot, GuiItems.nothing(" "));
+        if (type == AdminPlayerInventoryHolder.Type.PLAYER_INVENTORY) {
+            ItemStack[] contents = target.getInventory().getStorageContents();
+            for (int i = 0; i < Math.min(36, contents.length); i++) inventory.setItem(i, contents[i]);
+            ItemStack[] armor = target.getInventory().getArmorContents();
+            for (int i = 0; i < Math.min(4, armor.length); i++) inventory.setItem(45 + i, armor[i]);
+            inventory.setItem(50, target.getInventory().getItemInOffHand());
+            inventory.setItem(49, GuiItems.nothing("&8Armure au-dessus / main secondaire à droite"));
+            inventory.setItem(51, GuiItems.nothing(" "));
+            inventory.setItem(52, GuiItems.nothing(" "));
+        } else {
+            ItemStack[] contents = target.getEnderChest().getContents();
+            for (int i = 0; i < Math.min(27, contents.length); i++) inventory.setItem(i, contents[i]);
+        }
+        inventory.setItem(53, GuiItems.barrier("&cEnregistrer et fermer"));
+        viewer.openInventory(inventory);
+    }
+
+    public boolean handleInventoryEditorClick(InventoryClickEvent event) {
+        if (!(event.getInventory().getHolder() instanceof AdminPlayerInventoryHolder)) return false;
+        int slot = event.getRawSlot();
+        if (slot == 53 && event.getWhoClicked() instanceof Player player) {
+            event.setCancelled(true);
+            saveInventoryEditor(event.getInventory(), (AdminPlayerInventoryHolder) event.getInventory().getHolder());
+            player.closeInventory();
+            return true;
+        }
+        if (slot < 0 || slot >= event.getInventory().getSize() || event.getClick().isShiftClick() || event.getClick().isKeyboardClick()) {
+            event.setCancelled(true);
+            return true;
+        }
+        AdminPlayerInventoryHolder holder = (AdminPlayerInventoryHolder) event.getInventory().getHolder();
+        boolean allowed = holder.getType() == AdminPlayerInventoryHolder.Type.ENDER_CHEST ? slot < 27 : (slot < 36 || (slot >= 45 && slot <= 48) || slot == 50);
+        if (!allowed) event.setCancelled(true);
+        return true;
+    }
+
+    public void handleInventoryEditorClose(org.bukkit.event.inventory.InventoryCloseEvent event) {
+        if (event.getInventory().getHolder() instanceof AdminPlayerInventoryHolder holder) saveInventoryEditor(event.getInventory(), holder);
+    }
+
+    public boolean handleInventoryEditorDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (!(event.getInventory().getHolder() instanceof AdminPlayerInventoryHolder holder)) return false;
+        for (int rawSlot : event.getRawSlots()) {
+            boolean allowed = holder.getType() == AdminPlayerInventoryHolder.Type.ENDER_CHEST ? rawSlot < 27 : (rawSlot < 36 || (rawSlot >= 45 && rawSlot <= 48) || rawSlot == 50);
+            if (rawSlot >= event.getInventory().getSize() || !allowed) { event.setCancelled(true); break; }
+        }
+        return true;
+    }
+
+    private void saveInventoryEditor(Inventory inventory, AdminPlayerInventoryHolder holder) {
+        Player target = Bukkit.getPlayer(holder.getTarget());
+        if (target == null) return;
+        if (holder.getType() == AdminPlayerInventoryHolder.Type.ENDER_CHEST) {
+            ItemStack[] contents = new ItemStack[27];
+            for (int i = 0; i < 27; i++) contents[i] = inventory.getItem(i);
+            target.getEnderChest().setContents(contents);
+        } else {
+            ItemStack[] contents = new ItemStack[36];
+            for (int i = 0; i < 36; i++) contents[i] = inventory.getItem(i);
+            target.getInventory().setStorageContents(contents);
+            ItemStack[] armor = new ItemStack[4];
+            for (int i = 0; i < 4; i++) armor[i] = inventory.getItem(45 + i);
+            target.getInventory().setArmorContents(armor);
+            target.getInventory().setItemInOffHand(inventory.getItem(50));
+            target.updateInventory();
+        }
+    }
+
+    private void openActionMenu(Player viewer, Player target, boolean petsMode) {
+        AdminModerationHolder.Mode mode = petsMode ? AdminModerationHolder.Mode.PET_ACTIONS : AdminModerationHolder.Mode.QUEST_ACTIONS;
+        AdminModerationHolder holder = new AdminModerationHolder(mode, target.getUniqueId(), List.of());
+        Inventory inventory = Bukkit.createInventory(holder, 54,
+                color(petsMode ? "&8Pets de " + target.getName() : "&8Quêtes de " + target.getName()));
+        holder.setInventory(inventory);
+        for (int slot = 0; slot < inventory.getSize(); slot++) inventory.setItem(slot, GuiItems.nothing(" "));
+        if (petsMode) {
+            var pets = plugin.getPetManager();
+            if (pets != null) {
+                List<String> owned = new ArrayList<>(pets.getOwnedPets(target.getUniqueId()));
+                for (int i = 0; i < Math.min(owned.size(), 45); i++) {
+                    String petId = owned.get(i);
+                    inventory.setItem(i, item(Material.LEAD, "&b" + petId, List.of("&7Retirer ce pet", "&eCliquer pour confirmer")));
+                }
+            }
+            inventory.setItem(45, item(Material.REDSTONE, "&cRetirer 1 pet", List.of("&7Retire un pet possédé")));
+            inventory.setItem(46, item(Material.REDSTONE_BLOCK, "&cRetirer 2 pets", List.of("&7Retire jusqu'à deux pets")));
+            inventory.setItem(48, item(Material.BARRIER, "&4Réinitialiser tous les pets", List.of("&7Retire tous les pets débloqués")));
+        } else {
+            inventory.setItem(20, item(Material.BOOK, "&eRéinitialiser la quête 1", List.of("&7Effacer la progression de la quête 1")));
+            inventory.setItem(22, item(Material.WRITABLE_BOOK, "&eRéinitialiser la quête 2", List.of("&7Effacer la progression de la quête 2")));
+            inventory.setItem(24, item(Material.BARRIER, "&cRéinitialiser toutes les quêtes", List.of("&7Effacer la progression des deux quêtes")));
+        }
+        viewer.openInventory(inventory);
+    }
+
+    private ItemMeta withLore(ItemStack stack, List<String> lore) {
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) meta.setLore(lore.stream().map(this::color).toList());
+        return meta;
     }
 
     private ItemStack item(Material material, String name, List<String> lore) {

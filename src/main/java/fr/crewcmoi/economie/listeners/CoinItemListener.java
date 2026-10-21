@@ -28,7 +28,7 @@ public class CoinItemListener implements Listener {
 
         this.enabled = plugin.getConfig().getBoolean("coin-item.enabled", true);
         this.coinItemId = plugin.getConfig().getString("coin-item.itemsadder-id");
-        this.coinValue = plugin.getConfig().getDouble("coin-item.value", 50.0);
+        this.coinValue = plugin.getConfig().getDouble("coin-item.value", 10.0);
     }
 
     @EventHandler

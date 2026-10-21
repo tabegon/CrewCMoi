@@ -127,8 +127,10 @@ public class BountyListener implements Listener {
             return;
         }
 
-        double bountyAmount = plugin.getConfig().getDouble("bounty.server-bounty-amount", 50.0);
-        double malusAmount = plugin.getConfig().getDouble("bounty.server-malus-amount", 50.0);
+        double defaultAmount = plugin.getConfig().getDouble("bounty.server-bounty-amount", 100.0);
+        double bountyAmount = plugin.getPvpGroupManager() == null
+                ? defaultAmount : plugin.getPvpGroupManager().getPunishmentAmount(victim.getUniqueId());
+        double malusAmount = bountyAmount;
 
         economyManager.withdraw(killer.getUniqueId(), malusAmount);
         bountyManager.addServerBounty(killer.getUniqueId(), killer.getName(), bountyAmount);

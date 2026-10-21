@@ -28,6 +28,11 @@ public class SpawnCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
+        if (plugin.getCombatManager() != null && plugin.getCombatManager().isInCombat(player)) {
+            int seconds = plugin.getCombatManager().getRemainingSeconds(player);
+            Messages.send(player, "combat-log.action-blocked", java.util.Map.of("seconds", String.valueOf(seconds)), true);
+            return true;
+        }
         FileConfiguration config = plugin.getConfig();
 
         String worldName = config.getString("spawn.world", "world");

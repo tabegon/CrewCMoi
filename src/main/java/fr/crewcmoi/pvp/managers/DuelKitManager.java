@@ -26,7 +26,7 @@ public class DuelKitManager {
 
     public double getPrice(String kitId) {
         if (BASIC_KIT_ID.equalsIgnoreCase(kitId)) {
-            return plugin.getConfig().getDouble("duel.kits.basic.price", 1000.0);
+            return 1000.0;
         }
         return 0.0;
     }

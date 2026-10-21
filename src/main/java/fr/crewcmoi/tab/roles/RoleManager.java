@@ -89,20 +89,14 @@ public class RoleManager {
         String name = player.getName();
         if (name == null || name.isBlank()) return false;
 
-        for (Role existing : Role.values()) {
-            String group = plugin.getConfig().getString(
-                    "roles." + existing.getId() + ".luckperms-group", existing.getId());
-            Bukkit.dispatchCommand(
-                    Bukkit.getConsoleSender(), "lp user " + name + " parent remove " + group);
-        }
-
         String newGroup = plugin.getConfig().getString(
-                "roles." + role.getId() + ".luckperms-group", role.getId());
+                "roles." + role.getId() + ".luckperms-group", role.getId()).trim();
+        if (newGroup.isEmpty() || !newGroup.matches("[A-Za-z0-9_-]+")) return false;
+
         boolean added = Bukkit.dispatchCommand(
-                Bukkit.getConsoleSender(), "lp user " + name + " parent add " + newGroup);
+                Bukkit.getConsoleSender(), "lp user " + name + " parent set " + newGroup);
 
         if (added) {
-            synchronizeLuckPermsWeights();
             manualRoles.remove(uuid);
             rolesConfig.set("players." + uuid, null);
             save();
@@ -115,12 +109,11 @@ public class RoleManager {
         String name = player.getName();
         if (name == null || name.isBlank()) return false;
 
-        for (Role role : Role.values()) {
-            String group = plugin.getConfig().getString(
-                    "roles." + role.getId() + ".luckperms-group", role.getId());
-            Bukkit.dispatchCommand(
-                    Bukkit.getConsoleSender(), "lp user " + name + " parent remove " + group);
-        }
+        String defaultGroup = plugin.getConfig().getString("roles.player.luckperms-group", "default").trim();
+        if (defaultGroup.isEmpty() || !defaultGroup.matches("[A-Za-z0-9_-]+")) defaultGroup = "default";
+        boolean reset = Bukkit.dispatchCommand(
+                Bukkit.getConsoleSender(), "lp user " + name + " parent set " + defaultGroup);
+        if (!reset) return false;
 
         manualRoles.remove(uuid);
         rolesConfig.set("players." + uuid, null);

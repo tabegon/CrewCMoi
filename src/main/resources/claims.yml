@@ -1,8 +1,5 @@
 claims:
   stealable-items:
-  - MACE
-  - DRAGON_EGG
-  - ELYTRA
   max-per-player: 3
   see-radius: 5
   see-duration: 10

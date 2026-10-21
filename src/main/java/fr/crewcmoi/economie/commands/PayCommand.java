@@ -42,7 +42,7 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         double amount;
 
         try {
-            amount = MoneyFormat.parse(args[1]);
+            amount = MoneyFormat.parseWhole(args[1]);
         } catch (NumberFormatException e) {
             Messages.send(sender, "economy.pay.invalid-amount", java.util.Map.of("amount", args[1]));
             return true;

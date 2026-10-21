@@ -5,6 +5,7 @@ import fr.crewcmoi.Main;
 import fr.crewcmoi.pvp.database.TeamData;
 import fr.crewcmoi.pvp.managers.TeamManager;
 import fr.crewcmoi.pvp.gui.TeamGuiManager;
+import fr.crewcmoi.pvp.gui.TeamSettingsGuiManager;
 import fr.crewcmoi.pvp.gui.TeamRequestGuiManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -24,12 +25,14 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
     private final TeamManager teamManager;
     private final TeamGuiManager teamGuiManager;
     private final TeamRequestGuiManager teamRequestGuiManager;
+    private final TeamSettingsGuiManager teamSettingsGuiManager;
 
-    public TeamCommand(Main plugin, TeamManager teamManager, TeamGuiManager teamGuiManager, TeamRequestGuiManager teamRequestGuiManager) {
+    public TeamCommand(Main plugin, TeamManager teamManager, TeamGuiManager teamGuiManager, TeamRequestGuiManager teamRequestGuiManager, TeamSettingsGuiManager teamSettingsGuiManager) {
         this.plugin = plugin;
         this.teamManager = teamManager;
         this.teamGuiManager = teamGuiManager;
         this.teamRequestGuiManager = teamRequestGuiManager;
+        this.teamSettingsGuiManager = teamSettingsGuiManager;
     }
 
     @Override
@@ -54,6 +57,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             case "info" -> handleInfo(player, args);
             case "promote" -> handlePromote(player, args);
             case "request" -> teamRequestGuiManager.open(player);
+            case "settings" -> handleSettings(player, args);
             default -> sendUsage(player);
         }
 
@@ -211,6 +215,36 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         Messages.send(player, "teams.info-members", java.util.Map.of("count", team.size(), "members", members), true);
     }
 
+    private void handleSettings(Player player, String[] args) {
+        if (args.length == 1) {
+            teamSettingsGuiManager.open(player);
+            return;
+        }
+        if (!args[1].equalsIgnoreCase("friendlyfire") && !args[1].equalsIgnoreCase("pvp")) {
+            Messages.send(player, "teams.settings.usage");
+            return;
+        }
+        if (args.length < 3 || !(args[2].equalsIgnoreCase("on") || args[2].equalsIgnoreCase("off")
+                || args[2].equalsIgnoreCase("true") || args[2].equalsIgnoreCase("false")
+                || args[2].equalsIgnoreCase("enable") || args[2].equalsIgnoreCase("disable"))) {
+            Messages.send(player, "teams.settings.usage");
+            return;
+        }
+        boolean enabled = args[2].equalsIgnoreCase("on") || args[2].equalsIgnoreCase("true") || args[2].equalsIgnoreCase("enable");
+        teamManager.getTeamAsync(player.getUniqueId(), team -> {
+            if (team == null) {
+                Messages.send(player, "teams.generic.not-in-team");
+                return;
+            }
+            if (!team.isOwner(player.getUniqueId())) {
+                Messages.send(player, "teams.settings.owner-only");
+                return;
+            }
+            teamManager.setFriendlyFireEnabled(team.getId(), enabled);
+            Messages.send(player, enabled ? "teams.settings.enabled" : "teams.settings.disabled");
+        });
+    }
+
     private void sendUsage(Player player) {
         Messages.send(player, "teams.command.usage");
     }
@@ -221,11 +255,15 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             String partial = args[0].toLowerCase();
-            for (String sub : List.of("create", "add", "accept", "deny", "leave", "disband", "info", "promote", "request")) {
+            for (String sub : List.of("create", "add", "accept", "deny", "leave", "disband", "info", "promote", "request", "settings")) {
                 if (sub.startsWith(partial)) {
                     completions.add(sub);
                 }
             }
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("settings")) {
+            for (String sub : List.of("friendlyfire", "pvp")) if (sub.startsWith(args[1].toLowerCase())) completions.add(sub);
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("settings")) {
+            for (String sub : List.of("on", "off")) if (sub.startsWith(args[2].toLowerCase())) completions.add(sub);
         } else if (args.length == 2 && (args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("promote"))) {
             String partial = args[1].toLowerCase();
             for (Player online : Bukkit.getOnlinePlayers()) {

@@ -5,8 +5,25 @@ player-head-drop:
   price: 500.0
   max-per-day: 3
 bounty:
-  server-bounty-amount: 50.0
-  server-malus-amount: 50.0
+  server-bounty-amount: 100.0
+  server-malus-amount: 100.0
+  pvp-groups:
+    default: 1
+    amounts:
+      "0": 150.0
+      "1": 100.0
+      "2": 50.0
+  bad-luck:
+    tier1-threshold: 150.0
+    tier1-damage-reduction-percent: 20.0
+    tier2-threshold: 300.0
+    tier2-damage-reduction-percent: 40.0
+    tier3-threshold: 450.0
+    tier3-damage-reduction-percent: 60.0
+    heart-removal-start-threshold: 600.0
+    heart-removal-step: 150.0
+    max-hearts-removed: 5
+    base-max-health: 20.0
   server-bounty-max-per-day: 5
 team:
   max-members: 8
@@ -22,7 +39,7 @@ duel:
   kits:
     basic:
       name: Kit Classique
-      price: 2000.0
+      price: 1000.0
   arena:
     pos1:
       world: structure

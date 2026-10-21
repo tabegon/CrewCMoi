@@ -65,6 +65,10 @@ public class HomeGuiManager {
         return ChatColor.translateAlternateColorCodes('&',s);
     }
     public void teleport(Player p,HomeData h) {
+        if (plugin.getCombatManager() != null && plugin.getCombatManager().isInCombat(p)) {
+            fr.crewcmoi.other.utils.Messages.send(p, "combat-log.action-blocked", java.util.Map.of("seconds", String.valueOf(plugin.getCombatManager().getRemainingSeconds(p))), true);
+            return;
+        }
         org.bukkit.World w=Bukkit.getWorld(h.getWorld());
         if(w!=null)p.teleport(new org.bukkit.Location(w,h.getX(),h.getY(),h.getZ(),h.getYaw(),h.getPitch()));
         else p.sendMessage(color("&cLe monde de ce home est introuvable."));

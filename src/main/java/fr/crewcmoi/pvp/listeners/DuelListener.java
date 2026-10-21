@@ -173,10 +173,10 @@ public class DuelListener implements Listener {
 
             double amount;
             try {
-                amount = Double.parseDouble(input.replace(",", ".").trim());
+                amount = fr.crewcmoi.other.utils.MoneyFormat.parseWhole(input);
             } catch (NumberFormatException exception) {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        "&6&lDuel &8» &cMontant invalide, la mise n'a pas été changée."));
+                        "&6&lDuel &8» &cMontant invalide : utilisez un nombre entier sans virgule. La mise n'a pas été changée."));
                 reopenBetGui(player, holder);
                 return;
             }

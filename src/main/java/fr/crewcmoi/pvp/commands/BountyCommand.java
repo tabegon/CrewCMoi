@@ -71,7 +71,7 @@ public class BountyCommand implements CommandExecutor, TabCompleter {
         String targetName = args[1];
         double amount;
         try {
-            amount = MoneyFormat.parse(args[2]);
+            amount = MoneyFormat.parseWhole(args[2]);
         } catch (NumberFormatException e) {
             Messages.send(player, "bounty.invalid-amount", java.util.Map.of("amount", args[2]), true);
             return;

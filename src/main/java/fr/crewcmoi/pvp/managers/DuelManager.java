@@ -319,7 +319,7 @@ public class DuelManager {
 
         double bet = request.getBet();
         String kitId = request.getKitId();
-        double kitPrice = kitId != null ? plugin.getConfig().getDouble("duel.kits.basic.price", 1000.0) : 0.0;
+        double kitPrice = kitId != null ? 1000.0 : 0.0;
 
         if (kitId != null && (kitId.isBlank() || !plugin.getDuelKitManager().isValidKit(kitId))) {
             sendMessage(target, "duel.invalid-kit", null, null);
@@ -392,7 +392,7 @@ public class DuelManager {
         }
 
         DuelSession session = new DuelSession(requester.getUniqueId(), target.getUniqueId(),
-                kitId == null && request.isKeepInventory(), bet, request.isDropHead(), kitId, request.isAllowElytra());
+                kitId == null && request.isKeepInventory(), bet + kitPrice, request.isDropHead(), kitId, request.isAllowElytra());
         session.setArenaIndex(arenaIndex);
         activeArenaDuels.put(arenaIndex, session);
         session.setOriginLocation1(requester.getLocation().clone());

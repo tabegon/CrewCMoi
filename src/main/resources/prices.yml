@@ -20,7 +20,7 @@ prices:
   ACACIA_WOOD: 1
   ACTIVATOR_RAIL: 5
   ALLIUM: 1
-  AMETHYST_BLOCK: 35
+  AMETHYST_BLOCK: 8
   AMETHYST_SHARD: 10
   ANCIENT_DEBRIS: 300
   ANDESITE: 1
@@ -378,8 +378,8 @@ prices:
   ECHO_SHARD: 120
   EGG: 3
   ELYTRA: 800
-  EMERALD: 90
-  EMERALD_BLOCK: 108
+  EMERALD: 40
+  EMERALD_BLOCK: 300
   EMERALD_ORE: 105
   ENCHANTED_GOLDEN_APPLE: 1000
   ENCHANTING_TABLE: 200
@@ -1183,4 +1183,3 @@ custom-prices:
   server:wall_tarp: 3
   server:ccoin_bag: 0
   server:cooked_crab_claw: 0
-

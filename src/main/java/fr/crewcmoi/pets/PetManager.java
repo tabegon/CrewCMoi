@@ -32,7 +32,8 @@ public class PetManager implements org.bukkit.event.Listener {
     private final File file;
     private FileConfiguration data;
     private final Map<UUID, UUID> activePets = new HashMap<>(); 
-    private final Map<UUID, UUID> petTargets = new HashMap<>(); 
+    private final Map<UUID, UUID> petTargets = new HashMap<>();
+    private final Map<UUID, Location> lastPathTargets = new HashMap<>();
     private BukkitTask petTask;
 
     public PetManager(Main plugin) {
@@ -88,6 +89,38 @@ public class PetManager implements org.bukkit.event.Listener {
     public void grant(UUID playerId, String petId) {
         data.set("players." + playerId + ".pets." + petId, true);
         save();
+    }
+
+    public Set<String> getOwnedPets(UUID playerId) {
+        org.bukkit.configuration.ConfigurationSection section =
+                data.getConfigurationSection("players." + playerId + ".pets");
+        if (section == null) return new LinkedHashSet<>();
+        Set<String> owned = new LinkedHashSet<>();
+        for (String petId : section.getKeys(false)) {
+            if (section.getBoolean(petId, false)) owned.add(petId);
+        }
+        return owned;
+    }
+
+    public boolean removeOwnedPet(UUID playerId, String petId) {
+        if (!owns(playerId, petId)) return false;
+        Player player = Bukkit.getPlayer(playerId);
+        if (petId.equalsIgnoreCase(getActivePet(playerId)) && player != null) {
+            deactivate(player, false);
+        }
+        data.set("players." + playerId + ".pets." + petId, null);
+        save();
+        return true;
+    }
+
+    public int resetOwnedPets(UUID playerId, int amount) {
+        Set<String> owned = getOwnedPets(playerId);
+        int removed = 0;
+        for (String petId : owned) {
+            if (removed >= amount) break;
+            if (removeOwnedPet(playerId, petId)) removed++;
+        }
+        return removed;
     }
 
     public String getActivePet(UUID playerId) {
@@ -205,6 +238,7 @@ public class PetManager implements org.bukkit.event.Listener {
         }
 
         petTargets.remove(petEntityId);
+        lastPathTargets.remove(petEntityId);
         if (petEntity instanceof Mob mob) {
             mob.setTarget(null);
             mob.getPathfinder().stopPathfinding();
@@ -284,6 +318,7 @@ public class PetManager implements org.bukkit.event.Listener {
         UUID entityId = activePets.remove(playerId);
         if (entityId != null) {
             petTargets.remove(entityId);
+            lastPathTargets.remove(entityId);
             Entity entity = Bukkit.getEntity(entityId);
             if (entity != null && entity.isValid()) entity.remove();
         }
@@ -304,6 +339,7 @@ public class PetManager implements org.bukkit.event.Listener {
                     if (player != null) clearActivePet(player.getUniqueId());
                     activePets.remove(entry.getKey());
                     petTargets.remove(entry.getValue());
+                    lastPathTargets.remove(entry.getValue());
                     continue;
                 }
 
@@ -327,6 +363,7 @@ public class PetManager implements org.bukkit.event.Listener {
                 }
 
                 if (!petEntity.getWorld().equals(player.getWorld())) {
+                    lastPathTargets.remove(petEntity.getUniqueId());
                     petEntity.teleport(petLocation(player));
                     continue;
                 }
@@ -335,19 +372,23 @@ public class PetManager implements org.bukkit.event.Listener {
                 double distanceSquared = petEntity.getLocation().distanceSquared(target);
 
                 if (distanceSquared > TELEPORT_DISTANCE_SQUARED) {
-                    
+                    lastPathTargets.remove(petEntity.getUniqueId());
                     petEntity.teleport(target);
                 } else if (petEntity instanceof Mob mob) {
+                    UUID petId = petEntity.getUniqueId();
                     if (distanceSquared > FOLLOW_DISTANCE_SQUARED) {
-                        
-                        mob.getPathfinder().moveTo(target, WALK_SPEED);
-                    } else {
-                        
+                        Location previousTarget = lastPathTargets.get(petId);
+                        if (previousTarget == null || !previousTarget.getWorld().equals(target.getWorld())
+                                || previousTarget.distanceSquared(target) >= 1.0) {
+                            mob.getPathfinder().moveTo(target, WALK_SPEED);
+                            lastPathTargets.put(petId, target.clone());
+                        }
+                    } else if (lastPathTargets.remove(petId) != null) {
                         mob.getPathfinder().stopPathfinding();
                     }
                 }
             }
-        }, 1L, 2L);
+        }, 1L, 10L);
     }
 
     private LivingEntity resolveTarget(UUID petId, Player owner) {

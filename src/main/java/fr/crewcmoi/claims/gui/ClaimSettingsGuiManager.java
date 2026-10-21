@@ -21,6 +21,8 @@ public class ClaimSettingsGuiManager {
 
     private static final int SIZE = 27;
     private static final int MOB_GRIEFING_SLOT = 22;
+    /** Bouton de téléportation, affiché uniquement dans la vue admin. */
+    public static final int ADMIN_TELEPORT_SLOT = 24;
 
     private final Main plugin;
     private final ClaimManager claimManager;
@@ -93,6 +95,18 @@ public class ClaimSettingsGuiManager {
                 gui.setItem(26, GuiItems.checkmarkButton("&c&lCONFIRMER LA SUPPRESSION"));
             } else {
                 gui.setItem(18, GuiItems.cancelButton("&7Retour à la liste"));
+                ItemStack teleport = new ItemStack(Material.ENDER_PEARL);
+                ItemMeta teleportMeta = teleport.getItemMeta();
+                if (teleportMeta != null) {
+                    teleportMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&b&lSe téléporter au claim"));
+                    List<String> teleportLore = new ArrayList<>();
+                    teleportLore.add(ChatColor.translateAlternateColorCodes('&', "&7Vous téléporte au centre de ce chunk."));
+                    teleportLore.add("");
+                    teleportLore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour vous téléporter"));
+                    teleportMeta.setLore(teleportLore);
+                    teleport.setItemMeta(teleportMeta);
+                }
+                gui.setItem(ADMIN_TELEPORT_SLOT, teleport);
                 ItemStack delete = new ItemStack(Material.BARRIER);
                 ItemMeta deleteMeta = delete.getItemMeta();
                 if (deleteMeta != null) {

@@ -44,7 +44,7 @@ public class MoneyCommand implements CommandExecutor, TabCompleter {
         double amount;
 
         try {
-            amount = MoneyFormat.parse(args[2]);
+            amount = MoneyFormat.parseWhole(args[2]);
         } catch (NumberFormatException e) {
             Messages.send(sender, "economy.money.invalid-amount", java.util.Map.of("amount", args[2]));
             return true;

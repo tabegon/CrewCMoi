@@ -39,6 +39,14 @@ public final class MoneyFormat {
         return formatted;
     }
 
+    public static double parseWhole(String input) {
+        double amount = parse(input);
+        if (!Double.isFinite(amount) || amount != Math.rint(amount)) {
+            throw new NumberFormatException("Le montant doit être un nombre entier.");
+        }
+        return amount;
+    }
+
     public static double parse(String input) {
         if (input == null) {
             throw new NumberFormatException("Montant vide.");
