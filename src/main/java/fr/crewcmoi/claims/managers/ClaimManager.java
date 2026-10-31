@@ -343,9 +343,9 @@ public class ClaimManager {
     }
 
     public double getNextShopPrice(Player player) {
-        double base = plugin.getConfig().getDouble("claims.shop.base-price", 5000);
-        double increment = plugin.getConfig().getDouble("claims.shop.price-increment", 2500);
-        return base + increment * getExtraClaims(player.getUniqueId());
+        double base = Math.max(0.0D, plugin.getConfig().getDouble("claims.shop.base-price", 5000.0D));
+        int purchased = Math.max(0, getExtraClaims(player.getUniqueId()));
+        return base * Math.pow(2.0D, purchased);
     }
 
     public ShopResult buyExtraClaim(Player player) {

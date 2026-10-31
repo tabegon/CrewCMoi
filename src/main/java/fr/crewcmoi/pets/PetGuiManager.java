@@ -50,7 +50,14 @@ public class PetGuiManager {
                 lore.add(owned
                         ? (active ? Messages.color(plugin.getMessages().getString("gui.pets.active")) : Messages.color(plugin.getMessages().getString("gui.pets.activate")))
                         : Messages.color(plugin.getMessages().getString("gui.pets.locked")));
-                if (owned) lore.add(Messages.color(plugin.getMessages().getString("gui.pets.deactivate")));
+                if (owned) {
+                    long remaining = petManager.getRemovalLockRemainingSeconds(player.getUniqueId(), petId);
+                    if (active && remaining > 0L) {
+                        lore.add(Messages.color("&cIndisponible pendant " + remaining + " s"));
+                    } else {
+                        lore.add(Messages.color(plugin.getMessages().getString("gui.pets.deactivate")));
+                    }
+                }
                 meta.setLore(lore);
                 item.setItemMeta(meta);
             }

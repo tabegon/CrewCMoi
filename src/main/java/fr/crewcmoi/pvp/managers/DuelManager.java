@@ -319,7 +319,9 @@ public class DuelManager {
 
         double bet = request.getBet();
         String kitId = request.getKitId();
-        double kitPrice = kitId != null ? 1000.0 : 0.0;
+        double kitPrice = kitId != null
+                ? plugin.getConfig().getDouble("duel.kits.basic.price", 1000.0)
+                : 0.0;
 
         if (kitId != null && (kitId.isBlank() || !plugin.getDuelKitManager().isValidKit(kitId))) {
             sendMessage(target, "duel.invalid-kit", null, null);

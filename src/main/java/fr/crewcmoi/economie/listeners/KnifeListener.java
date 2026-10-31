@@ -10,7 +10,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Récompense configurable lorsqu'un joueur tue un autre joueur avec le couteau ItemsAdder.
+ * Fait apparaître une âme ItemsAdder au sol lorsqu'un joueur tue un autre joueur avec le couteau ItemsAdder.
  * La mécanique est volontairement indépendante du système de lootbox.
  */
 public class KnifeListener implements Listener {
@@ -27,7 +27,9 @@ public class KnifeListener implements Listener {
         if (killer == null) return;
 
         String knifeId = plugin.getConfig().getString("knife.itemsadder-id", "").trim();
-        String soulId = plugin.getConfig().getString("knife.soul-itemsadder-id", "").trim();
+        String soulId = plugin.getConfig().getString("knife.soul-itemsadder-id", "server:souls").trim();
+        // Migration automatique de l'ancien identifiant par défaut.
+        if (soulId.equalsIgnoreCase("server:soul")) soulId = "server:souls";
         if (knifeId.isBlank() || soulId.isBlank()) return;
 
         ItemStack weapon = killer.getInventory().getItemInMainHand();
@@ -39,11 +41,13 @@ public class KnifeListener implements Listener {
             return;
         }
 
-        killer.getInventory().addItem(soul.getItemStack().clone());
+        ItemStack soulDrop = soul.getItemStack().clone();
+        soulDrop.setAmount(1);
+        victim.getWorld().dropItemNaturally(victim.getLocation(), soulDrop);
 
         String message = plugin.getConfig().getString(
                 "knife.reward-message",
-                "&5+1 âme &7pour avoir tué &f{victim}&7 avec le couteau !"
+                "&5Une âme est tombée ! &7Tu as éliminé &f{victim}&7 avec le couteau."
         );
         message = message.replace("{victim}", victim.getName());
         killer.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', message));

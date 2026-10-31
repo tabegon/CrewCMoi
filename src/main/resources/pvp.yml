@@ -46,14 +46,14 @@ duel:
       x: 54.5
       y: -59
       z: 89.5
-      yaw: 0.0
+      yaw: -90.0
       pitch: 0.0
     pos2:
       world: structure
       x: 140.5
       y: -59
       z: 89.5
-      yaw: 180.0
+      yaw: 90.0
       pitch: 0.0
     wait:
       pos1:
@@ -61,14 +61,14 @@ duel:
         x: 49.5
         y: -59
         z: 89.5
-        yaw: 0.0
+        yaw: -90.0
         pitch: 0.0
       pos2:
         world: structure
         x: 145.5
         y: -59
         z: 89.5
-        yaw: 180.0
+        yaw: 90.0
         pitch: 0.0
     second:
       pos1:
@@ -76,14 +76,14 @@ duel:
         x: 54.5
         y: -59
         z: 260.5
-        yaw: 0.0
+        yaw: -90.0
         pitch: 0.0
       pos2:
         world: structure
         x: 140.5
         y: -59
         z: 260.5
-        yaw: 180.0
+        yaw: 90.0
         pitch: 0.0
       wait:
         pos1:
@@ -91,14 +91,14 @@ duel:
           x: 49.5
           y: -59
           z: 260.5
-          yaw: 0.0
+          yaw: -90.0
           pitch: 0.0
         pos2:
           world: structure
           x: 145.5
           y: -59
           z: 260.5
-          yaw: 180.0
+          yaw: 90.0
           pitch: 0.0
   itemsadder-id: crewcmoi:balance_hud
   text-id: balance

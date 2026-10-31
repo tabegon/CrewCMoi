@@ -1,11 +1,30 @@
 claims:
   stealable-items:
+    - MACE
+    - CREEPER_HEAD
+    - CREEPER_WALL_HEAD
+    - DRAGON_HEAD
+    - DRAGON_WALL_HEAD
+    - PIGLIN_HEAD
+    - PIGLIN_WALL_HEAD
+    - PLAYER_HEAD
+    - PLAYER_WALL_HEAD
+    - SKELETON_SKULL
+    - SKELETON_WALL_SKULL
+    - WITHER_SKELETON_SKULL
+    - WITHER_SKELETON_WALL_SKULL
+    - ZOMBIE_HEAD
+    - ZOMBIE_WALL_HEAD
+    - HEAVY_CORE
+    - ELYTRA
+    - TOTEM_OF_UNDYING
+    - DRAGON_EGG
   max-per-player: 3
   see-radius: 5
   see-duration: 10
   shop:
     base-price: 5000
-    price-increment: 2500
+    price-increment: 5000
     max-extra: 10
 # Zones interdites aux claims, définies par coordonnées.
   blocked-zones: []

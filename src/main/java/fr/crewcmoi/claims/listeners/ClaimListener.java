@@ -10,6 +10,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -28,6 +30,7 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -57,10 +60,19 @@ public class ClaimListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!claimManager.isAllowed(event.getPlayer(), event.getBlock().getLocation(), ClaimFlag.BREAK)) {
-            event.setCancelled(true);
-            deny(event.getPlayer());
+        Location location = event.getBlock().getLocation();
+        if (claimManager.isAllowed(event.getPlayer(), location, ClaimFlag.BREAK)) {
+            return;
         }
+
+        // Les matériaux explicitement autorisés au vol dans les conteneurs
+        // peuvent aussi être récupérés en cassant un bloc de ce matériau.
+        if (claimManager.getClaim(location) != null && canStealBlockDrops(event.getBlock(), event.getPlayer())) {
+            return;
+        }
+
+        event.setCancelled(true);
+        deny(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -78,10 +90,14 @@ public class ClaimListener implements Listener {
         }
         String type = event.getClickedBlock().getType().name();
         
-        boolean container = type.contains("CHEST") || type.contains("FURNACE") || type.contains("BARREL")
+        boolean container = event.getClickedBlock().getState() instanceof InventoryHolder
+                || type.contains("CHEST") || type.contains("FURNACE") || type.contains("BARREL")
                 || type.contains("SHULKER") || type.contains("ANVIL") || type.contains("ENCHANT")
                 || type.contains("HOPPER") || type.contains("DISPENSER") || type.contains("DROPPER")
-                || type.contains("BREWING") || type.contains("CRAFTING");
+                || type.contains("BREWING") || type.contains("CRAFTING") || type.contains("CRAFTER")
+                || type.contains("SMITHING") || type.contains("STONECUTTER") || type.contains("GRINDSTONE")
+                || type.contains("LOOM") || type.contains("CARTOGRAPHY") || type.contains("LECTERN")
+                || type.contains("JUKEBOX") || type.contains("DECORATED_POT");
         
         boolean interact = type.contains("DOOR") || type.contains("TRAPDOOR") || type.contains("GATE")
                 || type.contains("BUTTON") || type.contains("LEVER") || type.contains("BED")
@@ -92,8 +108,25 @@ public class ClaimListener implements Listener {
 
         
         
-        if (flag == ClaimFlag.INTERACT
+        if (flag != null
                 && !claimManager.isAllowed(event.getPlayer(), event.getClickedBlock().getLocation(), flag)) {
+            // Les conteneurs restent ouvrables pour permettre de voir leur contenu.
+            // L'autorisation CONTAINERS contrôle les transferts dans onInventoryClick.
+            if (flag != ClaimFlag.CONTAINERS) {
+                event.setCancelled(true);
+                deny(event.getPlayer());
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onMobInteract(PlayerInteractEntityEvent event) {
+        Entity entity = event.getRightClicked();
+        if (!(entity instanceof Mob) || entity instanceof Player || entity.hasMetadata("NPC")) {
+            return;
+        }
+
+        if (!claimManager.isAllowed(event.getPlayer(), entity.getLocation(), ClaimFlag.MOB_INTERACT)) {
             event.setCancelled(true);
             deny(event.getPlayer());
         }
@@ -110,6 +143,16 @@ public class ClaimListener implements Listener {
             return;
         }
 
+        // Les bundles sont autorisés au propriétaire et aux joueurs qui ont
+        // la permission CONTAINERS dans le claim où ils se trouvent.
+        if (claimManager.getClaim(player.getLocation()) != null
+                && !hasClaimBundlePermission(player)
+                && touchesBundle(event, player)) {
+            event.setCancelled(true);
+            denyContainerLoot(player);
+            return;
+        }
+
         if (top.getType() == org.bukkit.event.inventory.InventoryType.ENDER_CHEST) {
             if (isProtectedStorageItem(event.getCursor()) && isPlacingIntoTop(event)) {
                 event.setCancelled(true);
@@ -121,7 +164,8 @@ public class ClaimListener implements Listener {
                     && event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY
                     && event.getHotbarButton() >= 0 && event.getHotbarButton() < 9) {
                 ItemStack hotbarItem = player.getInventory().getItem(event.getHotbarButton());
-                if (isProtectedStorageItem(hotbarItem) || isBundle(hotbarItem)) {
+                if (isProtectedStorageItem(hotbarItem)
+                        || (isBundle(hotbarItem) && !hasClaimBundlePermission(player))) {
                     event.setCancelled(true);
                     denyProtectedStorageItem(player);
                     return;
@@ -131,7 +175,8 @@ public class ClaimListener implements Listener {
             if (event.getClickedInventory() == top
                     && event.getClick() == org.bukkit.event.inventory.ClickType.SWAP_OFFHAND) {
                 ItemStack offhand = player.getInventory().getItemInOffHand();
-                if (isProtectedStorageItem(offhand) || isBundle(offhand)) {
+                if (isProtectedStorageItem(offhand)
+                        || (isBundle(offhand) && !hasClaimBundlePermission(player))) {
                     event.setCancelled(true);
                     denyProtectedStorageItem(player);
                     return;
@@ -139,7 +184,7 @@ public class ClaimListener implements Listener {
             }
 
             if (event.getClickedInventory() == top && isContainerExtraction(event, top)
-                    && isBundle(event.getCurrentItem())) {
+                    && isBundle(event.getCurrentItem()) && !hasClaimBundlePermission(player)) {
                 event.setCancelled(true);
                 denyProtectedStorageItem(player);
                 return;
@@ -147,13 +192,15 @@ public class ClaimListener implements Listener {
 
             if (event.getClickedInventory() != top
                     && event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
-                    && (isProtectedStorageItem(event.getCurrentItem()) || isBundle(event.getCurrentItem()))) {
+                    && (isProtectedStorageItem(event.getCurrentItem())
+                    || (isBundle(event.getCurrentItem()) && !hasClaimBundlePermission(player)))) {
                 event.setCancelled(true);
                 denyProtectedStorageItem(player);
                 return;
             }
 
-            if (isBundle(event.getCursor()) && isPlacingIntoTop(event)) {
+            if (isBundle(event.getCursor()) && isPlacingIntoTop(event)
+                    && !hasClaimBundlePermission(player)) {
                 event.setCancelled(true);
                 denyProtectedStorageItem(player);
             }
@@ -175,13 +222,25 @@ public class ClaimListener implements Listener {
         }
 
         boolean containerAllowed = claimManager.isAllowed(player, containerLocation, ClaimFlag.CONTAINERS);
-        if ((protectedClaim || !containerAllowed) && isBundleTransferToContainer(event, top, player)) {
+        boolean bundleTransfer = isBundleTransferToContainer(event, top, player);
+        boolean canUseBundleInContainer = claimManager.canBuild(player, containerLocation) || containerAllowed;
+        if (bundleTransfer && canUseBundleInContainer) {
+            return;
+        }
+        if (bundleTransfer) {
             event.setCancelled(true);
             denyContainerLoot(player);
             return;
         }
 
         if (containerAllowed) {
+            return;
+        }
+
+        // Un joueur sans permission peut consulter le conteneur, mais pas y déposer d'objets.
+        if (isContainerInsertion(event, top)) {
+            event.setCancelled(true);
+            denyContainerLoot(player);
             return;
         }
 
@@ -269,13 +328,28 @@ public class ClaimListener implements Listener {
         return isProtectedFromClaimTheft(event.getCurrentItem());
     }
 
+    private boolean isContainerInsertion(InventoryClickEvent event, Inventory top) {
+        Inventory clicked = event.getClickedInventory();
+        if (clicked == top) {
+            return switch (event.getAction()) {
+                case PLACE_ALL, PLACE_SOME, PLACE_ONE, SWAP_WITH_CURSOR,
+                     HOTBAR_SWAP, HOTBAR_MOVE_AND_READD -> true;
+                default -> false;
+            };
+        }
+
+        return clicked == event.getView().getBottomInventory()
+                && event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY;
+    }
+
     private boolean isBundleTransferToContainer(InventoryClickEvent event, Inventory top, Player player) {
         Inventory clicked = event.getClickedInventory();
         if (clicked == top) {
             if (isBundle(event.getCurrentItem()) && isContainerExtraction(event, top)) {
                 return true;
             }
-            if (isBundle(event.getCursor()) && isPlacingIntoTop(event)) {
+            if (isBundle(event.getCursor()) && isPlacingIntoTop(event)
+                    && !hasClaimBundlePermission(player)) {
                 return true;
             }
             if (event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY
@@ -315,7 +389,9 @@ public class ClaimListener implements Listener {
     }
 
     private boolean isProtectedFromClaimTheft(ItemStack item) {
-        return isProtectedStorageItem(item);
+        // Un objet rare reste protégé par défaut, mais la liste stealable-items
+        // constitue une autorisation explicite qui doit pouvoir le rendre volable.
+        return isProtectedStorageItem(item) && !isConfiguredStealable(item);
     }
 
     private void denyProtectedStorageItem(Player player) {
@@ -378,18 +454,16 @@ public class ClaimListener implements Listener {
         if (item == null || item.getType() == Material.AIR || isProtectedFromClaimTheft(item)) {
             return false;
         }
+        return isConfiguredStealable(item);
+    }
 
+    private boolean isConfiguredStealable(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return false;
         for (String configured : plugin.getConfig().getStringList("claims.stealable-items")) {
-            if (configured == null || configured.isBlank()) {
-                continue;
-            }
-
+            if (configured == null || configured.isBlank()) continue;
             Material material = Material.matchMaterial(configured.trim());
-            if (material == item.getType()) {
-                return true;
-            }
+            if (material == item.getType()) return true;
         }
-
         return false;
     }
 
@@ -413,14 +487,24 @@ public class ClaimListener implements Listener {
         }
 
         Player player = event.getPlayer();
+        Location playerLocation = player.getLocation();
+        if (claimManager.getClaim(playerLocation) != null
+                && !hasClaimBundlePermission(player)) {
+            event.setCancelled(true);
+            denyContainerLoot(player);
+            return;
+        }
+
         Inventory top = player.getOpenInventory().getTopInventory();
         if (top == null) {
             return;
         }
 
         if (top.getType() == org.bukkit.event.inventory.InventoryType.ENDER_CHEST) {
-            event.setCancelled(true);
-            denyProtectedStorageItem(player);
+            if (!hasClaimBundlePermission(player)) {
+                event.setCancelled(true);
+                denyProtectedStorageItem(player);
+            }
             return;
         }
 
@@ -429,8 +513,8 @@ public class ClaimListener implements Listener {
             return;
         }
 
-        if (isProtectedClaimInventory(player, top)
-                || !claimManager.isAllowed(player, location, ClaimFlag.CONTAINERS)) {
+        if (!claimManager.canBuild(player, location)
+                && !claimManager.isAllowed(player, location, ClaimFlag.CONTAINERS)) {
             event.setCancelled(true);
             denyContainerLoot(player);
         }
@@ -459,11 +543,20 @@ public class ClaimListener implements Listener {
         Inventory top = event.getView().getTopInventory();
         if (top == null) return;
 
+        if (claimManager.getClaim(player.getLocation()) != null
+                && !hasClaimBundlePermission(player)
+                && isBundle(event.getOldCursor())) {
+            event.setCancelled(true);
+            denyContainerLoot(player);
+            return;
+        }
+
         boolean touchesTop = event.getRawSlots().stream().anyMatch(slot -> slot < top.getSize());
         if (!touchesTop) return;
 
         if (top.getType() == org.bukkit.event.inventory.InventoryType.ENDER_CHEST) {
-            if (isProtectedStorageItem(event.getOldCursor()) || isBundle(event.getOldCursor())) {
+            if (isProtectedStorageItem(event.getOldCursor())
+                    || (isBundle(event.getOldCursor()) && !hasClaimBundlePermission(player))) {
                 event.setCancelled(true);
                 denyProtectedStorageItem(player);
             }
@@ -472,12 +565,54 @@ public class ClaimListener implements Listener {
 
         Location location = getInventoryLocation(top);
         if (location == null) return;
-        boolean protectedClaim = isProtectedClaimInventory(player, top);
         boolean containerAllowed = claimManager.isAllowed(player, location, ClaimFlag.CONTAINERS);
-        if (isBundle(event.getOldCursor()) && (protectedClaim || !containerAllowed)) {
+        boolean bundleAuthorized = isBundle(event.getOldCursor()) && claimManager.canBuild(player, location);
+        if (!containerAllowed && !bundleAuthorized) {
+            // Un glisser-déposer vers le conteneur est interdit sans permission, sauf bundle du propriétaire/trusté.
             event.setCancelled(true);
             denyContainerLoot(player);
         }
+    }
+
+    private boolean hasClaimBundlePermission(Player player) {
+        Location location = player.getLocation();
+        return claimManager.getClaim(location) != null
+                && (claimManager.canBuild(player, location)
+                || claimManager.isAllowed(player, location, ClaimFlag.CONTAINERS));
+    }
+
+    private boolean touchesBundle(InventoryClickEvent event, Player player) {
+        if (isBundle(event.getCurrentItem()) || isBundle(event.getCursor())) {
+            return true;
+        }
+        if (event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY) {
+            int hotbar = event.getHotbarButton();
+            return hotbar >= 0 && hotbar < 9 && isBundle(player.getInventory().getItem(hotbar));
+        }
+        return event.getClick() == org.bukkit.event.inventory.ClickType.SWAP_OFFHAND
+                && isBundle(player.getInventory().getItemInOffHand());
+    }
+
+    private boolean isStealableMaterial(Material material) {
+        return material != null && isStealable(new ItemStack(material));
+    }
+
+    private boolean canStealBlockDrops(Block block, Player player) {
+        if (block.getState() instanceof InventoryHolder) return false;
+        if (isStealableMaterial(block.getType())) return true;
+        java.util.Collection<ItemStack> drops;
+        try {
+            drops = block.getDrops(player.getInventory().getItemInMainHand(), player);
+        } catch (Throwable ignored) {
+            drops = block.getDrops(player.getInventory().getItemInMainHand());
+        }
+        boolean foundDrop = false;
+        for (ItemStack drop : drops) {
+            if (drop == null || drop.getType().isAir()) continue;
+            foundDrop = true;
+            if (!isStealable(drop)) return false;
+        }
+        return foundDrop;
     }
 
     private boolean isBundle(ItemStack item) {
@@ -575,7 +710,11 @@ public class ClaimListener implements Listener {
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
 
         Entity entity = event.getEntity();
-        if (!(entity instanceof Player) && !claimManager.isOpen(event.getBlock().getLocation(), ClaimFlag.MOB_GRIEFING)) {
+        // Les blocs soumis à la gravité (sable, gravier, enclume...) doivent toujours tomber.
+        if (entity instanceof FallingBlock || entity instanceof Player) {
+            return;
+        }
+        if (!claimManager.isOpen(event.getBlock().getLocation(), ClaimFlag.MOB_GRIEFING)) {
             event.setCancelled(true);
         }
     }

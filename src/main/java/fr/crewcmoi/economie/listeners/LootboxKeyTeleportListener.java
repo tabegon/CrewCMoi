@@ -22,15 +22,21 @@ import java.util.Deque;
 import java.util.UUID;
 
 /**
- * Téléporte le joueur avec la clé ItemsAdder configurée.
- *
- * Le plugin ne consomme, ne crée et ne gère aucune clé ou récompense :
- * la gestion des lootbox reste entièrement externe.
+ * Téléporte le joueur avec la clé ItemsAdder configurée, consomme la clé
+ * après une téléportation réussie et ouvre une session temporaire de lootbox.
+ * La récompense et son animation sont gérées par LootboxAnimationListener.
  */
 public class LootboxKeyTeleportListener implements Listener {
     private final Main plugin;
     private final Map<UUID, Long> recentTeleports = new HashMap<>();
+    private final Map<UUID, Long> openingSessions = new HashMap<>();
+    private final Map<UUID, Location> returnLocations = new HashMap<>();
     private final Deque<UUID> waitingQueue = new ArrayDeque<>();
+    private LootboxAnimationListener animationListener;
+
+    public void setAnimationListener(LootboxAnimationListener animationListener) {
+        this.animationListener = animationListener;
+    }
 
     public LootboxKeyTeleportListener(Main plugin) {
         this.plugin = plugin;
@@ -42,6 +48,8 @@ public class LootboxKeyTeleportListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         waitingQueue.remove(event.getPlayer().getUniqueId());
         recentTeleports.remove(event.getPlayer().getUniqueId());
+        openingSessions.remove(event.getPlayer().getUniqueId());
+        returnLocations.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
@@ -66,6 +74,7 @@ public class LootboxKeyTeleportListener implements Listener {
             return;
         }
         event.setCancelled(true);
+        returnLocations.putIfAbsent(player.getUniqueId(), player.getLocation().clone());
 
         // La clé est consommée uniquement après une téléportation réussie.
         // Ainsi, une erreur de configuration, une destination occupée ou un
@@ -123,6 +132,8 @@ public class LootboxKeyTeleportListener implements Listener {
             }
 
             if (player.teleport(destination)) {
+                markOpeningSession(player);
+                scheduleCinematic(player);
                 String name = plugin.getConfig().getString(path + ".name", id);
                 send(player, "teleported", "&dVous avez été téléporté vers &5%destination%&d."
                         .replace("%destination%", name));
@@ -166,6 +177,7 @@ public class LootboxKeyTeleportListener implements Listener {
 
             if (!hasConfiguredKey(player)) {
                 waitingQueue.removeFirst();
+                returnLocations.remove(uuid);
                 send(player, "queue-no-key", "&cVous n'avez plus la clé de lootbox, vous avez été retiré de la file d'attente.");
                 continue;
             }
@@ -176,6 +188,8 @@ public class LootboxKeyTeleportListener implements Listener {
 
             waitingQueue.removeFirst();
             consumeConfiguredKey(player);
+            markOpeningSession(player);
+            scheduleCinematic(player);
 
             String destinationName = findDestinationName(destination);
             send(player, "teleported-from-queue", "&dUne salle de lootbox vient de se libérer ! &7Vous êtes téléporté vers &5%destination%&7."
@@ -211,11 +225,38 @@ public class LootboxKeyTeleportListener implements Listener {
         return "la salle de lootbox";
     }
 
+    private void scheduleCinematic(Player player) {
+        if (animationListener == null) {
+            returnLocations.remove(player.getUniqueId());
+            return;
+        }
+        UUID uuid = player.getUniqueId();
+        Location returnLocation = returnLocations.remove(uuid);
+        if (returnLocation == null) returnLocation = player.getLocation().clone();
+        Location savedReturnLocation = returnLocation.clone();
+        long delay = Math.max(1L, plugin.getConfig().getLong("lootbox-teleport.animation.delay-before-cinematic-ticks", 20L));
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Player current = Bukkit.getPlayer(uuid);
+            if (current != null && current.isOnline()) animationListener.startCinematic(current, savedReturnLocation);
+        }, delay);
+    }
+
+    private void markOpeningSession(Player player) {
+        long timeoutSeconds = Math.max(1L,
+                plugin.getConfig().getLong("lootbox-teleport.animation.session-timeout-seconds", 120L));
+        openingSessions.put(player.getUniqueId(), System.currentTimeMillis() + timeoutSeconds * 1000L);
+    }
+
+    public boolean consumeOpeningSession(Player player) {
+        Long expiresAt = openingSessions.remove(player.getUniqueId());
+        return expiresAt != null && expiresAt >= System.currentTimeMillis();
+    }
+
     private boolean hasConfiguredKey(Player player) {
         for (org.bukkit.inventory.ItemStack item : player.getInventory().getContents()) {
             if (isConfiguredKey(item)) return true;
         }
-        return false;
+        return isConfiguredKey(player.getInventory().getItemInOffHand());
     }
 
     private void consumeConfiguredKey(Player player) {
@@ -227,6 +268,11 @@ public class LootboxKeyTeleportListener implements Listener {
             if (amount <= 1) inventory.setItem(slot, null);
             else item.setAmount(amount - 1);
             return;
+        }
+        org.bukkit.inventory.ItemStack offhand = inventory.getItemInOffHand();
+        if (isConfiguredKey(offhand)) {
+            if (offhand.getAmount() <= 1) inventory.setItemInOffHand(null);
+            else offhand.setAmount(offhand.getAmount() - 1);
         }
     }
 

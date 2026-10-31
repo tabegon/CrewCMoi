@@ -5,7 +5,7 @@ flying-banana:
     duration-ticks: 20
 knife:
   itemsadder-id: server:hunted_knife
-  soul-itemsadder-id: server:soul
+  soul-itemsadder-id: server:souls
 pets:
   recall-item-id: minecraft:stick
   list:

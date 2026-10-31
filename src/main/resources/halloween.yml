@@ -1,7 +1,7 @@
 halloween:
   enabled: true
   table:
-    price: 10000.0
+    price: 64.0
     itemsadder-id: server:summoning_table
     item-name: '&8&lᴛᴀʙʟᴇ ᴍᴀᴜᴅɪᴛᴇ'
   candy-corn-itemsadder-id: server:candy_corn

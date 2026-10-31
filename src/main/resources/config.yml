@@ -43,3 +43,25 @@ web:
   enabled: true
   port: 48961
   bind-address: 0.0.0.0
+
+claims:
+  stealable-items:
+    - MACE
+    - CREEPER_HEAD
+    - CREEPER_WALL_HEAD
+    - DRAGON_HEAD
+    - DRAGON_WALL_HEAD
+    - PIGLIN_HEAD
+    - PIGLIN_WALL_HEAD
+    - PLAYER_HEAD
+    - PLAYER_WALL_HEAD
+    - SKELETON_SKULL
+    - SKELETON_WALL_SKULL
+    - WITHER_SKELETON_SKULL
+    - WITHER_SKELETON_WALL_SKULL
+    - ZOMBIE_HEAD
+    - ZOMBIE_WALL_HEAD
+    - HEAVY_CORE
+    - ELYTRA
+    - TOTEM_OF_UNDYING
+    - DRAGON_EGG

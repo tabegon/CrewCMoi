@@ -240,21 +240,21 @@ public class GuiListener implements Listener {
             if (slot == SellHolder.CONFIRM_SLOT) {
                 sellGuiManager.confirmSale(player, gui, holder);
             } else if (slot == SellHolder.CANCEL_CONFIRM_SLOT) {
-                sellGuiManager.cancelConfirmation(gui, holder);
+                sellGuiManager.cancelConfirmation(player, gui, holder);
             }
             return;
         }
 
         if (sellGuiManager.isSearchSlot(slot)) {
             event.setCancelled(true);
-            sellGuiManager.calculateAndDisplaySearch(gui);
+            sellGuiManager.calculateAndDisplaySearch(gui, player);
         } else if (slot == SellHolder.SELL_SLOT) {
             event.setCancelled(true);
             sellGuiManager.askConfirmation(player, gui, holder);
         } else if (!SellHolder.isItemSlot(slot)) {
             event.setCancelled(true);
         } else {
-            plugin.getServer().getScheduler().runTask(plugin, () -> sellGuiManager.refreshConfirmButton(gui));
+            plugin.getServer().getScheduler().runTask(plugin, () -> sellGuiManager.refreshConfirmButton(gui, player));
         }
     }
 
@@ -484,7 +484,7 @@ public class GuiListener implements Listener {
         }
 
         ClaimPermission current = claim.getPermission(flag);
-        ClaimPermission next = flag == ClaimFlag.MOB_GRIEFING
+        ClaimPermission next = (flag == ClaimFlag.MOB_GRIEFING || flag == ClaimFlag.MOB_INTERACT)
                 ? (current == ClaimPermission.EVERYONE ? ClaimPermission.OWNER_ONLY : ClaimPermission.EVERYONE)
                 : current.next();
         claimManager.setFlag(player, holder.getWorld(), holder.getChunkX(), holder.getChunkZ(), flag, next);

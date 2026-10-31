@@ -32,6 +32,7 @@ public class PricesManager {
             plugin.saveResource("prices.yml", false);
         }
         pricesConfig = YamlConfiguration.loadConfiguration(pricesFile);
+        mergeOceanTemplePriceDefaults();
 
         prices.clear();
         customPrices.clear();
@@ -67,6 +68,53 @@ public class PricesManager {
             }
             double price = section.getDouble(key, 0.0);
             prices.put(material, price);
+        }
+    }
+
+    private void mergeOceanTemplePriceDefaults() {
+        FileConfiguration defaults;
+        try (InputStreamReader reader = new InputStreamReader(plugin.getResource("prices.yml"), StandardCharsets.UTF_8)) {
+            defaults = YamlConfiguration.loadConfiguration(reader);
+        } catch (Exception exception) {
+            plugin.getLogger().warning("Impossible de charger les nouveaux prix des objets marins : " + exception.getMessage());
+            return;
+        }
+
+        Map<String, Double> previousDefaults = Map.ofEntries(
+                Map.entry("CONDUIT", 1500.0), Map.entry("HEART_OF_THE_SEA", 800.0),
+                Map.entry("NAUTILUS_SHELL", 60.0), Map.entry("DARK_PRISMARINE", 1.0),
+                Map.entry("DARK_PRISMARINE_SLAB", 2.0), Map.entry("DARK_PRISMARINE_STAIRS", 2.0),
+                Map.entry("DARK_PRISMARINE_WALL", 2.0), Map.entry("PRISMARINE", 1.0),
+                Map.entry("PRISMARINE_BRICKS", 1.0), Map.entry("PRISMARINE_BRICKS_SLAB", 2.0),
+                Map.entry("PRISMARINE_BRICKS_STAIRS", 2.0), Map.entry("PRISMARINE_BRICKS_WALL", 2.0),
+                Map.entry("PRISMARINE_CRYSTALS", 10.0), Map.entry("PRISMARINE_SHARD", 8.0),
+                Map.entry("PRISMARINE_SLAB", 2.0), Map.entry("PRISMARINE_STAIRS", 2.0),
+                Map.entry("PRISMARINE_WALL", 2.0), Map.entry("SEA_LANTERN", 25.0),
+                Map.entry("SPONGE", 20.0), Map.entry("WET_SPONGE", 15.0), Map.entry("TRIDENT", 900.0)
+        );
+
+        boolean changed = false;
+        for (Map.Entry<String, Double> entry : previousDefaults.entrySet()) {
+            String key = entry.getKey();
+            String path = "prices." + key;
+            if (!defaults.contains(path)) continue;
+            double current = pricesConfig.getDouble(path, Double.NaN);
+            double newDefault = defaults.getDouble(path);
+            if (Double.isNaN(current) || Math.abs(current - entry.getValue()) < 0.000001D) {
+                if (Double.isNaN(current) || Math.abs(current - newDefault) >= 0.000001D) {
+                    pricesConfig.set(path, newDefault);
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed) {
+            try {
+                ((YamlConfiguration) pricesConfig).save(pricesFile);
+                plugin.getLogger().info("Prix par défaut des objets liés aux temples marins mis à jour (les prix personnalisés sont conservés).");
+            } catch (Exception exception) {
+                plugin.getLogger().warning("Impossible d'enregistrer les prix marins : " + exception.getMessage());
+            }
         }
     }
 

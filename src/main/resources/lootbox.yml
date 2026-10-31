@@ -4,19 +4,19 @@ lootbox-teleport:
   destinations:
     destination1:
       name: Emplacement 1
-      world: test
-      x: -52.0
-      y: -60.0
-      z: 97.0
+      world: structure
+      x: 81.0
+      y: -58.0
+      z: -35.0
       yaw: 0.0
       pitch: 0.0
       occupancy-radius: 5.0
     destination2:
       name: Emplacement 2
-      world: test
-      x: -52.0
-      y: -60.0
-      z: 97.0
+      world: structure
+      x: 81.0
+      y: -58.0
+      z: -35.0
       yaw: 0.0
       pitch: 0.0
       occupancy-radius: 5.0
@@ -26,3 +26,71 @@ lootbox-teleport:
     teleported-from-queue: '&dUne salle de lootbox vient de se libérer ! &7Vous êtes téléporté vers &5%destination%&7.'
     queue-no-key: '&cVous n''avez plus la clé de lootbox, vous avez été retiré de la file d''attente.'
     configuration-error: '&cAucune destination de téléportation de lootbox n''est configurée.'
+
+  animation:
+    enabled: true
+    npc-id: 11
+    session-timeout-seconds: 120
+    delay-before-cinematic-ticks: 20
+    world: structure
+    x: 61.9
+    y: -57.6
+    z: -42.0
+    yaw: -175.0
+    pitch: 0.0
+    open-command: 'iaentity citizens 11 anim play open'
+    close-command: 'iaentity citizens 11 anim play close'
+    reveal-delay-ticks: 90
+    item-display:
+      age: 5900
+      pickup-delay: 1000
+      motion:
+        x: 0.1
+        y: 0.22
+        z: -0.1
+      text-background: 16711680
+
+    # Les items de la cinématique apparaissent alternativement à ces deux positions.
+    # Modifie les coordonnées pour placer les deux emplacements dans la salle.
+    display-locations:
+      position-1:
+        world: structure
+        x: -32.21
+        y: -60.00
+        z: 113.13
+        yaw: 0.0
+        pitch: 0.0
+      position-2:
+        world: structure
+        x: -30.21
+        y: -60.00
+        z: 113.13
+        yaw: 0.0
+        pitch: 0.0
+    # Pool personnalisable : chaque entrée correspond à un identifiant ItemsAdder.
+    # Pour ajouter un objet, copie un bloc et change son id, son nom et son fallback.
+    pool:
+      pumpkin-sword:
+        itemsadder-id: server:pumpkin_sword
+        display-name: Pumpkin Sword
+        fallback-material: NETHERITE_SWORD
+        fallback-model-data: 10001
+        unbreakable: false
+      pumpkin-pickaxe:
+        itemsadder-id: server:pumpkin_pickaxe
+        display-name: Pumpkin Pickaxe
+        fallback-material: NETHERITE_PICKAXE
+        fallback-model-data: 10000
+        unbreakable: false
+      spooky-spice:
+        itemsadder-id: server:spooky_spice_item
+        display-name: ' Spooky Spice'
+        fallback-material: PAPER
+        fallback-model-data: 10048
+        unbreakable: false
+      pumpkin-shield:
+        itemsadder-id: server:pumpkin_shield
+        display-name: Pumpkin Shield
+        fallback-material: SHIELD
+        fallback-model-data: 10000
+        unbreakable: false

@@ -21,7 +21,7 @@ public class HomeShopGuiManager {
         h.setInventory(inv);
         for(int i=0;i<54;i++)inv.setItem(i,GuiItems.nothing(" "));
         int slots=manager.getMaxHomes(p.getUniqueId());
-        double price=plugin.getConfig().getDouble("homes.base-price",5000)+Math.max(0,slots-1)*plugin.getConfig().getDouble("homes.price-increment",5000);
+        double price=manager.getNextSlotPrice(p.getUniqueId());
         ItemStack buy=new ItemStack(Material.ENDER_CHEST);
         ItemMeta m=buy.getItemMeta();
         m.setDisplayName(color("&a&lᴀᴄʜᴇᴛᴇʀ ᴜɴ ꜱʟᴏᴛ ʜᴏᴍᴇ"));
@@ -32,7 +32,7 @@ public class HomeShopGuiManager {
     }
     public void buy(Player p) {
         int slots=manager.getMaxHomes(p.getUniqueId());
-        double price=plugin.getConfig().getDouble("homes.base-price",5000)+Math.max(0,slots-1)*plugin.getConfig().getDouble("homes.price-increment",5000);
+        double price=manager.getNextSlotPrice(p.getUniqueId());
         manager.purchaseSlot(p,price,ok-> {
             p.sendMessage(color(ok?"&aSlot de home acheté ! Tu peux maintenant utiliser /sethome <nom>.":"&cFonds insuffisants."));if(p.isOnline())open(p);
         }

@@ -25,6 +25,7 @@ public final class AdminGuiManager {
     private final ClaimAdminGuiManager claimAdminGuiManager;
     private final HomeAdminGuiManager homeAdminGuiManager;
     private final PlayerAdminGuiManager playerAdminGuiManager;
+    private final OfflineInventoryStore offlineInventoryStore;
 
     public AdminGuiManager(Main plugin, BountyReviewGuiManager bountyReviewGuiManager,
                            ClaimAdminGuiManager claimAdminGuiManager, HomeAdminGuiManager homeAdminGuiManager,
@@ -34,6 +35,11 @@ public final class AdminGuiManager {
         this.claimAdminGuiManager = claimAdminGuiManager;
         this.homeAdminGuiManager = homeAdminGuiManager;
         this.playerAdminGuiManager = playerAdminGuiManager;
+        this.offlineInventoryStore = new OfflineInventoryStore(plugin);
+    }
+
+    public OfflineInventoryStore getOfflineInventoryStore() {
+        return offlineInventoryStore;
     }
 
     public void open(Player player) {
@@ -77,20 +83,50 @@ public final class AdminGuiManager {
     }
 
     private void openPlayerSelection(Player viewer, AdminModerationHolder.Mode mode) {
-        List<UUID> targets = Bukkit.getOnlinePlayers().stream().map(Player::getUniqueId).toList();
-        AdminModerationHolder holder = new AdminModerationHolder(mode, null, targets);
+        openPlayerSelection(viewer, mode, 0);
+    }
+
+    private void openPlayerSelection(Player viewer, AdminModerationHolder.Mode mode, int requestedPage) {
+        List<UUID> targets = (mode == AdminModerationHolder.Mode.INVENTORY_PLAYERS
+                ? java.util.Arrays.stream(Bukkit.getOfflinePlayers()).map(org.bukkit.OfflinePlayer::getUniqueId)
+                : Bukkit.getOnlinePlayers().stream().map(Player::getUniqueId))
+                .distinct()
+                .sorted((a, b) -> {
+                    String nameA = Bukkit.getOfflinePlayer(a).getName();
+                    String nameB = Bukkit.getOfflinePlayer(b).getName();
+                    return String.CASE_INSENSITIVE_ORDER.compare(
+                            nameA == null ? a.toString() : nameA,
+                            nameB == null ? b.toString() : nameB);
+                }).toList();
+        int maxPage = Math.max(0, (targets.size() - 1) / 45);
+        int page = Math.max(0, Math.min(requestedPage, maxPage));
+        AdminModerationHolder holder = new AdminModerationHolder(mode, null, targets, page);
+        String type = mode == AdminModerationHolder.Mode.PET_PLAYERS ? "pets"
+                : mode == AdminModerationHolder.Mode.QUEST_PLAYERS ? "quêtes" : "inventaire";
         Inventory inventory = Bukkit.createInventory(holder, 54,
-                color(mode == AdminModerationHolder.Mode.PET_PLAYERS ? "&8Choisir un joueur — pets" : mode == AdminModerationHolder.Mode.QUEST_PLAYERS ? "&8Choisir un joueur — quêtes" : "&8Choisir un joueur — inventaire"));
+                color("&8Choisir un joueur — " + type + " &7(" + (page + 1) + "/" + (maxPage + 1) + ")"));
         holder.setInventory(inventory);
         for (int slot = 0; slot < inventory.getSize(); slot++) inventory.setItem(slot, GuiItems.nothing(" "));
-        int slot = 0;
-        for (UUID uuid : targets) {
-            if (slot >= 45) break;
-            Player target = Bukkit.getPlayer(uuid);
-            if (target == null) continue;
-            inventory.setItem(slot++, item(Material.PLAYER_HEAD, "&e" + target.getName(),
-                    List.of("&7Cliquer pour gérer " + (mode == AdminModerationHolder.Mode.PET_PLAYERS ? "ses pets" : mode == AdminModerationHolder.Mode.QUEST_PLAYERS ? "ses quêtes" : "son inventaire"))));
+        int start = page * 45;
+        int end = Math.min(start + 45, targets.size());
+        for (int index = start; index < end; index++) {
+            UUID uuid = targets.get(index);
+            org.bukkit.OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(uuid);
+            String targetName = offlineTarget.getName() == null ? uuid.toString() : offlineTarget.getName();
+            boolean isOnline = offlineTarget.isOnline();
+            List<String> lore = new ArrayList<>();
+            lore.add("&7Cliquer pour gérer " + (mode == AdminModerationHolder.Mode.PET_PLAYERS
+                    ? "ses pets" : mode == AdminModerationHolder.Mode.QUEST_PLAYERS
+                    ? "ses quêtes" : "son inventaire"));
+            if (!isOnline && mode == AdminModerationHolder.Mode.INVENTORY_PLAYERS) {
+                lore.add("&8Joueur hors ligne");
+                if (!offlineInventoryStore.hasSnapshot(uuid)) lore.add("&cAucun instantané disponible");
+            }
+            inventory.setItem(index - start, item(Material.PLAYER_HEAD, "&e" + targetName, lore));
         }
+        if (page > 0) inventory.setItem(45, item(Material.ARROW, "&e« Page précédente", List.of()));
+        inventory.setItem(49, item(Material.BARRIER, "&cRetour au menu admin", List.of()));
+        if (end < targets.size()) inventory.setItem(53, item(Material.ARROW, "&ePage suivante »", List.of()));
         viewer.openInventory(inventory);
     }
 
@@ -104,29 +140,56 @@ public final class AdminGuiManager {
         if (holder.getMode() == AdminModerationHolder.Mode.PET_PLAYERS
                 || holder.getMode() == AdminModerationHolder.Mode.QUEST_PLAYERS
                 || holder.getMode() == AdminModerationHolder.Mode.INVENTORY_PLAYERS) {
-            if (slot >= holder.getPlayers().size()) return true;
-            UUID targetId = holder.getPlayers().get(slot);
-            Player target = Bukkit.getPlayer(targetId);
-            if (target == null) {
-                viewer.sendMessage(color("&cCe joueur n'est plus connecté."));
+            int start = holder.getPage() * 45;
+            if (slot == 45 && holder.getPage() > 0) {
+                openPlayerSelection(viewer, holder.getMode(), holder.getPage() - 1);
                 return true;
             }
-            if (holder.getMode() == AdminModerationHolder.Mode.INVENTORY_PLAYERS) openInventoryActionMenu(viewer, target);
-            else openActionMenu(viewer, target, holder.getMode() == AdminModerationHolder.Mode.PET_PLAYERS);
+            if (slot == 53 && start + 45 < holder.getPlayers().size()) {
+                openPlayerSelection(viewer, holder.getMode(), holder.getPage() + 1);
+                return true;
+            }
+            if (slot == 49) {
+                open(viewer);
+                return true;
+            }
+            if (slot < 0 || slot >= 45 || start + slot >= holder.getPlayers().size()) return true;
+            UUID targetId = holder.getPlayers().get(start + slot);
+            Player target = Bukkit.getPlayer(targetId);
+            if (holder.getMode() == AdminModerationHolder.Mode.INVENTORY_PLAYERS) {
+                String targetName = Bukkit.getOfflinePlayer(targetId).getName();
+                if (targetName == null) targetName = targetId.toString();
+                if (target == null && !offlineInventoryStore.hasSnapshot(targetId)) {
+                    viewer.sendMessage(color("&cAucun inventaire enregistré pour ce joueur hors ligne. Il devra se connecter une fois avec cette version du plugin."));
+                    return true;
+                }
+                openInventoryActionMenu(viewer, targetId, targetName);
+            } else {
+                if (target == null) {
+                    viewer.sendMessage(color("&cCe joueur n'est plus connecté."));
+                    return true;
+                }
+                openActionMenu(viewer, target, holder.getMode() == AdminModerationHolder.Mode.PET_PLAYERS);
+            }
             return true;
         }
 
         Player target = Bukkit.getPlayer(holder.getTarget());
+        if (holder.getMode() == AdminModerationHolder.Mode.INVENTORY_ACTIONS) {
+            String targetName = Bukkit.getOfflinePlayer(holder.getTarget()).getName();
+            if (targetName == null) targetName = holder.getTarget().toString();
+            if (slot == 40) {
+                openPlayerSelection(viewer, AdminModerationHolder.Mode.INVENTORY_PLAYERS);
+            } else if (slot == 20) {
+                openPlayerInventoryEditor(viewer, holder.getTarget(), targetName, AdminPlayerInventoryHolder.Type.PLAYER_INVENTORY);
+            } else if (slot == 24) {
+                openPlayerInventoryEditor(viewer, holder.getTarget(), targetName, AdminPlayerInventoryHolder.Type.ENDER_CHEST);
+            }
+            return true;
+        }
         if (target == null) {
             viewer.sendMessage(color("&cCe joueur n'est plus connecté."));
             viewer.closeInventory();
-            return true;
-        }
-
-        if (holder.getMode() == AdminModerationHolder.Mode.INVENTORY_ACTIONS) {
-            if (slot == 40) viewer.closeInventory();
-            else if (slot == 20) openPlayerInventoryEditor(viewer, target, AdminPlayerInventoryHolder.Type.PLAYER_INVENTORY);
-            else if (slot == 24) openPlayerInventoryEditor(viewer, target, AdminPlayerInventoryHolder.Type.ENDER_CHEST);
             return true;
         }
 
@@ -150,8 +213,15 @@ public final class AdminGuiManager {
                 int index = slot;
                 if (index < owned.size()) {
                     String petId = owned.get(index);
-                    pets.removeOwnedPet(target.getUniqueId(), petId);
-                    viewer.sendMessage(color("&aPet &e" + petId + "&a retiré à " + target.getName() + "."));
+                    boolean removed = pets.removeOwnedPet(target.getUniqueId(), petId);
+                    if (removed) {
+                        viewer.sendMessage(color("&aPet &e" + petId + "&a retiré à " + target.getName() + "."));
+                    } else {
+                        long remaining = pets.getRemovalLockRemainingSeconds(target.getUniqueId(), petId);
+                        viewer.sendMessage(color(remaining > 0
+                                ? "&cCe pet est verrouillé pendant encore " + remaining + " seconde(s)."
+                                : "&cCe pet n'a pas pu être retiré."));
+                    }
                     openActionMenu(viewer, target, true);
                 }
             }
@@ -169,38 +239,64 @@ public final class AdminGuiManager {
         return true;
     }
 
-    private void openInventoryActionMenu(Player viewer, Player target) {
-        AdminModerationHolder holder = new AdminModerationHolder(AdminModerationHolder.Mode.INVENTORY_ACTIONS, target.getUniqueId(), List.of());
-        Inventory inventory = Bukkit.createInventory(holder, 45, color("&8Inventaire de " + target.getName()));
+    private void openInventoryActionMenu(Player viewer, UUID targetId, String targetName) {
+        AdminModerationHolder holder = new AdminModerationHolder(AdminModerationHolder.Mode.INVENTORY_ACTIONS, targetId, List.of());
+        Inventory inventory = Bukkit.createInventory(holder, 45, color("&8Inventaire de " + targetName));
         holder.setInventory(inventory);
         for (int slot = 0; slot < inventory.getSize(); slot++) inventory.setItem(slot, GuiItems.nothing(" "));
         inventory.setItem(20, item(Material.CHEST, "&a&lInventaire du joueur", List.of("&7Modifier les objets, l'armure et la main secondaire", "", "&eCliquer pour ouvrir")));
         inventory.setItem(24, item(Material.ENDER_CHEST, "&5&lEnder chest", List.of("&7Modifier le contenu de l'ender chest", "", "&eCliquer pour ouvrir")));
-        inventory.setItem(40, GuiItems.barrier("&cRetour / fermer"));
+        inventory.setItem(40, item(Material.ARROW, "&eRetour à la liste", List.of("&7Revenir au choix du joueur")));
         viewer.openInventory(inventory);
     }
 
-    private void openPlayerInventoryEditor(Player viewer, Player target, AdminPlayerInventoryHolder.Type type) {
-        AdminPlayerInventoryHolder holder = new AdminPlayerInventoryHolder(target.getUniqueId(), type);
+    private void openPlayerInventoryEditor(Player viewer, UUID targetId, String targetName, AdminPlayerInventoryHolder.Type type) {
+        Player onlineTarget = Bukkit.getPlayer(targetId);
+        boolean offline = onlineTarget == null;
+        if (offline && !offlineInventoryStore.hasSnapshot(targetId)) {
+            viewer.sendMessage(color("&cAucun instantané d'inventaire disponible pour ce joueur hors ligne."));
+            return;
+        }
+        AdminPlayerInventoryHolder holder = new AdminPlayerInventoryHolder(targetId, type, targetName, offline);
         String title = type == AdminPlayerInventoryHolder.Type.PLAYER_INVENTORY ? "&8Inventaire : " : "&8Ender chest : ";
-        Inventory inventory = Bukkit.createInventory(holder, 54, color(title + target.getName()));
+        Inventory inventory = Bukkit.createInventory(holder, 54, color(title + targetName));
         holder.setInventory(inventory);
         for (int slot = 0; slot < inventory.getSize(); slot++) inventory.setItem(slot, GuiItems.nothing(" "));
         if (type == AdminPlayerInventoryHolder.Type.PLAYER_INVENTORY) {
-            ItemStack[] contents = target.getInventory().getStorageContents();
+            ItemStack[] contents = offline ? loadOfflineStorage(targetId) : onlineTarget.getInventory().getStorageContents();
             for (int i = 0; i < Math.min(36, contents.length); i++) inventory.setItem(i, contents[i]);
-            ItemStack[] armor = target.getInventory().getArmorContents();
+            ItemStack[] armor = offline ? loadOfflineArmor(targetId) : onlineTarget.getInventory().getArmorContents();
             for (int i = 0; i < Math.min(4, armor.length); i++) inventory.setItem(45 + i, armor[i]);
-            inventory.setItem(50, target.getInventory().getItemInOffHand());
-            inventory.setItem(49, GuiItems.nothing("&8Armure au-dessus / main secondaire à droite"));
+            inventory.setItem(50, offline ? offlineInventoryStore.getItem(targetId, "inventory.offhand") : onlineTarget.getInventory().getItemInOffHand());
+            inventory.setItem(49, GuiItems.nothing(offline
+                    ? "&8Hors ligne : les changements seront appliqués à sa prochaine connexion"
+                    : "&8Armure au-dessus / main secondaire à droite"));
             inventory.setItem(51, GuiItems.nothing(" "));
             inventory.setItem(52, GuiItems.nothing(" "));
         } else {
-            ItemStack[] contents = target.getEnderChest().getContents();
+            ItemStack[] contents = offline ? loadOfflineEnder(targetId) : onlineTarget.getEnderChest().getContents();
             for (int i = 0; i < Math.min(27, contents.length); i++) inventory.setItem(i, contents[i]);
         }
-        inventory.setItem(53, GuiItems.barrier("&cEnregistrer et fermer"));
+        inventory.setItem(53, GuiItems.barrier("&cEnregistrer et revenir"));
         viewer.openInventory(inventory);
+    }
+
+    private ItemStack[] loadOfflineStorage(UUID uuid) {
+        ItemStack[] items = new ItemStack[36];
+        for (int i = 0; i < items.length; i++) items[i] = offlineInventoryStore.getItem(uuid, "inventory.storage." + i);
+        return items;
+    }
+
+    private ItemStack[] loadOfflineArmor(UUID uuid) {
+        ItemStack[] items = new ItemStack[4];
+        for (int i = 0; i < items.length; i++) items[i] = offlineInventoryStore.getItem(uuid, "inventory.armor." + i);
+        return items;
+    }
+
+    private ItemStack[] loadOfflineEnder(UUID uuid) {
+        ItemStack[] items = new ItemStack[27];
+        for (int i = 0; i < items.length; i++) items[i] = offlineInventoryStore.getItem(uuid, "ender." + i);
+        return items;
     }
 
     public boolean handleInventoryEditorClick(InventoryClickEvent event) {
@@ -208,8 +304,9 @@ public final class AdminGuiManager {
         int slot = event.getRawSlot();
         if (slot == 53 && event.getWhoClicked() instanceof Player player) {
             event.setCancelled(true);
-            saveInventoryEditor(event.getInventory(), (AdminPlayerInventoryHolder) event.getInventory().getHolder());
-            player.closeInventory();
+            AdminPlayerInventoryHolder holder = (AdminPlayerInventoryHolder) event.getInventory().getHolder();
+            saveInventoryEditor(event.getInventory(), holder);
+            openInventoryActionMenu(player, holder.getTarget(), holder.getTargetName());
             return true;
         }
         if (slot < 0 || slot >= event.getInventory().getSize() || event.getClick().isShiftClick() || event.getClick().isKeyboardClick()) {
@@ -237,7 +334,10 @@ public final class AdminGuiManager {
 
     private void saveInventoryEditor(Inventory inventory, AdminPlayerInventoryHolder holder) {
         Player target = Bukkit.getPlayer(holder.getTarget());
-        if (target == null) return;
+        if (target == null) {
+            offlineInventoryStore.saveEditor(holder.getTarget(), holder.getType(), inventory);
+            return;
+        }
         if (holder.getType() == AdminPlayerInventoryHolder.Type.ENDER_CHEST) {
             ItemStack[] contents = new ItemStack[27];
             for (int i = 0; i < 27; i++) contents[i] = inventory.getItem(i);
@@ -251,6 +351,7 @@ public final class AdminGuiManager {
             target.getInventory().setArmorContents(armor);
             target.getInventory().setItemInOffHand(inventory.getItem(50));
             target.updateInventory();
+            offlineInventoryStore.saveSnapshot(target);
         }
     }
 
@@ -267,7 +368,10 @@ public final class AdminGuiManager {
                 List<String> owned = new ArrayList<>(pets.getOwnedPets(target.getUniqueId()));
                 for (int i = 0; i < Math.min(owned.size(), 45); i++) {
                     String petId = owned.get(i);
-                    inventory.setItem(i, item(Material.LEAD, "&b" + petId, List.of("&7Retirer ce pet", "&eCliquer pour confirmer")));
+                    long remaining = pets.getRemovalLockRemainingSeconds(target.getUniqueId(), petId);
+                    inventory.setItem(i, item(Material.LEAD, "&b" + petId, remaining > 0
+                            ? List.of("&cVerrouillé encore " + remaining + " s")
+                            : List.of("&7Retirer ce pet", "&eCliquer pour confirmer")));
                 }
             }
             inventory.setItem(45, item(Material.REDSTONE, "&cRetirer 1 pet", List.of("&7Retire un pet possédé")));

@@ -53,6 +53,10 @@ public final class AdminCommand implements CommandExecutor {
                 player.sendMessage(ChatColor.GREEN + "" + removed + " pet(s) retiré(s) à " + target.getName() + ".");
             } else if (pets.removeOwnedPet(target.getUniqueId(), choice)) {
                 player.sendMessage(ChatColor.GREEN + "Pet " + choice + " retiré à " + target.getName() + ".");
+            } else if (pets.owns(target.getUniqueId(), choice)
+                    && pets.getRemovalLockRemainingSeconds(target.getUniqueId(), choice) > 0L) {
+                player.sendMessage(ChatColor.RED + "Ce pet est verrouillé pendant encore "
+                        + pets.getRemovalLockRemainingSeconds(target.getUniqueId(), choice) + " seconde(s).");
             } else {
                 player.sendMessage(ChatColor.RED + "Ce joueur ne possède pas ce pet.");
             }

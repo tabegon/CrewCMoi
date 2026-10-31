@@ -50,7 +50,7 @@ public class CombatListener implements Listener {
             return;
         }
 
-        event.setDamage(malusEffectManager.applyReduction(attacker, event.getDamage()));
+        event.setDamage(malusEffectManager.applyReduction(attacker, victim, event.getDamage()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

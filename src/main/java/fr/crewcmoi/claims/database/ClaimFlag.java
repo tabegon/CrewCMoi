@@ -9,6 +9,7 @@ public enum ClaimFlag {
     BUCKETS("Seaux", "Utiliser un seau (eau, lave...)"),
     FIRE("Feu", "Allumer/laisser se propager le feu"),
     EXPLOSIONS("Explosions", "TNT, creepers... (dégâts aux blocs)"),
+    MOB_INTERACT("Interaction avec les mobs", "Interagir avec les créatures (sans affecter les joueurs)"),
     MOB_GRIEFING("Mobs", "Modification de blocs par les monstres/animaux");
 
     private final String displayName;

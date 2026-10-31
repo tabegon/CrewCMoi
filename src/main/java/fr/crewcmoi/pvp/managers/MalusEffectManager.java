@@ -146,21 +146,26 @@ public class MalusEffectManager {
         }
     }
 
+    public double applyReduction(Player attacker, Player victim, double damage) {
+        int level = reductionLevel.getOrDefault(attacker.getUniqueId(), 0);
+        if (level == 0 || victim == null) return damage;
+
+        int targetGroup = plugin.getPvpGroupManager() == null
+                ? 1 : plugin.getPvpGroupManager().getGroup(victim.getUniqueId());
+        double[] reductions = switch (targetGroup) {
+            case 0 -> new double[]{0.0, 0.20, 0.40, 0.60};
+            case 2 -> new double[]{0.0, 0.05, 0.10, 0.15};
+            default -> new double[]{0.0, 0.10, 0.20, 0.30};
+        };
+        return damage * (1.0 - reductions[Math.max(0, Math.min(3, level))]);
+    }
+
+    /** Compatibilité avec les appels qui ne disposent pas de la cible. */
     public double applyReduction(Player attacker, double damage) {
         int level = reductionLevel.getOrDefault(attacker.getUniqueId(), 0);
-        if (level == 0) {
-            return damage;
-        }
-        double reduction;
-
-        if (level == 3) {
-            reduction = tier3ReductionPercent;
-        } else if (level == 2) {
-            reduction = tier2ReductionPercent;
-        } else {
-            reduction = tier1ReductionPercent;
-        }
-
+        if (level == 0) return damage;
+        double reduction = level == 3 ? tier3ReductionPercent
+                : level == 2 ? tier2ReductionPercent : tier1ReductionPercent;
         return damage * (1.0 - reduction);
     }
 

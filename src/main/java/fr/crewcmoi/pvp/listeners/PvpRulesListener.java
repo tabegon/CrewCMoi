@@ -156,10 +156,13 @@ public class PvpRulesListener implements Listener {
         if (to == null || from.getWorld() == null || to.getWorld() == null) {
             return;
         }
-        if (!from.getWorld().equals(to.getWorld())) {
+        // Les perles peuvent changer de monde sauf lorsqu'elles feraient entrer le joueur
+        // dans le monde de structure. Les téléportations à l'intérieur d'un même monde restent permises.
+        if (!from.getWorld().equals(to.getWorld())
+                && "structure".equalsIgnoreCase(to.getWorld().getName())) {
             event.setCancelled(true);
             event.getPlayer().sendMessage(org.bukkit.ChatColor.RED +
-                    "Vous ne pouvez pas vous téléporter entre les mondes avec une perle de l'Ender.");
+                    "Vous ne pouvez pas entrer dans le monde structure avec une perle de l'Ender.");
         }
     }
 

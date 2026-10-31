@@ -35,39 +35,47 @@ public class SellGuiManager {
         this.economyManager = economyManager;
     }
 
-    private double getSellPrice(ItemStack stack) {
+    private double getSellPrice(ItemStack stack, Player player) {
+        double rawPrice = getRawSellPrice(stack);
+        if (rawPrice <= 0.0D) return -1.0D;
+
+        double slightIncrease = Math.max(0.0D,
+                plugin.getConfig().getDouble("sellbot.base-price-multiplier", 1.05D));
+        return rawPrice * slightIncrease * getWealthMultiplier(player);
+    }
+
+    private double getRawSellPrice(ItemStack stack) {
+        if (stack == null || stack.getType().isAir()) return -1.0D;
+
         double taggedPrice = HeadSellPrice.getPrice(plugin, stack);
-        if (taggedPrice > 0) {
-            return taggedPrice;
-        }
+        if (taggedPrice > 0.0D) return taggedPrice;
 
         double basePrice = pricesManager.getPrice(stack);
         double contentValue = getShulkerContentValue(stack);
+        if (basePrice <= 0.0D && contentValue <= 0.0D) return -1.0D;
+        return Math.max(basePrice, 0.0D) + contentValue;
+    }
 
-        if (basePrice <= 0 && contentValue <= 0) {
-            return -1.0;
-        }
-        return Math.max(basePrice, 0.0) + contentValue;
+    private double getWealthMultiplier(Player player) {
+        double balance = economyManager.getBalance(player.getUniqueId());
+        if (balance <= 10_000.0D) return 1.0D;
+        if (balance <= 50_000.0D) return 0.9D;
+        if (balance <= 100_000.0D) return 0.8D;
+        if (balance <= 500_000.0D) return 0.7D;
+        if (balance <= 1_000_000.0D) return 0.6D;
+        return 0.5D;
     }
 
     private double getShulkerContentValue(ItemStack stack) {
         ItemMeta meta = stack.getItemMeta();
-        if (!(meta instanceof BlockStateMeta blockStateMeta)) {
-            return 0.0;
-        }
-        if (!(blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox)) {
-            return 0.0;
-        }
+        if (!(meta instanceof BlockStateMeta blockStateMeta)) return 0.0D;
+        if (!(blockStateMeta.getBlockState() instanceof ShulkerBox shulkerBox)) return 0.0D;
 
-        double total = 0.0;
+        double total = 0.0D;
         for (ItemStack content : shulkerBox.getInventory().getContents()) {
-            if (content == null || content.getType() == Material.AIR) {
-                continue;
-            }
-            double unitPrice = getSellPrice(content);
-            if (unitPrice > 0) {
-                total += unitPrice * content.getAmount();
-            }
+            if (content == null || content.getType() == Material.AIR) continue;
+            double unitPrice = getRawSellPrice(content);
+            if (unitPrice > 0.0D) total += unitPrice * content.getAmount();
         }
         return total;
     }
@@ -78,12 +86,12 @@ public class SellGuiManager {
                 ChatColor.translateAlternateColorCodes('&', "&2&lᴠᴇɴᴛᴇ ᴅ'ᴏʙᴊᴇᴛꜱ"));
         holder.setInventory(gui);
 
-        renderNormalState(gui);
+        renderNormalState(gui, player);
 
         player.openInventory(gui);
     }
 
-    private void renderNormalState(Inventory gui) {
+    private void renderNormalState(Inventory gui, Player player) {
         ItemStack filler = createFiller();
 
         // Tous les slots sauf ceux réservés au dépôt sont décorés.
@@ -125,7 +133,7 @@ public class SellGuiManager {
         gui.setItem(SellHolder.SELL_SLOT, GuiItems.checkmarkButton("&a&lᴠᴇɴᴅʀᴇ"));
 
         // Bouton Search fixe (Custom Model Data 16 via GuiItems).
-        renderSearchButtons(gui, false);
+        renderSearchButtons(gui, false, player);
 
         // Ces quatre emplacements doivent toujours utiliser le modèle ItemsAdder demandé.
         ItemStack sellBotFiller = itemsAdderItem("server:fill_button", new ItemStack(Material.GRAY_STAINED_GLASS_PANE));
@@ -150,14 +158,14 @@ public class SellGuiManager {
         return slots.stream().filter(SellHolder::isItemSlot).distinct().mapToInt(Integer::intValue).toArray();
     }
 
-    private double calculateSearchTotal(Inventory gui) {
+    private double calculateSearchTotal(Inventory gui, Player player) {
         double total = 0.0;
         for (int slot : getSearchItemSlots()) {
             ItemStack stack = gui.getItem(slot);
             if (stack == null || stack.getType() == Material.AIR) {
                 continue;
             }
-            double unitPrice = getSellPrice(stack);
+            double unitPrice = getSellPrice(stack, player);
             if (unitPrice > 0) {
                 total += unitPrice * stack.getAmount();
             }
@@ -165,8 +173,8 @@ public class SellGuiManager {
         return total;
     }
 
-    private ItemStack createSearchButton(Inventory gui, boolean calculated) {
-        double total = calculateSearchTotal(gui);
+    private ItemStack createSearchButton(Inventory gui, boolean calculated, Player player) {
+        double total = calculateSearchTotal(gui, player);
         ItemStack item = GuiItems.searchButton("&6&lRECHERCHE");
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
@@ -200,7 +208,7 @@ public class SellGuiManager {
                 .replace("%currency%", currency);
     }
 
-    private void renderSearchButtons(Inventory gui, boolean calculated) {
+    private void renderSearchButtons(Inventory gui, boolean calculated, Player player) {
         for (int slot : getSearchSlots()) {
             if (slot < 0 || slot >= SellHolder.SIZE) {
                 continue;
@@ -209,12 +217,12 @@ public class SellGuiManager {
                 plugin.getLogger().warning("Sell GUI : le slot search " + slot + " entre en conflit avec un bouton existant.");
                 continue;
             }
-            gui.setItem(slot, createSearchButton(gui, calculated));
+            gui.setItem(slot, createSearchButton(gui, calculated, player));
         }
     }
 
-    public void calculateAndDisplaySearch(Inventory gui) {
-        renderSearchButtons(gui, true);
+    public void calculateAndDisplaySearch(Inventory gui, Player player) {
+        renderSearchButtons(gui, true, player);
     }
 
     public boolean isSearchSlot(int slot) {
@@ -287,7 +295,7 @@ public class SellGuiManager {
                 .replace("%currency%", currency);
     }
 
-    private ItemStack createConfirmButton(Inventory gui) {
+    private ItemStack createConfirmButton(Inventory gui, Player player) {
         String currency = plugin.getConfig().getString("economy.currency-symbol");
         double total = 0.0;
         int itemCount = 0;
@@ -298,7 +306,7 @@ public class SellGuiManager {
             if (stack == null || stack.getType() == Material.AIR) {
                 continue;
             }
-            double unitPrice = getSellPrice(stack);
+            double unitPrice = getSellPrice(stack, player);
             if (unitPrice <= 0) {
                 hasUnsellable = true;
                 continue;
@@ -327,8 +335,8 @@ public class SellGuiManager {
         return sellButton;
     }
 
-    public void refreshConfirmButton(Inventory gui) {
-        gui.setItem(SellHolder.SELL_SLOT, createConfirmButton(gui));
+    public void refreshConfirmButton(Inventory gui, Player player) {
+        gui.setItem(SellHolder.SELL_SLOT, createConfirmButton(gui, player));
     }
 
     public void askConfirmation(Player player, Inventory gui, SellHolder holder) {
@@ -342,7 +350,7 @@ public class SellGuiManager {
                 continue;
             }
             snapshot.add(stack.clone());
-            double unitPrice = getSellPrice(stack);
+            double unitPrice = getSellPrice(stack, player);
             if (unitPrice > 0) {
                 total += unitPrice * stack.getAmount();
                 itemCount += stack.getAmount();
@@ -392,7 +400,7 @@ public class SellGuiManager {
         gui.setItem(SellHolder.CANCEL_CONFIRM_SLOT, cancelButton);
     }
 
-    public void cancelConfirmation(Inventory gui, SellHolder holder) {
+    public void cancelConfirmation(Player player, Inventory gui, SellHolder holder) {
         List<ItemStack> pending = holder.getPendingItems();
         holder.setConfirming(false);
         holder.setPendingItems(null);
@@ -412,7 +420,7 @@ public class SellGuiManager {
             }
         }
 
-        renderNormalState(gui);
+        renderNormalState(gui, player);
     }
 
     public void confirmSale(Player player, Inventory gui, SellHolder holder) {
@@ -430,7 +438,7 @@ public class SellGuiManager {
         String currency = plugin.getConfig().getString("economy.currency-symbol");
 
         for (ItemStack stack : pending) {
-            double unitPrice = getSellPrice(stack);
+            double unitPrice = getSellPrice(stack, player);
             if (unitPrice <= 0) {
 
                 returnSingleItem(player, stack);

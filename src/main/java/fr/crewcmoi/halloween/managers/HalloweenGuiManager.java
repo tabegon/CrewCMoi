@@ -98,6 +98,7 @@ public class HalloweenGuiManager {
         ItemStack nothingItem = GuiItems.nothing(" ");
         if (13 < size) inv.setItem(13, nothingItem.clone());
         if (27 < size) inv.setItem(27, nothingItem.clone());
+        if (31 < size) inv.setItem(31, nothingItem.clone());
         p.openInventory(inv);
     }
 

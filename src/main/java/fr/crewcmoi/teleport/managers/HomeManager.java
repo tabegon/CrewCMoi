@@ -21,6 +21,12 @@ public class HomeManager {
     public List<HomeData> getAllHomes() { return databaseManager.getAllHomes(); }
     public int getHomeCount(UUID uuid) { return databaseManager.getHomes(uuid).size(); }
 
+    public double getNextSlotPrice(UUID uuid) {
+        double base = Math.max(0.0D, plugin.getConfig().getDouble("homes.base-price", 5000.0D));
+        int purchasedSlots = Math.max(1, getMaxHomes(uuid));
+        return base * Math.pow(2.0D, purchasedSlots - 1);
+    }
+
     public void setHome(Player player, String name, Consumer<Boolean> callback) {
         String world = player.getWorld().getName(); Location loc=player.getLocation();
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {

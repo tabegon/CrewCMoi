@@ -133,12 +133,15 @@ public final class ConfiguredEntityInteractionListener implements Listener {
         Location location = new Location(world,
                 plugin.getConfig().getDouble(path + "x", -42.5),
                 plugin.getConfig().getDouble(path + "y", 73.50),
-                plugin.getConfig().getDouble(path + "z", -83.5));
+                plugin.getConfig().getDouble(path + "z", -83.5),
+                (float) plugin.getConfig().getDouble(path + "yaw", 220.0),
+                (float) plugin.getConfig().getDouble(path + "pitch", 0.0));
         TextDisplay display = world.spawn(location, TextDisplay.class, textDisplay -> {
             String text = String.join("\n", plugin.getConfig().getStringList(path + "text").stream()
                     .map(line -> ChatColor.translateAlternateColorCodes('&', line)).toList());
             textDisplay.setText(text.isEmpty() ? ChatColor.GOLD + "RÈGLES DU SERVEUR" : text);
             textDisplay.setBillboard(TextDisplay.Billboard.FIXED);
+            textDisplay.setRotation(location.getYaw(), location.getPitch());
             textDisplay.setLineWidth(Math.max(100, plugin.getConfig().getInt(path + "line-width", 280)));
             textDisplay.setSeeThrough(true);
             textDisplay.setShadowed(true);

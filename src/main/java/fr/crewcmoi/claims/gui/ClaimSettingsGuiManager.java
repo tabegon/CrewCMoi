@@ -20,6 +20,7 @@ import java.util.List;
 public class ClaimSettingsGuiManager {
 
     private static final int SIZE = 27;
+    private static final int MOB_INTERACT_SLOT = 21;
     private static final int MOB_GRIEFING_SLOT = 22;
     /** Bouton de téléportation, affiché uniquement dans la vue admin. */
     public static final int ADMIN_TELEPORT_SLOT = 24;
@@ -65,13 +66,16 @@ public class ClaimSettingsGuiManager {
         
         int slot = 10;
         for (ClaimFlag flag : ClaimFlag.values()) {
-            if (flag == ClaimFlag.MOB_GRIEFING) {
+            if (flag == ClaimFlag.MOB_GRIEFING || flag == ClaimFlag.MOB_INTERACT) {
                 continue;
             }
             gui.setItem(slot, buildItem(flag, claim.getPermission(flag)));
             holder.mapSlot(slot, flag);
             slot++;
         }
+
+        gui.setItem(MOB_INTERACT_SLOT, buildItem(ClaimFlag.MOB_INTERACT, claim.getPermission(ClaimFlag.MOB_INTERACT)));
+        holder.mapSlot(MOB_INTERACT_SLOT, ClaimFlag.MOB_INTERACT);
 
         gui.setItem(MOB_GRIEFING_SLOT, buildItem(ClaimFlag.MOB_GRIEFING, claim.getPermission(ClaimFlag.MOB_GRIEFING)));
         holder.mapSlot(MOB_GRIEFING_SLOT, ClaimFlag.MOB_GRIEFING);
@@ -143,7 +147,7 @@ public class ClaimSettingsGuiManager {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.translateAlternateColorCodes('&', "&7" + flag.getDescription()));
         lore.add("");
-        if (flag == ClaimFlag.MOB_GRIEFING) {
+        if (flag == ClaimFlag.MOB_GRIEFING || flag == ClaimFlag.MOB_INTERACT) {
             lore.add(ChatColor.translateAlternateColorCodes('&', "&7État : " + (permission == ClaimPermission.EVERYONE ? "&aON" : "&cOFF")));
             lore.add("");
             lore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour activer/désactiver"));
@@ -161,6 +165,9 @@ public class ClaimSettingsGuiManager {
         if (flag == ClaimFlag.MOB_GRIEFING) {
             return permission == ClaimPermission.EVERYONE ? 53 : 55;
         }
+        if (flag == ClaimFlag.MOB_INTERACT) {
+            return permission == ClaimPermission.EVERYONE ? 70 : 71;
+        }
         boolean everyone = permission == ClaimPermission.EVERYONE;
         boolean trusted = permission == ClaimPermission.TRUSTED;
         return switch (flag) {
@@ -171,6 +178,7 @@ public class ClaimSettingsGuiManager {
             case BUCKETS -> everyone ? 66 : trusted ? 67 : 68;
             case FIRE -> everyone ? 64 : trusted ? 59 : 64;
             case EXPLOSIONS -> everyone ? 60 : trusted ? 61 : 62;
+            case MOB_INTERACT -> permission == ClaimPermission.EVERYONE ? 70 : 71;
             case MOB_GRIEFING -> permission == ClaimPermission.EVERYONE ? 53 : 55;
         };
     }
@@ -184,6 +192,7 @@ public class ClaimSettingsGuiManager {
             case BUCKETS -> "Seaux";
             case FIRE -> "Allumer feu";
             case EXPLOSIONS -> "Explosions";
+            case MOB_INTERACT -> "Interagir avec les mobs";
             case MOB_GRIEFING -> "Mobs spawn";
         };
     }

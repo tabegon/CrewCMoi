@@ -108,6 +108,7 @@ import fr.crewcmoi.moderation.managers.StaffModeManager;
 import fr.crewcmoi.moderation.managers.VanishManager;
 import fr.crewcmoi.moderation.commands.MuteCommand;
 import fr.crewcmoi.moderation.listeners.MuteListener;
+import fr.crewcmoi.moderation.listeners.ChatFilterListener;
 import fr.crewcmoi.moderation.managers.MuteManager;
 import fr.crewcmoi.tab.commands.RoleCommand;
 import fr.crewcmoi.tab.listeners.TabListListener;
@@ -233,6 +234,7 @@ public class Main extends JavaPlugin {
         }
 
         mergeMissingEntityInteractionDefaults();
+        mergeMissingLootboxDefaults();
 
         boolean removedFromMain = false;
         for (var entry : files.entrySet()) {
@@ -301,6 +303,46 @@ public class Main extends JavaPlugin {
         }
     }
 
+    private void mergeMissingLootboxDefaults() {
+        File file = new File(getDataFolder(), "lootbox.yml");
+        if (!file.isFile()) return;
+
+        YamlConfiguration current = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration defaults;
+        try (java.io.InputStream stream = getResource("lootbox.yml")) {
+            if (stream == null) return;
+            defaults = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        } catch (IOException exception) {
+            getLogger().warning("Impossible de charger les valeurs par défaut de lootbox.yml : " + exception.getMessage());
+            return;
+        }
+
+        String path = "lootbox-teleport";
+        if (!defaults.isConfigurationSection(path)) return;
+        boolean changed = false;
+        boolean customPoolAlreadyDefined = current.isConfigurationSection(path + ".animation.pool");
+        boolean customDisplayLocationsAlreadyDefined = current.isConfigurationSection(path + ".animation.display-locations");
+        for (var entry : defaults.getConfigurationSection(path).getValues(true).entrySet()) {
+            if (entry.getValue() instanceof org.bukkit.configuration.ConfigurationSection) continue;
+            String key = path + "." + entry.getKey();
+            if (customPoolAlreadyDefined && key.startsWith(path + ".animation.pool.")) continue;
+            if (customDisplayLocationsAlreadyDefined && key.startsWith(path + ".animation.display-locations.")) continue;
+            if (!current.contains(key)) {
+                current.set(key, entry.getValue());
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            try {
+                current.save(file);
+                getLogger().info("Valeurs manquantes de lootbox.yml ajoutées sans écraser les réglages existants ni repeupler une pool personnalisée.");
+            } catch (IOException exception) {
+                getLogger().warning("Impossible d'enregistrer les nouvelles valeurs de lootbox.yml : " + exception.getMessage());
+            }
+        }
+    }
+
     @Override
     public void onEnable() {
         instance = this;
@@ -355,6 +397,11 @@ public class Main extends JavaPlugin {
         this.claimAuctionGuiManager = new ClaimAuctionGuiManager(this, claimManager);
         this.claimAdminGuiManager = new ClaimAdminGuiManager(this, claimManager, claimSettingsGuiManager);
         this.adminGuiManager = new AdminGuiManager(this, bountyReviewGuiManager, claimAdminGuiManager, homeAdminGuiManager, playerAdminGuiManager);
+        getServer().getPluginManager().registerEvents(adminGuiManager.getOfflineInventoryStore(), this);
+        fr.crewcmoi.wiki.WikiManager wikiManager = new fr.crewcmoi.wiki.WikiManager(this);
+        getServer().getPluginManager().registerEvents(wikiManager, this);
+        registerCommand("wiki", new fr.crewcmoi.wiki.WikiCommand(wikiManager));
+        Bukkit.getScheduler().runTask(this, wikiManager::registerAdvancementTab);
         this.duelKitManager = new fr.crewcmoi.pvp.managers.DuelKitManager(this);
         this.duelManager = new DuelManager(this, economyManager, combatManager);
         this.spectateManager = new SpectateManager(this, duelManager);
@@ -400,6 +447,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TabListListener(tabListManager), this);
         getServer().getPluginManager().registerEvents(new ChatRoleListener(roleManager), this);
         getServer().getPluginManager().registerEvents(new MuteListener(muteManager), this);
+        getServer().getPluginManager().registerEvents(new ChatFilterListener(), this);
         getServer().getPluginManager().registerEvents(new QuestListener(this, questManager), this);
         getServer().getPluginManager().registerEvents(new CommandTabCompleteListener(), this);
         getServer().getPluginManager().registerEvents(new QuestCommandListener(this), this);
@@ -435,7 +483,15 @@ public class Main extends JavaPlugin {
             Bukkit.getScheduler().runTaskLater(this, customItemRecipeManager::registerRecipes, 20L);
             getServer().getPluginManager().registerEvents(new FlyingBananaListener(this), this);
             getServer().getPluginManager().registerEvents(new KnifeListener(this), this);
-            getServer().getPluginManager().registerEvents(new fr.crewcmoi.economie.listeners.LootboxKeyTeleportListener(this), this);
+            fr.crewcmoi.economie.listeners.LootboxKeyTeleportListener lootboxKeyTeleportListener =
+                    new fr.crewcmoi.economie.listeners.LootboxKeyTeleportListener(this);
+            getServer().getPluginManager().registerEvents(lootboxKeyTeleportListener, this);
+            if (getServer().getPluginManager().isPluginEnabled("Citizens")) {
+                fr.crewcmoi.economie.listeners.LootboxAnimationListener lootboxAnimationListener =
+                        new fr.crewcmoi.economie.listeners.LootboxAnimationListener(this, lootboxKeyTeleportListener);
+                lootboxKeyTeleportListener.setAnimationListener(lootboxAnimationListener);
+                getServer().getPluginManager().registerEvents(lootboxAnimationListener, this);
+            }
         } else {
             getLogger().warning("ItemsAdder n'est pas détecté : la pièce échangeable contre de l'argent est désactivée.");
         }
@@ -522,6 +578,7 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (adminGuiManager != null) adminGuiManager.getOfflineInventoryStore().saveAllOnline();
         if (questManager != null) {
             questManager.shutdown();
         }

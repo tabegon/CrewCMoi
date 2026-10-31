@@ -8,6 +8,9 @@ softdepend: [ItemsAdder, MythicMobs, Vault, PlaceholderAPI, Citizens, CosmeticsC
 loadbefore: [RPGhuds]
 
 commands:
+  wiki:
+    description: Ouvre le wiki du serveur CrewCMoi.
+    usage: /wiki
   admin:
     description: Ouvre le menu central d’administration et les outils de modération.
     aliases: [admins]

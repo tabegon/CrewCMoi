@@ -103,7 +103,7 @@ public class PetManager implements org.bukkit.event.Listener {
     }
 
     public boolean removeOwnedPet(UUID playerId, String petId) {
-        if (!owns(playerId, petId)) return false;
+        if (!owns(playerId, petId) || getRemovalLockRemainingSeconds(playerId, petId) > 0L) return false;
         Player player = Bukkit.getPlayer(playerId);
         if (petId.equalsIgnoreCase(getActivePet(playerId)) && player != null) {
             deactivate(player, false);
@@ -121,6 +121,27 @@ public class PetManager implements org.bukkit.event.Listener {
             if (removeOwnedPet(playerId, petId)) removed++;
         }
         return removed;
+    }
+
+    public long getRemovalLockRemainingSeconds(UUID playerId, String petId) {
+        long until = data.getLong("players." + playerId + ".removal-locks." + petId, 0L);
+        long remaining = until - System.currentTimeMillis();
+        if (remaining <= 0L) {
+            if (until > 0L) {
+                data.set("players." + playerId + ".removal-locks." + petId, null);
+                save();
+            }
+            return 0L;
+        }
+        return (remaining + 999L) / 1000L;
+    }
+
+    private void startRemovalLock(UUID playerId, String petId) {
+        long seconds = Math.max(0L, plugin.getConfig().getLong("pets.removal-lock-seconds", 30L));
+        if (seconds <= 0L) return;
+        data.set("players." + playerId + ".removal-locks." + petId,
+                System.currentTimeMillis() + seconds * 1000L);
+        save();
     }
 
     public String getActivePet(UUID playerId) {
@@ -252,6 +273,12 @@ public class PetManager implements org.bukkit.event.Listener {
 
         String active = getActivePet(player.getUniqueId());
         if (petId.equalsIgnoreCase(active)) {
+            long remaining = getRemovalLockRemainingSeconds(player.getUniqueId(), petId);
+            if (remaining > 0L) {
+                Messages.send(player, "pets.cooldown-cannot-remove",
+                        java.util.Map.of("seconds", String.valueOf(remaining)));
+                return;
+            }
             deactivate(player, true);
             return;
         }
@@ -303,6 +330,7 @@ public class PetManager implements org.bukkit.event.Listener {
 
             activePets.put(player.getUniqueId(), found.getUniqueId());
             setActivePet(player.getUniqueId(), petId);
+            startRemovalLock(player.getUniqueId(), petId);
             found.getPersistentDataContainer().set(
                     new org.bukkit.NamespacedKey(plugin, "crew_pet_owner"),
                     PersistentDataType.STRING,
